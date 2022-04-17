@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout>
+    <data>
+        <variable
+            name="comment"
+            type="com.example.appportfolio.data.entities.Comment" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_marginTop="10dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:layout_marginLeft="38dp"
+            android:id="@+id/imgProfile"
+            android:src="@drawable/icon_none"
+            app:anonymous="@{comment.anonymous}"
+            app:gender="@{comment.gender}"
+            profileimage="@{comment.profileimage}"
+            app:civ_border_width="0.1dp"
+            app:civ_border_color="#8C7878"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guidline1"
+            android:layout_width="38dp"
+            android:layout_height="38dp"/>
+        <LinearLayout
+
+            android:layout_marginLeft="10dp"
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="@id/imgProfile"
+            app:layout_constraintBottom_toBottomOf="@id/imgProfile"
+            app:layout_constraintStart_toEndOf="@id/imgProfile"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp">
+            <TextView
+                android:textStyle="bold"
+                app:anony="@{comment.anonymous}"
+                app:nickname="@{comment.nickname}"
+                android:textSize="13dp"
+                android:id="@+id/tvNick"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+            </TextView>
+            <TextView
+                android:textSize="13dp"
+                app:watchlater="@{comment.time}"
+                android:id="@+id/time"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+            </TextView>
+        </LinearLayout>
+
+        <TextView
+
+            android:textSize="16dp"
+            android:textColor="@color/black"
+            android:layout_marginLeft="10dp"
+            android:text="@{comment.text}"
+            android:id="@+id/text"
+            android:layout_marginTop="10dp"
+            app:layout_constraintTop_toBottomOf="@+id/imgProfile"
+            android:layout_width="0dp"
+            app:layout_constraintStart_toEndOf="@+id/imgProfile"
+            app:layout_constraintEnd_toStartOf="@id/guidline2"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:textStyle="bold"
+            app:isliked="@{comment.commentliked}"
+            app:likecount="@{comment.likecount}"
+            android:id="@+id/like"
+            android:layout_marginTop="10dp"
+            android:text="좋아요"
+            android:textSize="12dp"
+            android:layout_marginLeft="10dp"
+            app:layout_constraintStart_toEndOf="@id/imgProfile"
+            app:layout_constraintTop_toBottomOf="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+
+        <TextView
+            bindreplycount="@{comment.replycount}"
+            android:visibility="gone"
+            android:textStyle="bold"
+            android:textColor="@color/skinfore"
+            android:layout_marginTop="15dp"
+            android:id="@+id/replycount"
+            android:textSize="12dp"
+            app:layout_constraintTop_toBottomOf="@+id/like"
+            app:layout_constraintStart_toEndOf="@id/imgProfile"
+            android:layout_marginLeft="10dp"
+            android:text="답글 100개"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <View
+            app:layout_constraintTop_toBottomOf="@id/replycount"
+            android:layout_marginTop="10dp"
+            android:background="@color/toolbarlinecolor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="0.003dp"/>
+        <ImageView
+            android:id="@+id/commentmenu"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="10dp"
+            android:clickable="true"
+            android:background="?attr/selectableItemBackground"
+            android:src="@drawable/menudot"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginEnd="10dp"
+            android:layout_width="20dp"
+            android:layout_height="20dp"/>
+        <androidx.constraintlayout.widget.Guideline
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/guidline1"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.05"/>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/guidline2"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.95"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>

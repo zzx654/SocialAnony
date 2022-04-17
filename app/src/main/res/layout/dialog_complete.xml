@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:background="@color/skin"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        android:textStyle="bold"
+        android:gravity="center_horizontal"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:textColor="@color/black"
+        android:textSize="15dp"
+        android:text="입력하신 내용을 확인해 주세요"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+<LinearLayout
+    android:padding="17dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_gravity="center_horizontal"
+    android:background="@drawable/linearborder"
+    android:layout_marginTop="20dp"
+    android:layout_width="wrap_content"
+    android:layout_height="118dp">
+    <LinearLayout
+
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/tvNick"
+            android:textColor="@color/black"
+            android:layout_marginBottom="2dp"
+            android:textSize="13dp"
+
+            android:layout_gravity="left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tvGender"
+            android:textColor="@color/black"
+            android:layout_marginBottom="2dp"
+            android:textSize="13dp"
+
+            android:layout_gravity="left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/tvBirth"
+            android:textColor="@color/black"
+            android:textSize="13dp"
+            android:layout_gravity="left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+
+
+</LinearLayout>
+
+
+
+    <LinearLayout
+        android:layout_marginTop="25dp"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.button.MaterialButton
+            android:includeFontPadding="false"
+            android:backgroundTint="@color/skin"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:id="@+id/cancel"
+            android:text="취소"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            app:cornerRadius="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+
+          />
+        <Button
+            android:backgroundTint="@color/positive"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:includeFontPadding="false"
+            android:id="@+id/save"
+
+            android:textColor="@color/black"
+            android:text="확인"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            />
+    </LinearLayout>
+
+
+
+
+</LinearLayout>

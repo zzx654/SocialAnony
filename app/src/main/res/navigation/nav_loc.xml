@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_loc"
+    app:startDestination="@id/searchMapFragment">
+
+    <fragment
+        android:id="@+id/searchMapFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.SearchMapFragment"
+        android:label="SearchMapFragment" >
+
+        <action
+            android:id="@+id/action_searchMapFragment_to_searchLocFragment"
+            app:destination="@id/searchLocFragment"
+          />
+    </fragment>
+    <fragment
+        android:id="@+id/searchLocFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.SearchLocFragment"
+        android:label="SearchLocFragment" >
+        <action
+            android:id="@+id/action_searchLocFragment_to_searchMapFragment"
+            app:destination="@id/searchMapFragment"
+            />
+    </fragment>
+</navigation>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/skin"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="40dp"
+            android:id="@+id/imgProfile"
+            android:src="@drawable/icon_none"
+            app:civ_border_width="0.1dp"
+            app:civ_border_color="#8C7878"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="120dp"
+            android:layout_height="120dp">
+
+        </de.hdodenhof.circleimageview.CircleImageView>
+        <de.hdodenhof.circleimageview.CircleImageView
+            app:civ_circle_background_color="@color/white"
+            app:civ_border_width="0.01dp"
+            app:civ_border_color="@color/gray"
+            android:src="@drawable/ic_camera"
+            app:layout_constraintBottom_toBottomOf="@id/imgProfile"
+            app:layout_constraintEnd_toEndOf="@id/imgProfile"
+            android:layout_width="25dp"
+            android:layout_height="25dp"/>
+
+        <EditText
+            android:theme="@style/editText"
+            android:maxLines="1"
+            android:id="@+id/edtnick"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:gravity="center"
+            android:text="짱구"
+            android:layout_marginTop="30dp"
+            app:layout_constraintTop_toBottomOf="@id/imgProfile"
+            android:background="@drawable/box_border"
+            android:layout_width="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_marginTop="10dp"
+            android:text="프로필 사진과 닉네임을 입력해주세요"
+            app:layout_constraintTop_toBottomOf="@id/edtnick"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <com.google.android.material.button.MaterialButton
+            android:clickable="false"
+            app:cornerRadius="0dp"
+            android:insetBottom="0dp"
+            android:id="@+id/complete"
+            android:backgroundTint="@color/inactive"
+            android:text="완료"
+            android:layout_width="match_parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_height="55dp"/>
+        <ProgressBar
+            android:layout_marginBottom="40dp"
+            android:visibility="gone"
+            android:indeterminateTint="@color/skin_bar"
+            app:layout_constraintBottom_toTopOf="@id/complete"
+            android:id="@+id/editprogressbar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="35dp"
+            android:layout_height="35dp"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

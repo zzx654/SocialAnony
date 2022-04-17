@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="330dp"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:text="신고사유"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <View
+        android:id="@+id/line"
+        android:layout_marginTop="15dp"
+
+        android:layout_width="match_parent"
+        android:layout_height="0.0003dp"
+
+        android:background="#A4A8AC" />
+    <RadioGroup
+        android:id="@+id/rgReport"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:checked="true"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb1"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="만남/전화/구인/타 SNS로 유도"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb2"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="무분별한 비난"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb3"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="욕설,비방"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb4"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="상업적 목적의 내용"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb5"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="음란, 청소년에게 부적절한 내용"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb6"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="사회적 갈등 조장"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+        <RadioButton
+            android:buttonTint="@color/skin_bar"
+
+            android:layout_marginTop="7dp"
+            android:id="@+id/rb7"
+            android:layout_marginLeft="20dp"
+            android:paddingLeft="19dp"
+            android:text="불쾌한 내용"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </RadioGroup>
+    <View
+        android:layout_marginTop="7dp"
+        android:id="@+id/line2"
+
+        android:layout_width="match_parent"
+        android:layout_height="0.003dp"
+
+        android:background="#A4A8AC" />
+    
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+       <Button
+           android:id="@+id/report"
+           android:stateListAnimator="@null"
+           android:elevation="0dp"
+           android:textColor="#C3A745"
+           android:backgroundTint="@color/white"
+           android:text="확인"
+           android:layout_weight="1"
+           android:layout_width="0dp"
+           android:layout_height="wrap_content"/>
+        <Button
+            android:id="@+id/cancel"
+            android:stateListAnimator="@null"
+            android:elevation="0dp"
+            android:backgroundTint="@color/white"
+            android:textColor="#C3A745"
+            android:text="취소"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</LinearLayout>

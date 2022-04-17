@@ -1,0 +1,45 @@
+package com.example.appportfolio.ui.main.fragments
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
+import com.example.appportfolio.R
+import com.example.appportfolio.adapters.*
+import com.example.appportfolio.databinding.FragmentHomeBinding
+import com.google.android.material.tabs.TabLayoutMediator
+
+class HomeFragment: Fragment(R.layout.fragment_home) {
+
+    lateinit var binding:FragmentHomeBinding
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        binding= DataBindingUtil.inflate<FragmentHomeBinding>(inflater,
+            R.layout.fragment_home,container,false)
+
+        binding.vp.apply{
+            adapter=HomePagerAdapter(this@HomeFragment)
+            getChildAt(0).overScrollMode=View.OVER_SCROLL_NEVER
+
+        }
+        TabLayoutMediator(binding.tab,binding.vp){ tab,position->
+            tab.text=getTabTitle(position)
+
+        }.attach()
+        return binding.root
+    }
+    private fun getTabTitle(position: Int):String?{
+        return when(position){
+            NEAR_INDEX->requireContext().getString(R.string.near)
+            HOT_INDEX->requireContext().getString(R.string.hot)
+            NEW_INDEX->requireContext().getString(R.string.newposts)
+            TAG_INDEX->requireContext().getString(R.string.tag)
+            else->null
+        }
+    }
+}

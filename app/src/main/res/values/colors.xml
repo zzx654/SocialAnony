@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="red">#E60417</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="skin">#FFF7F7</color>
+    <color name="skinfore">#634C43</color>
+    <color name="inactive">#C5BBBB</color>
+    <color name="skin_bar">#1E1D1D</color>
+    <color name="transparent">#00000000</color>
+    <color name="chipback">#DDD2D2</color>
+    <color name="chiptext">#635858</color>
+    <color name="backcolor">#EFE7E1</color>
+    <color name="baccolor">#E3D9D1</color>
+    <color name="positive">#E8E0CA</color>
+    <color name="posttext">#454343</color>
+    <color name="postinfo">#7E7777</color>
+    <color name="toolbarlinecolor">#AAA3A3</color>
+    <color name="gray">#8A8484</color>
+
+
+
+</resources>

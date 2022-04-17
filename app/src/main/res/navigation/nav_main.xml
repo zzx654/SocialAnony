@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_main"
+    app:startDestination="@id/mainFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.HomeFragment"
+        android:label="HomeFragment" />
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ChatFragment"
+        android:label="ChatFragment" >
+        <argument
+            android:name="userid"
+            app:argType="integer" />
+        <argument
+            android:name="roomid"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/mypageFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.MypageFragment"
+        android:label="MypageFragment" />
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.NotificationFragment"
+        android:label="NotificationFragment" />
+
+
+    <fragment
+        android:id="@+id/postFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.PostFragment"
+        android:label="PostFragment" >
+        <argument
+            android:name="post"
+            app:argType="com.example.appportfolio.data.entities.Post" />
+    </fragment>
+    <fragment
+        android:id="@+id/tagPostsFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.TagPostsFragment"
+        android:label="TagPostsFragment" >
+        <argument
+            android:name="tagname"
+            app:argType="string" />
+    </fragment>
+    <action android:id="@+id/action_global_tagPostsFragment" app:destination="@id/tagPostsFragment" />
+    <fragment
+        android:id="@+id/tagFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.TagFragment"
+        android:label="TagFragment" />
+    <fragment
+        android:id="@+id/uploadFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.UploadFragment"
+        android:label="UploadFragment" />
+    <action android:id="@+id/action_global_postFragment" app:destination="@id/postFragment" />
+    <fragment
+        android:id="@+id/replyFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ReplyFragment"
+        android:label="ReplyFragment" >
+        <argument
+            android:name="comment"
+            app:argType="com.example.appportfolio.data.entities.Comment" />
+        <argument
+            android:name="post"
+            app:argType="com.example.appportfolio.data.entities.Post" />
+    </fragment>
+    <action android:id="@+id/action_global_replyFragment" app:destination="@id/replyFragment" />
+    <fragment
+        android:id="@+id/bookmarkFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.BookmarkFragment"
+        android:label="BookmarkFragment" />
+    <action android:id="@+id/action_global_bookmarkFragment" app:destination="@id/bookmarkFragment" />
+    <fragment
+        android:id="@+id/myPostsFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.MyPostsFragment"
+        android:label="MyPostsFragment" /><action android:id="@+id/action_global_myPostsFragment" app:destination="@id/myPostsFragment"/>
+    <fragment
+        android:id="@+id/blockFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.BlockFragment"
+        android:label="BlockFragment" /><action android:id="@+id/action_global_blockFragment" app:destination="@id/blockFragment"/>
+    <fragment
+        android:id="@+id/profileEditFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ProfileEditFragment"
+        android:label="ProfileEditFragment" >
+        <argument
+            android:name="profileurl"
+            app:argType="string"
+            app:nullable="true" />
+        <argument
+            android:name="nickname"
+            app:argType="string" />
+        <argument
+            android:name="gender"
+            app:argType="string" />
+    </fragment>
+    <action android:id="@+id/action_global_profileEditFragment" app:destination="@id/profileEditFragment" />
+    <fragment
+        android:id="@+id/chatroomFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ChatroomFragment"
+        android:label="ChatroomFragment" />
+    <fragment
+        android:id="@+id/chatRequestsFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ChatRequestsFragment"
+        android:label="ChatRequestsFragment" /><action android:id="@+id/action_global_chatRequestsFragment" app:destination="@id/chatRequestsFragment"/><action android:id="@+id/action_global_chatFragment" app:destination="@id/chatFragment"/>
+    <fragment
+        android:id="@+id/imageFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.ImageFragment"
+        android:label="ImageFragment" >
+        <argument
+            android:name="imageurl"
+            app:argType="string" />
+    </fragment>
+    <action android:id="@+id/action_global_imageFragment" app:destination="@id/imageFragment" />
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.MapFragment"
+        android:label="MapFragment" >
+        <argument
+            android:name="location"
+            app:argType="com.example.appportfolio.data.entities.LocationLatLngEntity" />
+    </fragment>
+    <action android:id="@+id/action_global_mapFragment" app:destination="@id/mapFragment" />
+    <fragment
+        android:id="@+id/setPasswordFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.SetPasswordFragment"
+        android:label="SetPasswordFragment" /><action android:id="@+id/action_global_setPasswordFragment" app:destination="@id/setPasswordFragment"/>
+    <fragment
+        android:id="@+id/setVoteoptionFragment"
+        android:name="com.example.appportfolio.ui.main.dialog.SetVoteoptionFragment"
+        android:label="SetVoteoptionFragment" >
+        <argument
+            android:name="voteoptions"
+            app:argType="com.example.appportfolio.data.entities.Voteoptions"
+            app:nullable="true" />
+    </fragment><action android:id="@+id/action_global_setVoteoptionFragment" app:destination="@id/setVoteoptionFragment"/>
+    <action android:id="@+id/action_global_uploadFragment" app:destination="@id/uploadFragment" />
+    <fragment
+        android:id="@+id/mainFragment"
+        android:name="com.example.appportfolio.ui.main.fragments.MainFragment"
+        android:label="MainFragment" />
+
+</navigation>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="block"
+            type="com.example.appportfolio.data.entities.Block" />
+    </data>
+
+<androidx.constraintlayout.widget.ConstraintLayout 
+    
+xmlns:android="http://schemas.android.com/apk/res/android"
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground"
+
+    android:paddingTop="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/nickname"
+        android:textColor="@color/black"
+        android:textSize="14dp"
+        app:blockednick="@{block.nickname}"
+        app:anonymous="@{block.anonymous}"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        
+        android:layout_marginLeft="30dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tvblock"
+        android:layout_marginTop="4dp"
+        android:textSize="14dp"
+        android:text="차단날짜:"
+        app:layout_constraintTop_toBottomOf="@+id/nickname"
+        app:layout_constraintStart_toStartOf="@+id/nickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:layout_marginStart="5dp"
+        app:layout_constraintStart_toEndOf="@+id/tvblock"
+        app:layout_constraintTop_toTopOf="@id/tvblock"
+        android:text="@{block.time}"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <View
+        android:layout_marginTop="10dp"
+        app:layout_constraintTop_toBottomOf="@+id/tvblock"
+        android:background="@color/toolbarlinecolor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="0.003dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout 
+    >
+</layout>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout >
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:background="@color/skin"
+        android:fitsSystemWindows="true"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.ChatActivity">
+
+
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:overScrollMode="never"
+            android:id="@+id/rvChat"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/topcomment">
+
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <View
+            android:id="@+id/topcomment"
+            app:layout_constraintBottom_toTopOf="@id/postcomment"
+            android:layout_marginTop="8dp"
+            android:background="@color/toolbarlinecolor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="0.003dp"/>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/postcomment"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="#FFF4F4"
+            app:layout_constraintBottom_toTopOf="@id/toolbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:layout_marginStart="8dp"
+                android:id="@+id/tool_btn"
+                android:src="@drawable/tooladd"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <EditText
+                android:theme="@style/editText"
+                android:visibility="visible"
+                android:paddingRight="35dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:id="@+id/edtText"
+                android:hint="내용을 입력해주세요"
+                android:background="@drawable/linearborder"
+                app:layout_constraintStart_toEndOf="@id/tool_btn"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"/>
+
+            <ImageButton
+                android:visibility="gone"
+                android:backgroundTint="@color/transparent"
+                android:id="@+id/sendcomment"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:src="@drawable/ic_send"
+                app:layout_constraintEnd_toEndOf="@id/edtText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <ProgressBar
+                android:id="@+id/postcommentprogress"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="@id/edtText"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:indeterminateTint="@color/skinfore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+
+            android:visibility="gone"
+            android:background="@color/skin"
+            android:id="@+id/toolbox"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="300dp">
+            <View
+
+                android:background="@color/toolbarlinecolor"
+                android:layout_width="match_parent"
+                android:layout_height="0.003dp"/>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp">
+                <LinearLayout
+                    android:id="@+id/album"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+                    <ImageView
+                        app:tint="@color/black"
+                        android:src="@drawable/ic_outline_image_24"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"/>
+                    <TextView
+                        android:layout_marginTop="5dp"
+                        android:text="앨범"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+
+
+                </LinearLayout>
+                <View
+
+                    android:background="@color/toolbarlinecolor"
+                    android:layout_width="0.003dp"
+                    android:layout_height="match_parent"/>
+                <LinearLayout
+                    android:id="@+id/camera"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+                    <ImageView
+
+                        app:tint="@color/black"
+                        android:src="@drawable/camera"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"/>
+                    <TextView
+                        android:layout_marginTop="5dp"
+                        android:text="카메라"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+
+                </LinearLayout>
+                <View
+
+                    android:background="@color/toolbarlinecolor"
+                    android:layout_width="0.003dp"
+                    android:layout_height="match_parent"/>
+                <LinearLayout
+                    android:id="@+id/location"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+                    <ImageView
+
+                        app:tint="@color/black"
+                        android:src="@drawable/ic_outline_location_on_24"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"/>
+                    <TextView
+                        android:layout_marginTop="5dp"
+                        android:text="위치정보"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+            </LinearLayout>
+            <View
+
+                android:background="@color/toolbarlinecolor"
+                android:layout_width="match_parent"
+                android:layout_height="0.003dp"/>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp">
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                </LinearLayout>
+                <View
+
+                    android:background="@color/toolbarlinecolor"
+                    android:layout_width="0.003dp"
+                    android:layout_height="match_parent"/>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                </LinearLayout>
+                <View
+
+                    android:background="@color/toolbarlinecolor"
+                    android:layout_width="0.003dp"
+                    android:layout_height="match_parent"/>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent">
+
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

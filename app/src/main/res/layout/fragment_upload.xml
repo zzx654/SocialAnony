@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="fragment"
+            type="com.example.appportfolio.ui.main.fragments.UploadFragment" />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/background"
+        android:background="@color/skin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+        <View
+            android:id="@+id/view"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"/>
+        <ScrollView
+            android:overScrollMode="never"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintTop_toBottomOf="@+id/view"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toTopOf="@+id/rlbottom">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:paddingBottom="30dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <com.google.android.material.chip.ChipGroup
+
+                    android:id="@+id/cgselected"
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    app:layout_constraintEnd_toEndOf="@id/guidline2"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintTop_toTopOf="parent"/>
+                <EditText
+                    android:theme="@style/editText"
+                    android:singleLine="true"
+                    android:lines="1"
+                    android:id="@+id/edtTag"
+                    android:hint="@string/tag_hint"
+                    android:background="@drawable/linearborder"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    app:layout_constraintEnd_toEndOf="@id/guidline2"
+                    app:layout_constraintTop_toBottomOf="@id/cgselected"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"/>
+                <TextView
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp"
+                    android:id="@+id/tvTag"
+                    android:text="#연관태그"
+                    app:layout_constraintTop_toBottomOf="@id/edtTag"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <com.google.android.material.chip.ChipGroup
+                    android:visibility="gone"
+                    android:layout_width="0dp"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    app:layout_constraintEnd_toEndOf="@id/guidline2"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/cgSearched"
+                    app:layout_constraintTop_toBottomOf="@id/tvTag"/>
+                <LinearLayout
+                    android:id="@+id/linear"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    app:layout_constraintEnd_toEndOf="@id/guidline2"
+                    app:layout_constraintTop_toBottomOf="@id/cgSearched"
+                    android:gravity="center_horizontal"
+                    android:background="@drawable/linearborder"
+                    android:layout_marginTop="20dp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content">
+                    <EditText
+                        android:theme="@style/editText"
+                        android:id="@+id/edtContent"
+                        android:hint="@string/content_hint"
+                        android:inputType="textMultiLine|textNoSuggestions"
+                        android:layout_margin="10dp"
+                        android:background="@color/transparent"
+                        android:gravity="top"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="400dp"/>
+
+                </LinearLayout>
+
+                <CheckBox
+                    android:layout_marginTop="5dp"
+                    android:buttonTint="@color/skinfore"
+                    android:id="@+id/cbAn"
+                    android:layout_marginLeft="10dp"
+                    android:text="익명"
+                    app:layout_constraintStart_toStartOf="@+id/guidline1"
+                    app:layout_constraintTop_toBottomOf="@+id/linear"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:overScrollMode="never"
+                    android:id="@+id/recvImages"
+                    app:layout_constraintTop_toBottomOf="@+id/cbAn"
+                    android:orientation="horizontal"
+                    android:layout_marginLeft="10dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/votelayout"
+                    android:visibility="gone"
+                    android:paddingBottom="10dp"
+                    app:layout_constraintStart_toStartOf="@id/guidline1"
+                    app:layout_constraintEnd_toEndOf="@id/guidline2"
+                    android:background="@drawable/vote_border"
+                    app:layout_constraintTop_toBottomOf="@+id/recvImages"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content">
+                    <ImageView
+                        android:id="@+id/imgvote"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:src="@drawable/vote_chart"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"/>
+                    <ImageView
+                        android:id="@+id/deletevote"
+                        android:layout_marginTop="7dp"
+                        android:layout_marginRight="5dp"
+                        android:src="@drawable/canceloutlined"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:text="[투표]"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/imgvote"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.constraintlayout.widget.Guideline
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/guidline1"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.07"/>
+                <androidx.constraintlayout.widget.Guideline
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/guidline2"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.93"/>
+
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
+
+
+
+        <RelativeLayout
+
+            android:background="@color/skinfore"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/guidlinebottom"
+            android:id="@+id/rlbottom"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
+
+
+            <ImageButton
+                android:layout_marginLeft="10dp"
+                android:id="@+id/btnSelectimg"
+                android:layout_alignParentLeft="true"
+                android:layout_centerInParent="true"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/ic_outline_image_24"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <ImageButton
+                android:onClick="@{()->fragment.showRecord()}"
+                android:id="@+id/btnRecord"
+                android:layout_toRightOf="@+id/btnSelectimg"
+                android:layout_centerInParent="true"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/ic_record"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/imgrecorded"
+                android:layout_margin="5dp"
+                android:layout_alignRight="@+id/btnRecord"
+                android:layout_alignParentTop="true"
+                android:src="@drawable/ic_circlerecorded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <ImageButton
+                android:id="@+id/btnLocation"
+                android:layout_toRightOf="@+id/btnRecord"
+                android:layout_centerInParent="true"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/ic_locationon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+            <ImageButton
+                android:id="@+id/btnVote"
+                android:layout_toRightOf="@+id/btnLocation"
+                android:layout_centerInParent="true"
+                android:backgroundTint="@color/transparent"
+                android:src="@drawable/ic_baseline_how_to_vote_24"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <ImageView
+                android:visibility="invisible"
+                android:id="@+id/imgvoteset"
+                android:layout_margin="5dp"
+                android:layout_alignRight="@+id/btnVote"
+                android:layout_alignParentTop="true"
+                android:src="@drawable/ic_circlerecorded"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </RelativeLayout>
+        <androidx.constraintlayout.widget.Guideline
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/guidlinetop"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.07"/>
+
+        <androidx.constraintlayout.widget.Guideline
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/guidlinebottom"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.93"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

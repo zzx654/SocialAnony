@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+<data>
+    <variable
+        name="chatroom"
+        type="com.example.appportfolio.data.entities.Chatroom" />
+</data>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:clickable="true"
+    android:background="?attr/selectableItemBackground"
+    android:id="@+id/chat"
+
+    android:layout_marginTop="15dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            app:civ_border_width="0.1dp"
+            app:civ_border_color="#8C7878"
+            android:layout_marginLeft="19dp"
+            app:gender="@{chatroom.gender}"
+            app:profileimage="@{chatroom.profileimage}"
+            android:id="@+id/profileimage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_width="40dp"
+            android:layout_height="40dp"/>
+
+
+
+                <TextView
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/profileimage"
+                    app:layout_constraintEnd_toStartOf="@+id/time"
+                    android:id="@+id/sendername"
+                    android:layout_marginLeft="10dp"
+                    android:text="@{chatroom.nickname}"
+                    android:textColor="@color/black"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+
+
+                <TextView
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    android:id="@+id/time"
+                    android:textColor="#A60C0C0C"
+                    android:layout_marginRight="19dp"
+                    android:layout_gravity="right"
+                    app:setTime="@{chatroom.date}"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+            <TextView
+                    app:layout_constraintTop_toBottomOf="@id/sendername"
+                    app:layout_constraintStart_toEndOf="@id/profileimage"
+                    app:layout_constraintEnd_toStartOf="@+id/time"
+                    app:ismy="@{chatroom.ismy}"
+                    app:isread="@{chatroom.isread}"
+                    app:content="@{chatroom.content}"
+                    app:type="@{chatroom.type}"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:id="@+id/content"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginLeft="10dp"
+                    android:textColor="#A60C0C0C"
+                    android:layout_width="0dp"
+
+                    android:layout_marginRight="20dp"
+                    android:layout_height="wrap_content">
+                </TextView>
+
+
+                <ImageView
+                    app:layout_constraintTop_toBottomOf="@id/time"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:visibility="invisible"
+                    app:layout_constraintEnd_toEndOf="@+id/time"
+                    android:id="@+id/rcvsig"
+                    android:src="@drawable/ic_circlerecorded"
+                    app:tint="@color/red"
+                    android:layout_marginRight="4dp"
+                    app:ismy="@{chatroom.ismy}"
+                    app:isread="@{chatroom.isread}"
+                    app:type="@{chatroom.type}"
+                    android:layout_width="15dp"
+                    android:layout_height="15dp">
+                </ImageView>
+
+    <View
+        android:layout_marginTop="15dp"
+        android:id="@+id/line"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0.003dp"
+
+        android:background="#CDD1D5" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

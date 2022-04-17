@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFF4F4"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        >
+        <androidx.appcompat.widget.Toolbar
+            android:visibility="gone"
+            app:popupTheme="@style/myToolbarPopup"
+            android:id="@+id/toolbar"
+            android:background="@color/skin"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@id/title"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="17dp"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </androidx.appcompat.widget.Toolbar>
+        <View
+            android:visibility="gone"
+            android:background="@color/toolbarlinecolor"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/toolbar"
+            android:id="@+id/linetop"
+            android:layout_width="match_parent"
+            android:layout_height="0.01dp"/>
+        <FrameLayout
+            android:id="@+id/flFragmentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/linetop">
+
+            <androidx.fragment.app.FragmentContainerView
+                android:background="@color/backcolor"
+                android:id="@+id/navHostFragment"
+                android:name="androidx.navigation.fragment.NavHostFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:tag="navHostFragment"
+                app:defaultNavHost="true"
+                app:navGraph="@navigation/nav_main"
+                />
+
+        </FrameLayout>
+        <View
+            android:id="@+id/linebottom"
+            android:background="#B1A2A2"
+            app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="0.3dp"/>
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:background="#FFF4F4"
+            android:elevation="30dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:id="@+id/bottomNavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="58dp"
+            app:itemTextColor="@drawable/bottom_nav_selector"
+            app:menu="@menu/bottom_nav_menu"
+            app:itemIconTint="@drawable/bottom_nav_selector"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

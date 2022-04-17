@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/imgProfile"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginLeft="25dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/icon_none"
+        android:layout_width="50dp"
+        android:layout_height="50dp"/>
+    <TextView
+        android:paddingTop="2dp"
+        android:layout_marginLeft="15dp"
+        app:layout_constraintTop_toTopOf="@id/imgProfile"
+        app:layout_constraintStart_toEndOf="@id/imgProfile"
+        android:text="익명"
+        android:id="@+id/tvnickname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+    <TextView
+        android:id="@+id/tvagegender"
+        android:layout_marginLeft="15dp"
+        android:text="23세 · 남성"
+        app:layout_constraintStart_toEndOf="@id/imgProfile"
+        app:layout_constraintTop_toBottomOf="@+id/tvnickname"
+        app:layout_constraintBottom_toBottomOf="@id/imgProfile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+
+    <View
+        android:id="@+id/line"
+        android:layout_width="0dp"
+        android:layout_height="0.003dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/toolbarlinecolor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imgProfile" />
+    <Button
+
+        app:layout_constraintTop_toBottomOf="@+id/line"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        app:cornerRadius="0dp"
+        android:includeFontPadding="false"
+        android:id="@+id/chatbtn"
+        android:textColor="@color/skin_bar"
+        android:backgroundTint="@color/white"
+        android:text="대화 요청하기"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+</androidx.constraintlayout.widget.ConstraintLayout>

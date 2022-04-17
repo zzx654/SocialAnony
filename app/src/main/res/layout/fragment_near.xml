@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/sr"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/scrollView"
+                android:overScrollMode="never"
+                app:layout_constraintTop_toTopOf="parent"
+                android:fillViewport="true"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:background="@color/skin"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:id="@+id/linearRg"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <RadioGroup
+                            android:layout_marginLeft="15dp"
+                            android:layout_marginRight="15dp"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginBottom="20dp"
+                            android:id="@+id/rgDistance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            >
+
+                            <RadioButton
+                                android:checked="true"
+                                android:paddingLeft="15dp" android:paddingRight="15dp"
+                                android:layout_marginRight="10dp"
+                                android:id="@+id/rb5"
+                                android:textColor="@drawable/selector_postrt"
+                                android:button="@null"
+                                android:background="@drawable/selector_postrb"
+                                android:textAlignment="center"
+                                android:layout_weight="1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="5km"
+                                />
+                            <RadioButton
+                                android:layout_marginRight="10dp"
+                                android:paddingLeft="15dp"
+                                android:paddingRight="15dp"
+                                android:id="@+id/rb10"
+                                android:text="10km"
+                                android:background= "@drawable/selector_postrb"
+                                android:textColor="@drawable/selector_postrt"
+                                android:button="@null"
+                                android:textAlignment="center"
+                                android:layout_weight="1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"/>
+                            <RadioButton
+                                android:layout_marginRight="10dp"
+                                android:paddingLeft="15dp"
+                                android:paddingRight="15dp"
+                                android:id="@+id/rb15"
+                                android:text="15km"
+                                android:background="@drawable/selector_postrb"
+                                android:textColor="@drawable/selector_postrt"
+                                android:button="@null"
+                                android:textAlignment="center"
+                                android:layout_weight="1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"/>
+                            <RadioButton
+                                android:paddingLeft="15dp"
+                                android:paddingRight="15dp"
+                                android:id="@+id/rb20"
+                                android:text="20km"
+                                android:background="@drawable/selector_postrb"
+                                android:textColor="@drawable/selector_postrt"
+                                android:button="@null"
+                                android:textAlignment="center"
+                                android:layout_weight="1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"/>
+                            <RadioButton
+                                android:paddingLeft="15dp"
+                                android:layout_marginLeft="10dp"
+                                android:paddingRight="15dp"
+                                android:id="@+id/rb25"
+                                android:text="25km"
+                                android:background="@drawable/selector_postrb"
+                                android:textColor="@drawable/selector_postrt"
+                                android:button="@null"
+                                android:textAlignment="center"
+                                android:layout_weight="1"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"/>
+
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvPosts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"
+
+                        android:overScrollMode="never"
+                        app:layout_constraintTop_toBottomOf="@id/linearRg"
+                        />
+
+                    <ProgressBar
+                        android:visibility="gone"
+                        android:indeterminateTint="@color/skin_bar"
+                        app:layout_constraintTop_toBottomOf="@id/rvPosts"
+                        android:id="@+id/loadMoreProgressbar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"/>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.core.widget.NestedScrollView>
+            <TextView
+                android:visibility="invisible"
+                android:id="@+id/tvWarn"
+                android:textSize="15dp"
+                android:textColor="@color/gray"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="위치정보 권한이 필요합니다"/>
+            <ProgressBar
+                android:id="@+id/loadProgressBar"
+                android:visibility="gone"
+
+                android:indeterminateTint="@color/skin_bar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_width="35dp"
+                android:layout_height="35dp"/>
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fbScrollTool"
+                app:borderWidth="0dp"
+                android:elevation="0dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="30dp"
+                android:backgroundTint="@color/white"
+                android:alpha="0.7"
+                android:src="@drawable/ic_refresh"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</layout>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:background="@color/skin"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <View
+        android:id="@+id/bottomcomment"
+        app:layout_constraintTop_toBottomOf="@id/search"
+        android:background="@color/toolbarlinecolor"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="0.003dp"/>
+    <androidx.recyclerview.widget.RecyclerView
+        android:overScrollMode="never"
+        app:layout_constraintTop_toBottomOf="@+id/bottomcomment"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/rv"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/search"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:background="#FFF4F4"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <EditText
+            android:theme="@style/editText"
+            android:paddingRight="35dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:id="@+id/edtText"
+            android:hint="검색어를 입력해주세요"
+            android:background="@drawable/linearborder"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:visibility="gone"
+            android:layout_marginRight="10dp"
+            android:backgroundTint="@color/skinfore"
+            android:id="@+id/btnsearch"
+            android:text="검색"
+            app:layout_constraintTop_toTopOf="@id/edtText"
+            app:layout_constraintBottom_toBottomOf="@id/edtText"
+
+            app:layout_constraintEnd_toEndOf="@id/edtText"
+            android:layout_width="70dp"
+            android:layout_height="40dp"/>
+        <ProgressBar
+            android:id="@+id/postcommentprogress"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/search"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:indeterminateTint="@color/skinfore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

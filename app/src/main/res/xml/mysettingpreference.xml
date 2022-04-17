@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <Preference
+        android:icon="@drawable/ic_bookmarkoff"
+        android:key="bookmark"
+        android:title="북마크"
+        />
+    <Preference
+        android:icon="@drawable/ic_mylibrary"
+        android:key="mypost"
+        android:title="내가쓴글"
+        />
+    <Preference
+        android:icon="@drawable/ic_baseline_block_24"
+        android:key="blockuser"
+        android:title="차단유저 관리"
+        />
+    <SwitchPreference
+        android:icon="@drawable/ic_outline_chat_24"
+        android:key="chatonoff"
+        android:title="대화요청 받기"
+        />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:icon="@drawable/ic_report"
+        android:key="pushonoff"
+        android:title="알림 받기"
+        />
+    <Preference
+        android:icon="@drawable/ic_password"
+        android:key="changepw"
+        android:title="비밀번호 변경"
+        />
+    <Preference
+        android:icon="@drawable/ic_logoff"
+        android:key="logoff"
+        android:title="로그아웃"
+        />
+    <Preference
+        android:icon="@drawable/ic_out"
+        android:key="out"
+        android:title="회원탈퇴"
+        />
+
+
+
+</androidx.preference.PreferenceScreen>
