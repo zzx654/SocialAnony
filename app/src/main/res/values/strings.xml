@@ -6,6 +6,7 @@
     <string name="nickname_using">이미 사용중인 닉네임입니다</string>
     <string name="nickname_success">사용가능한 닉네임입니다</string>
     <string name="tag_hint">원하시는 태그(#)를 검색해 보세요.</string>
+    <string name="searchperson_hint">사람검색</string>
     <string name="content_hint">자유롭게 자신의 생각을 말해보세요!</string>
     <string name="warn_cancelpost">글쓰기를 종료하시겠습니까?</string>
     <string name="warn_image">사진은 9장까지 선택가능합니다</string>
@@ -16,6 +17,7 @@
     <string name="forgotpassword"><u>비밀번호를 잊으셨습니까?</u></string>
 
 
+
     <string name="login_with_existing_account">가입된 계정으로 로그인하기</string>
     <string name="error_password_too_short">비밀번호는 최소 8자 이상이어야 합니다.</string>
     <string name="error_input_empty">이메일과 비밀번호를 입력해주세요.</string>
@@ -24,4 +26,6 @@
     <string name="hot">인기</string>
     <string name="newposts">새로운</string>
     <string name="tag">태그</string>
+    <string name="person">사람</string>
+    <string name="follow">팔로우</string>
 </resources>

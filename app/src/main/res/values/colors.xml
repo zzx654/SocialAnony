@@ -7,13 +7,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="skin">#FFF7F7</color>
-    <color name="skinfore">#634C43</color>
+    <color name="skinfore">#402E27</color>
     <color name="inactive">#C5BBBB</color>
     <color name="skin_bar">#1E1D1D</color>
     <color name="transparent">#00000000</color>
     <color name="chipback">#DDD2D2</color>
     <color name="chiptext">#635858</color>
-    <color name="backcolor">#EFE7E1</color>
+    <color name="backcolor">#F3F0EE</color>
     <color name="baccolor">#E3D9D1</color>
     <color name="positive">#E8E0CA</color>
     <color name="posttext">#454343</color>

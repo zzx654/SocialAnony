@@ -17,7 +17,57 @@ import retrofit2.http.*
 
 @ActivityScoped
 class MainRepository {
-
+    suspend fun checkuser(
+        userid:Int,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.checkuser(userid))
+        }
+    }
+    suspend fun checknick(
+        nickname:String,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.checknick(nickname))
+        }
+    }
+    suspend fun toggleFollow(
+        userid:Int,
+        following:Int,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.toggleFollow(userid,following))
+        }
+    }
+    suspend fun getSearchedPerson(
+        lastuserid:Int?,
+        nickname:String,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.getSearchedPerson(lastuserid, nickname))
+        }
+    }
+    suspend fun getSearchedFollowingPerson(
+        lastuserid:Int?,
+        nickname:String,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.getSearchedFollowingPerson(lastuserid, nickname))
+        }
+    }
+    suspend fun getFollowingPerson(
+        lastuserid:Int?,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.getFollowingPerson(lastuserid))
+        }
+    }
     suspend fun getChatProfiles(
         api:MainApi
     )= withContext(Dispatchers.IO){
@@ -437,6 +487,29 @@ class MainRepository {
     )= withContext(Dispatchers.IO){
         safeCall {
             Resource.Success(api.getNewPosts(lastpostnum, lastpostdate, latitude, longitude))
+        }
+    }
+    suspend fun getuserPosts(
+        userid:Int,
+        lastpostnum: Int?,
+        lastpostdate: String?,
+        latitude: Double?,
+        longitude: Double?,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall {
+            Resource.Success(api.getuserPosts(userid,lastpostnum, lastpostdate, latitude, longitude))
+        }
+    }
+    suspend fun getFollowingPosts(
+        lastpostnum: Int?,
+        lastpostdate: String?,
+        latitude: Double?,
+        longitude: Double?,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall {
+            Resource.Success(api.getFollowingPosts(lastpostnum, lastpostdate, latitude, longitude))
         }
     }
     suspend fun getBookmarkedPosts(

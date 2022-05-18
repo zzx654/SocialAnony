@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getTodayString
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.ChatRequestsAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -36,6 +37,9 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     lateinit var chatrequestsAdapter: ChatRequestsAdapter
     private lateinit var viewModel: ChatViewModel
     private lateinit var selectedRequest:ChatRequests
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -43,6 +47,7 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentChatrequestsBinding>(inflater,
             R.layout.fragment_chatrequests,container,false)
+        (activity as MainActivity).setToolBarVisible("chatRequestsFragment")
         api= RemoteDataSource().buildApi(MainApi::class.java)
         activity?.run{
             viewModel= ViewModelProvider(this).get(ChatViewModel::class.java)
@@ -66,9 +71,11 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
                 Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
             }
         ){
-            chatrequestsAdapter.differ.submitList(it.requests)
-            viewModel.setChatRequests(it.requests)
-            setnewChats(selectedRequest)
+            handleResponse(requireContext(),it.resultCode) {
+                chatrequestsAdapter.differ.submitList(it.requests)
+                viewModel.setChatRequests(it.requests)
+                setnewChats(selectedRequest)
+            }
 
 
         })
@@ -77,7 +84,9 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
                 Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
             }
         ){
-            chatrequestsAdapter.differ.submitList(it.requests)
+            handleResponse(requireContext(),it.resultCode) {
+                chatrequestsAdapter.differ.submitList(it.requests)
+            }
 
         })
         viewModel.mychatRequests.observe(viewLifecycleOwner){
@@ -112,9 +121,14 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

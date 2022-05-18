@@ -6,7 +6,34 @@ import okhttp3.MultipartBody
 import retrofit2.http.*
 
 interface MainApi {
-
+    @FormUrlEncoded
+    @POST("/toggleFollow")
+    suspend fun toggleFollow(
+        @Field("userid")userid : Int,
+        @Field("following")following:Int
+    ):intResponse
+    @FormUrlEncoded
+    @POST("/checknick")
+    suspend fun checknick(
+        @Field("nickname")nickname : String
+    ):intResponse
+    @FormUrlEncoded
+    @POST("/getSearchedFollowingPerson")
+    suspend fun getSearchedFollowingPerson(
+        @Field("lastuserid")lastuserid : Int?,
+        @Field("nickname")nickname:String
+    ):getpersonResponse
+    @FormUrlEncoded
+    @POST("/getFollowingPerson")
+    suspend fun getFollowingPerson(
+        @Field("lastuserid")lastuserid : Int?
+    ):getpersonResponse
+    @FormUrlEncoded
+    @POST("/getSearchedPerson")
+    suspend fun getSearchedPerson(
+        @Field("lastuserid")lastuserid : Int?,
+        @Field("nickname")nickname:String
+    ):getpersonResponse
     @FormUrlEncoded
     @POST("/postContents")
     suspend fun postContents(
@@ -311,6 +338,31 @@ interface MainApi {
         @Field("longitude")longitude:Double?
 
     ): getPostResponse
+
+    @FormUrlEncoded
+    @POST("/getuserPosts")
+    suspend fun getuserPosts(
+        @Field("userid")userid:Int?,
+        @Field("lastpostnum")lastpostnum:Int?,
+        @Field("lastpostdate")lastpostdate:String?,
+        @Field("latitude")latitude:Double?,
+        @Field("longitude")longitude:Double?
+
+    ): getPostResponse
+    @FormUrlEncoded
+    @POST("/checkuser")
+    suspend fun checkuser(
+        @Field("userid")userid:Int?
+    ): intResponse
+    @FormUrlEncoded
+    @POST("/getFollowingPosts")
+    suspend fun getFollowingPosts(
+        @Field("lastpostnum")lastpostnum:Int?,
+        @Field("lastpostdate")lastpostdate:String?,
+        @Field("latitude")latitude:Double?,
+        @Field("longitude")longitude:Double?
+
+    ): getPostResponse
     @FormUrlEncoded
     @POST("/getmyPosts")
     suspend fun getmyPosts(
@@ -365,8 +417,6 @@ interface MainApi {
         @Field("date")date:String,
         @Field("image")image:String,
         @Field("audio")audio:String
-
-
     ): String
 
     @Multipart

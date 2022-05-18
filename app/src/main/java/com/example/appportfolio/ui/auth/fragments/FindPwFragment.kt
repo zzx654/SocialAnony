@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.databinding.FragmentFindpasswordBinding
@@ -77,16 +78,19 @@ class FindPwFragment: Fragment(R.layout.fragment_findpassword) {
             }
         ){
             binding.progress.visibility=View.GONE
-            if(it.resultCode==200)
-            {
-                Toast.makeText(requireContext(),"임시비밀번호가 발급되었습니다 이메일에서 확인해주세요.",Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
-            }
-            else
-            {
-                Toast.makeText(requireContext(),"등록된 이메일이 아닙니다",Toast.LENGTH_SHORT).show()
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==200)
+                {
+                    Toast.makeText(requireContext(),"임시비밀번호가 발급되었습니다 이메일에서 확인해주세요.",Toast.LENGTH_SHORT).show()
+                    findNavController().popBackStack()
+                }
+                else
+                {
+                    Toast.makeText(requireContext(),"등록된 이메일이 아닙니다",Toast.LENGTH_SHORT).show()
 
+                }
             }
+
         })
     }
 }

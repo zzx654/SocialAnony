@@ -13,10 +13,10 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.BlockAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -50,6 +50,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentBlockBinding>(inflater,
             R.layout.fragment_block,container,false)
+        (activity as MainActivity).setToolBarVisible("blockFragment")
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
         }
@@ -109,7 +110,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -122,14 +123,18 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==400)
-            {
-                snackbar("서버 오류 발생")
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==400)
+                {
+                    snackbar("서버 오류 발생")
+                }
+                else
+                {
+                    blockAdapter.differ.submitList(it.blocks)
+                }
             }
-            else
-            {
-                blockAdapter.differ.submitList(it.blocks)
-            }
+
+
         })
         vmBlock.deleteBlockResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
@@ -137,13 +142,19 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==400)
-            {
-                snackbar("서버 오류 발생")
-            }
-            else{
-                blockAdapter.blocks-=curBlock!!
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==400)
+                {
+                    snackbar("서버 오류 발생")
+                }
+                else{
+                    blockAdapter.blocks-=curBlock!!
+                }
             }
         })
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

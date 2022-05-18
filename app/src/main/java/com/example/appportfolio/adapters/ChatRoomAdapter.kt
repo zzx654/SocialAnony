@@ -44,7 +44,7 @@ class ChatRoomAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     private val diffCallback=object: DiffUtil.ItemCallback<Chatroom>(){
         override fun areContentsTheSame(oldItem: Chatroom, newItem:Chatroom): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
+            return (oldItem.hashCode() == newItem.hashCode())&&oldItem.isread==newItem.isread
         }
 
         override fun areItemsTheSame(oldItem: Chatroom, newItem: Chatroom): Boolean {

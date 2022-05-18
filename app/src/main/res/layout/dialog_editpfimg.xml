@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/alertoutline"
+    android:backgroundTint="@color/white"
+    android:orientation="vertical"
+    >
+
+
+
+
+    <Button
+
+
+        android:stateListAnimator="@null"
+        android:id="@+id/btnchange"
+        android:textColor="@color/skin_bar"
+        android:text="프로필 사진 변경"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        app:cornerRadius="0dp"
+        android:includeFontPadding="false"
+        android:backgroundTint="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+    <Button
+        android:stateListAnimator="@null"
+        android:layout_marginTop="10dp"
+        android:id="@+id/btndelete"
+        android:text="프로필 사진 지우기"
+        android:textColor="@color/red"
+        android:backgroundTint="@color/white"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        app:cornerRadius="0dp"
+        android:includeFontPadding="false"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+
+
+
+</LinearLayout>

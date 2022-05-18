@@ -21,10 +21,7 @@ import kotlinx.coroutines.launch
 class NotiViewModel @ViewModelInject constructor(private val mainRepository: MainRepository,
                                                  private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
-    var notis:MutableList<Noti> = mutableListOf()
 
-    private val _beforesize= MutableLiveData<Int>()
-    val beforesize: LiveData<Int> = _beforesize
     private val _curnotis= MutableLiveData<List<Noti>>()
     val curnotis: LiveData<List<Noti>> = _curnotis
 
@@ -51,6 +48,12 @@ class NotiViewModel @ViewModelInject constructor(private val mainRepository: Mai
 
     private val _getPostResponse=MutableLiveData<Event<Resource<getPostResponse>>>()
     val getPostResponse:LiveData<Event<Resource<getPostResponse>>> = _getPostResponse
+
+
+    fun setNotis(noti:List<Noti>)
+    {
+        _curnotis.postValue(noti)
+    }
 
     fun readAllNoti(api:MainApi)
     {
@@ -123,20 +126,6 @@ class NotiViewModel @ViewModelInject constructor(private val mainRepository: Mai
             _getNotisResponse.postValue(Event(result))
         }
     }
-    fun addnotis(noti:List<Noti>)
-    {
-        notis.addAll(noti)
-        _curnotis.postValue(notis.toList())
-    }
-    fun clearnotis()
-    {
-        notis= mutableListOf()
-        _curnotis.postValue(notis)
-    }
 
-    fun setbeforeSize(size:Int)
-    {
-        _beforesize.postValue(size)
-    }
 
 }

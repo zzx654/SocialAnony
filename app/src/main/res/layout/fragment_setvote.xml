@@ -36,6 +36,7 @@
                 app:strokeColor="@color/skinfore"
                 app:strokeWidth="2dp"
                 style="?attr/materialButtonOutlinedStyle"
+                app:rippleColor="@color/gray"
                 android:id="@+id/btnadd"
                 android:layout_marginLeft="15dp"
                 android:layout_marginRight="15dp"

@@ -12,6 +12,8 @@ class ChatRepository @Inject constructor(private val db:ChatDatabase) {
 
     suspend fun readChats(roomid:String) = db.getChatDao().readChats(roomid)
 
+    fun loadimages(roomid:String) = db.getChatDao().loadimages(roomid)
+
     fun loadchatContents(roomid: String) = db.getChatDao().loadchatContents(roomid)
 
     fun loadbeforechatContents(roomid:String,id:Int) = db.getChatDao().loadbeforechatContents(roomid,id)

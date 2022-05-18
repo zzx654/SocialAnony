@@ -23,7 +23,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getLocation
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.REPLYADDED
-import com.example.appportfolio.ui.main.fragments.HomeFragmentDirections
+
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import org.json.JSONArray
@@ -67,9 +67,7 @@ object BindingAdapter {
     fun bindvoteImage(view:ImageView,vote:String)
     {
         if(vote.equals("none"))
-        {
             view.visibility=View.GONE
-        }
         else
             view.visibility=View.VISIBLE
     }
@@ -78,9 +76,7 @@ object BindingAdapter {
     fun bindvoteImage(view:TextView,vote:String,votecount:Int)
     {
         if(vote.equals("none"))
-        {
             view.visibility=View.GONE
-        }
         else
         {
             view.visibility=View.VISIBLE
@@ -88,7 +84,6 @@ object BindingAdapter {
         }
 
     }
-
     @BindingAdapter("notitype","read")
     @JvmStatic
     fun bindnotiImage(view:ImageView,notitype: Int,read:Int){
@@ -97,46 +92,32 @@ object BindingAdapter {
             COMMENTADDED,REPLYADDED->{
                 view.setImageResource(R.drawable.comment)
             }
-            else->{
-                view.setImageResource(R.drawable.favorite_off)
-            }
+            else->view.setImageResource(R.drawable.favorite_off)
         }
 
 
         if(read==1)
-        {
             view.setColorFilter(ContextCompat.getColor(view.context,R.color.gray))
-        }
         else
-        {
             view.setColorFilter(ContextCompat.getColor(view.context,R.color.black))
-        }
     }
     @BindingAdapter("type","nickname","content")
     @JvmStatic
     fun bindtext(view:TextView,type:String,nickname:String?,content: String){
 
         if(type.equals("EXIT"))
-        {
             view.text="${nickname}님이 나갔습니다"
-        }
         else
-        {
             view.text=content
-        }
 
     }
     @BindingAdapter("isread")
     @JvmStatic
     fun bindisread(view:TextView,isread:Int){
         if(isread==1)
-        {
             view.setTextColor(ContextCompat.getColor(view.context,R.color.gray))
-        }
         else
-        {
             view.setTextColor(ContextCompat.getColor(view.context,R.color.black))
-        }
     }
     @BindingAdapter("location")
     @JvmStatic
@@ -172,9 +153,7 @@ object BindingAdapter {
 
         replycount?.let{
             if(it==0)
-            {
                 view.visibility=View.GONE
-            }
             else{
                 view.visibility=View.VISIBLE
                 view.text="답글 ${it}개"
@@ -185,7 +164,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindprofileImage(view: ImageView, anonymous: String?,gender:String,profileimage:String?) {
 
-        if(anonymous!="")
+        if(anonymous!=null)
         {
             when(gender)
             {
@@ -217,8 +196,6 @@ object BindingAdapter {
     @BindingAdapter("gender","profileimage")
     @JvmStatic
     fun bindprofileImg(view: ImageView,gender:String,profileimage:String?) {
-        //나중에 프로필관련해서도 추가에정
-
         //익명이 아닌경우
         if(profileimage.equals("none"))
         {
@@ -243,7 +220,6 @@ object BindingAdapter {
         var resdate=SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(time)
         val resfinaldate=SimpleDateFormat("a h:mm").format(resdate!!)
         view.text=resfinaldate
-
     }
     @BindingAdapter("setTime")
     @JvmStatic
@@ -265,42 +241,30 @@ object BindingAdapter {
         val todayYear=SimpleDateFormat("yyyy").format(today.time)
 
         if(!resfinalyear.equals(todayYear))
-        {
             view.text=notthisyearformat.format(resdate)
-        }else{
-
+        else{
             if(todaydate.equals(resfinaldate))
-            {
                 view.text=todayformat.format(resdate)
-            }
             else if(yesterdaydate.equals(resfinaldate))
-            {
                 view.text="어제"
-            }
-            else{
+            else
                 view.text=thisyearformat.format(resdate)
-            }
         }
     }
     @BindingAdapter("anony","nickname")
     @JvmStatic
     fun bindNick(view: TextView, anony: String?,nickname: String) {
-        //나중에 프로필관련해서도 추가에정
         var nick=""
-        if(anony!="")
-        {
+        if(anony!=null)
             nick="익명[${anony}]"
-        }
-        else{
+        else
             nick=nickname
-        }
         view.text=nick
     }
     @SuppressLint("ResourceAsColor")
     @BindingAdapter("isliked","likecount")
     @JvmStatic
     fun bindlike(view: TextView, isliked:Int,likecount: Int) {
-        //나중에 프로필관련해서도 추가에정
 
         var liketext=""
         if(likecount!=0)
@@ -316,7 +280,6 @@ object BindingAdapter {
     @BindingAdapter("ismy","isread","content","type")
     @JvmStatic
     fun bindchatroomcontent(view: TextView, ismy:Int,isread: Int,content:String,type:String) {
-        //나중에 프로필관련해서도 추가에정
         if(type.equals("IMAGE"))
             view.text="사진을 보냈습니다."
         else if(type.equals("LOCATION"))
@@ -326,23 +289,15 @@ object BindingAdapter {
         else
             view.text=content
         if(ismy==0&&isread==0&&!type.equals("EXIT"))
-        {
             view.setTextColor(ContextCompat.getColor(view.context,R.color.black))
-        }
     }
     @BindingAdapter("ismy","isread","type")
     @JvmStatic
     fun bindchatroomread(view: ImageView, ismy:Int,isread: Int,type: String) {
-        //나중에 프로필관련해서도 추가에정
         if(ismy==0&&isread==0&&!type.equals("EXIT"))
-        {
             view.visibility=View.VISIBLE
-
-        }
         else
-        {
             view.visibility=View.INVISIBLE
-        }
     }
     @BindingAdapter("setroundImage")
     @JvmStatic
@@ -360,8 +315,6 @@ object BindingAdapter {
     @BindingAdapter("setImage")
     @JvmStatic
     fun bindImage(view: ImageView, imagecontent: String?) {
-
-
         Glide.with(view.context)
             .load(imagecontent)
             .into(view)
@@ -381,7 +334,6 @@ object BindingAdapter {
                 val image=jsonObj.optString("imageUri")
                 lst+=image
             }
-
             val option= MultiTransformation(CenterCrop(), RoundedCorners(8))
 
             Glide.with(view.context)
@@ -390,14 +342,10 @@ object BindingAdapter {
                 .into(view)
             view.clipToOutline=true
             if(lst.size>1)
-            {
                 view.setColorFilter(Color.parseColor("#BDBDBD"), PorterDuff.Mode.MULTIPLY)
-            }
         }
         else
-        {
             view.visibility=View.GONE
-        }
     }
     @BindingAdapter("imageNum")
     @JvmStatic
@@ -421,27 +369,19 @@ object BindingAdapter {
                 view.text="+"+(lst.size-1)
             }
             else
-            {
                 view.visibility=View.GONE
-            }
         }
         else
-        {
             view.visibility=View.GONE
-        }
     }
     @BindingAdapter("voiceVis")
     @JvmStatic
     fun bindVoiceImage(view: ImageView, audioContent:String?)
     {
         if(audioContent.equals("NONE"))
-        {
             view.visibility=View.GONE
-        }
         else
-        {
             view.visibility=View.VISIBLE
-        }
     }
     @BindingAdapter("watchlater")
     @JvmStatic
@@ -472,14 +412,9 @@ object BindingAdapter {
     {
         var nickstr=""
         if(anonymous=="")
-        {
             nickstr+=nickname
-        }
         else
-        {
             nickstr=nickstr+"익명["+anonymous+"]"
-
-        }
         val formatter= SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         val trans_date=formatter.parse(postedTime)
         val postedmillis=trans_date.time
@@ -494,7 +429,6 @@ object BindingAdapter {
                 if(diffTime<i.maximum){
                     diffstr=diffTime.toString()+i.msg
                     break
-
                 }
             }
         }
@@ -506,19 +440,13 @@ object BindingAdapter {
     {
         if (distance != null) {
             if(distance<0)
-            {
                 view.visibility=View.GONE
-            }
             else
-            {
                 view.visibility=View.VISIBLE
                 view.text= (round(distance!!).toInt()).toString()+"km"
-            }
         }
         else
-        {
             view.visibility=View.GONE
-        }
     }
     @BindingAdapter("distanceImgVis")
     @JvmStatic
@@ -526,16 +454,12 @@ object BindingAdapter {
     {
         if (distance != null) {
             if(distance<0)
-            {
                 view.visibility=View.GONE
-            }
-            else{
+            else
                 view.visibility=View.VISIBLE
-            }
         }
-        else{
+        else
             view.visibility=View.GONE
-        }
     }
     @BindingAdapter("countText")
     @JvmStatic
@@ -549,51 +473,12 @@ object BindingAdapter {
     {
         view.text="#"+tagname
     }
-    @BindingAdapter("getTags")
-    @JvmStatic
-    fun bindtags(view:ChipGroup,tags:String?)
-    {
-        view.removeAllViews()
-        tags?.let{
-
-
-            view.visibility=View.VISIBLE
-            var tags:List<String> = listOf()
-            if(it.contains("#"))
-                tags=it.split("#")
-            else
-                tags+=it
-
-            for(tag in tags)
-            {
-                val chip= Chip(view.context).apply{
-                    text="#"+tag
-                    chipStrokeWidth=0f
-                    setTextSize(TypedValue.COMPLEX_UNIT_DIP , 16f)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        chipBackgroundColor=
-                            AppCompatResources.getColorStateList(view.context, R.color.chipback)
-                        setChipStrokeColorResource(R.color.black)
-                        setTextColor(ContextCompat.getColor(view.context, R.color.chiptext))
-                        setTextSize(12f)
-                    }
-                    setOnClickListener {
-                        findNavController().navigate(HomeFragmentDirections.actionGlobalTagPostsFragment(tag))
-
-                    }
-                }
-                view.addView(chip)
-            }
-        }
-    }
     @BindingAdapter("tagcount")
     @JvmStatic
     fun bindtagname(view:TextView,tagcount:Int?)
     {
         if(tagcount==null)
-        {
             view.visibility=View.GONE
-        }
         else{
             view.visibility=View.VISIBLE
             view.text="스토리"+tagcount
@@ -613,6 +498,15 @@ object BindingAdapter {
             view.visibility=View.VISIBLE
             view.setImageResource(R.drawable.like_off)
         }
+    }
+    @BindingAdapter("followed")
+    @JvmStatic
+    fun bindfollowed(view:ImageButton,followed:Int)
+    {
+        if(followed==1)
+            view.setImageResource(R.drawable.favorite_on)
+        else
+            view.setImageResource(R.drawable.favorite_off)
     }
 }
 enum class TimeValue(val value: Int,val maximum : Int, val msg : String) {

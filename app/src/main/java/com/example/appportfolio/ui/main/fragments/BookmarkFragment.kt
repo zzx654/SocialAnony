@@ -1,22 +1,22 @@
 package com.example.appportfolio.ui.main.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentNewBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
@@ -50,18 +50,26 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_new) {
         get() = binding.sr
     protected val viewModel: BookmarkViewModel
         get() = basePostViewModel as BookmarkViewModel
+    private var mRootView:View?=null
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding= DataBindingUtil.inflate<FragmentNewBinding>(inflater,
-            R.layout.fragment_new,container,false)
-        bookmarkAdapter= PostAdapter()
-        bookmarkAdapter.setOntagClickListener { tag->
-            findNavController().navigate(BookmarkFragmentDirections.actionGlobalTagPostsFragment(tag))
+        if(mRootView==null) {
+            binding = DataBindingUtil.inflate<FragmentNewBinding>(
+                inflater,
+                R.layout.fragment_new, container, false
+            )
+            (activity as MainActivity).setToolBarVisible("bookmarkFragment")
+            bookmarkAdapter = PostAdapter()
+            setView()
+            refreshPosts()
+            mRootView=binding.root
         }
-        return binding.root
+
+        return mRootView
 
     }
     override fun onResume() {
@@ -78,7 +86,7 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_new) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -91,12 +99,6 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_new) {
     override fun refreshPosts() {
         getPosts(true)
     }
-
-    override fun navigateToPostFragment(post: Post) {
-        findNavController().navigate(BookmarkFragmentDirections.actionGlobalPostFragment(post))
-    }
-
-
 
     fun getPosts(refresh:Boolean=false)
     {
@@ -119,6 +121,11 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_new) {
         else{
             viewModel.getBookmarkedPost(lastpostnum,lastpostdate,null,null,api)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 
 

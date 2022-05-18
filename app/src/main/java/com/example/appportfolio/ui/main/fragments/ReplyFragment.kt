@@ -11,11 +11,10 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -32,7 +31,6 @@ import java.text.SimpleDateFormat
 
 @AndroidEntryPoint
 class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
-    private val args:ReplyFragmentArgs by navArgs()
     lateinit var binding: FragmentReplyBinding
     override val baseCommentViewModel: BaseCommentViewModel
         get()  {
@@ -73,7 +71,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        postcontents=args.post
+        postcontents=arguments?.getParcelable("post")!!
     }
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,7 +82,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             binding= DataBindingUtil.inflate<FragmentReplyBinding>(inflater,
                 R.layout.fragment_reply,container,false)
 
-            comment=args.comment
+            comment=arguments?.getParcelable("comment")!!
             api= RemoteDataSource().buildApi(MainApi::class.java)
             commentadapter= CommentAdapter()
             commentAdapter.differ.submitList(listOf())
@@ -156,7 +154,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -180,13 +178,12 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
-                findNavController().popBackStack()
-            }
-            else
-            {
-                Toast.makeText(requireContext(),"서버오류가 발생했습니다",Toast.LENGTH_SHORT).show()
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    parentFragmentManager.popBackStack()
+                } else {
+                    Toast.makeText(requireContext(), "서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }
             }
         })
         vmReply.deletereplyResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -195,14 +192,13 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             }
 
         ){
-            if(it.resultCode==200)
-            {
-                commentAdapter.differ.submitList(listOf())
-                vmReply.clearcomments()
-            }
-            else
-            {
-                Toast.makeText(requireContext(),"서버오류가 발생했습니다",Toast.LENGTH_SHORT).show()
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    commentAdapter.differ.submitList(listOf())
+                    vmReply.clearcomments()
+                } else {
+                    Toast.makeText(requireContext(), "서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }
             }
         })
         vmReply.checkSelectedCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
@@ -212,19 +208,34 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         ){
             if(it.resultCode!=200)
                 srLayout.isRefreshing=false
-            when(it.resultCode)
-            {
-                100->Toast.makeText(requireContext(),"댓글이 삭제되었습니다\".",Toast.LENGTH_SHORT).show()
-                400->Toast.makeText(requireContext(),"해당 게시물의 정보에 접근할 수 없습니다.",Toast.LENGTH_SHORT).show()
-                500->Toast.makeText(requireContext(),"해당 댓글에 대한 권한이 없습니다",Toast.LENGTH_SHORT).show()
-                else->{
-                    comment=it.comments[0]
-                    comment.commentliked=commentAdapter.comments[0].commentliked
-                    comment.likecount=commentAdapter.comments[0].likecount
-                    commentAdapter.differ.submitList(listOf())
-                    vmReply.clearcomments()
+            handleResponse(requireContext(),it.resultCode) {
+                when (it.resultCode) {
+                    100 -> Toast.makeText(requireContext(), "댓글이 삭제되었습니다\".", Toast.LENGTH_SHORT)
+                        .show()
+                    400 -> Toast.makeText(
+                        requireContext(),
+                        "해당 게시물의 정보에 접근할 수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    500 -> Toast.makeText(
+                        requireContext(),
+                        "해당 댓글에 대한 권한이 없습니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    else -> {
+                        comment = it.comments[0]
+                        comment.commentliked = commentAdapter.comments[0].commentliked
+                        comment.likecount = commentAdapter.comments[0].likecount
+                        commentAdapter.differ.submitList(listOf())
+                        vmReply.clearcomments()
+                    }
                 }
             }
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

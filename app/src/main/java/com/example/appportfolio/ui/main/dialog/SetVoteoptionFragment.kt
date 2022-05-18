@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,14 +20,15 @@ import com.example.appportfolio.data.entities.Voteoption
 import com.example.appportfolio.data.entities.Voteoptions
 import com.example.appportfolio.databinding.FragmentSetvoteBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.viewmodel.UploadViewModel
 
 class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
     lateinit var binding: FragmentSetvoteBinding
     lateinit var voteoptionadapter: VoteOptionAdapter
 
-    private val args: SetVoteoptionFragmentArgs by navArgs()
     private var voteoptions:Voteoptions?=null
 
+    private lateinit var vmUpload:UploadViewModel
     lateinit var inputMethodManager: InputMethodManager
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,7 +37,9 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentSetvoteBinding>(inflater,
             R.layout.fragment_setvote,container,false)
-        voteoptions=args.voteoptions
+        vmUpload=ViewModelProvider(requireActivity()).get(UploadViewModel::class.java)
+        voteoptions=arguments?.getParcelable("voteoptions")
+        (activity as MainActivity).setToolBarVisible("setVoteOptionFragment")
         voteoptionadapter= VoteOptionAdapter()
         setupRecyclerView()
         binding.btnadd.setOnClickListener {
@@ -102,8 +106,10 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
                 }
                 if(!isempty)
                     options=voteoptionadapter.differ.currentList.toList()
-                findNavController().previousBackStackEntry?.savedStateHandle?.set("return",Voteoptions(options))
-                findNavController().popBackStack()
+                //findNavController().previousBackStackEntry?.savedStateHandle?.set("return",Voteoptions(options))
+                //findNavController().popBackStack()
+                vmUpload.setvoteoptions(options)
+                parentFragmentManager.popBackStack()
 
             }
         }
@@ -125,7 +131,7 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
         positive.setOnClickListener {
             dialog.dismiss()
             dialog.cancel()
-            findNavController().popBackStack()
+            parentFragmentManager.popBackStack()
         }
         dialog.setView(mView)
         dialog.create()
@@ -142,5 +148,10 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
         }
 
         inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

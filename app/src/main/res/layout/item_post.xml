@@ -55,7 +55,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"/>
         <ImageView
-            android:src="@drawable/caffe"
+            android:visibility="gone"
             android:id="@+id/postImg"
             app:setPostImage="@{post.image}"
             android:background="@drawable/corner_round"
@@ -83,7 +83,6 @@
         android:layout_marginTop="15dp"
         android:textSize="12dp"
         android:textColor="@color/postinfo"
-        android:text="익명[abf1203] · 2시간전"
         app:nickname="@{post.nickname}"
         app:anonymous="@{post.anonymous}"
         app:watchlater="@{post.date}"
@@ -111,7 +110,7 @@
         android:layout_height="45dp">
         <ImageView
             distanceImgVis="@{post.distance}"
-
+            android:visibility="gone"
             android:src="@drawable/distance"
             android:id="@+id/distanceimg"
             android:layout_width="wrap_content"
@@ -121,7 +120,6 @@
 
             android:layout_gravity="center_vertical"
             android:id="@+id/tvdistance"
-            android:text="200 km"
             android:textSize="13dp"
             android:layout_marginLeft="4dp"
             android:layout_marginRight="9dp"
@@ -132,6 +130,7 @@
             android:layout_height="wrap_content"/>
 
         <ImageView
+            android:visibility="gone"
             android:layout_marginRight="4dp"
             android:id="@+id/commentimg"
             android:layout_width="wrap_content"
@@ -145,14 +144,13 @@
             app:countText="@{post.commentcount}"
             android:layout_marginRight="9dp"
             android:id="@+id/tvComments"
-            android:text="0"
             android:textSize="13dp"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
         <ImageView
-
+            android:visibility="gone"
             android:layout_marginRight="4dp"
             android:id="@+id/favoriteimg"
             android:layout_width="wrap_content"
@@ -165,12 +163,12 @@
             app:countText="@{post.likecount}"
             android:layout_marginRight="9dp"
             android:id="@+id/tvfavorites"
-            android:text="0"
             android:textSize="13dp"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <ImageView
+            android:visibility="gone"
             app:bindvoteimg="@{post.vote}"
             app:tint="@color/gray"
             android:layout_marginRight="4dp"
@@ -179,6 +177,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
         <TextView
+            android:visibility="gone"
             app:vote="@{post.vote}"
             app:votecount="@{post.votecount}"
             android:layout_marginRight="9dp"
@@ -190,7 +189,7 @@
             android:layout_height="wrap_content"/>
         <ImageView
             app:voiceVis="@{post.audio}"
-
+            android:visibility="gone"
             android:id="@+id/voiceimg"
             app:tint="@color/black"
             android:layout_marginRight="8dp"

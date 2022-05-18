@@ -30,6 +30,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.adapters.ImagesAdapter
@@ -58,9 +59,6 @@ import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
-
-
-    private val args:PostFragmentArgs by navArgs()
     override val baseCommentViewModel: BaseCommentViewModel
         get() {
             val vm: CommentViewModel by viewModels()
@@ -118,7 +116,8 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     private var mRootView:View?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        postcontents=args.post
+        postcontents=arguments?.getParcelable<Post>("post")!!
+        (activity as MainActivity).setToolBarVisible("postFragment")
     }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
@@ -195,7 +194,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
     private fun bindvote()
     {
-        if(args.post.vote=="exist")
+        if(postcontents.vote=="exist")
         {
             if(post.userid!=vmAuth.userid.value!!)
             {
@@ -385,7 +384,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
             R.id.requestChat->{
                 vmInteract.requestchat(post.userid,UUID.randomUUID().toString(),api)
@@ -464,7 +463,9 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                         setTextSize(12f)
                     }
                     setOnClickListener {
-                        findNavController().navigate(PostFragmentDirections.actionGlobalTagPostsFragment(tag))
+                        val bundle=Bundle()
+                        bundle.putString("tag",tag)
+                        (activity as MainActivity).replaceFragment("tagPostsFragment",TagPostsFragment(),bundle)
                     }
                 }
                 binding.cgTag.addView(chip)
@@ -577,31 +578,30 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                snackbar(it)
            }
        ){
-           if(it.resultCode==200)
-           {
-               binding.rgVote.visibility=View.GONE
-               binding.votelayout.visibility=View.VISIBLE
-               binding.rvvote.visibility=View.VISIBLE
-               binding.btnVote.visibility=View.GONE
-               var sum=0
-               val vresult:List<Voteresult> = it.voteresult
-               for(i in it.voteresult)
-               {
-                   sum+=i.votecount
-               }
-               for(i in it.voteresult.indices)
-               {
-                   if(it.voteresult[i].votecount==0)
-                       vresult[i].proportion=0
-                   else
-                   {
-                       val a:Double=(it.voteresult[i].votecount.toDouble()/sum.toDouble())*100
-                       vresult[i].proportion= a.roundToInt()
+           handleResponse(requireContext(),it.resultCode) {
+               if (it.resultCode == 200) {
+                   binding.rgVote.visibility = View.GONE
+                   binding.votelayout.visibility = View.VISIBLE
+                   binding.rvvote.visibility = View.VISIBLE
+                   binding.btnVote.visibility = View.GONE
+                   var sum = 0
+                   val vresult: List<Voteresult> = it.voteresult
+                   for (i in it.voteresult) {
+                       sum += i.votecount
                    }
+                   for (i in it.voteresult.indices) {
+                       if (it.voteresult[i].votecount == 0)
+                           vresult[i].proportion = 0
+                       else {
+                           val a: Double =
+                               (it.voteresult[i].votecount.toDouble() / sum.toDouble()) * 100
+                           vresult[i].proportion = a.roundToInt()
+                       }
+
+                   }
+                   voteresultadapter.differ.submitList(vresult)
 
                }
-               voteresultadapter.differ.submitList(vresult)
-
            }
 
        })
@@ -611,39 +611,46 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
 
-                binding.votelayout.visibility=View.VISIBLE
+                    binding.votelayout.visibility = View.VISIBLE
 
-                for(i in it.polloptions)
-                {
-                    val radiobtn=RadioButton(requireContext())
-                    radiobtn.apply {
-                        val colorList = ColorStateList(
-                            arrayOf(
-                                intArrayOf(-android.R.attr.state_enabled),  // Disabled
-                                intArrayOf(android.R.attr.state_enabled)    // Enabled
-                            ),
-                            intArrayOf(
-                                ContextCompat.getColor(requireContext(), R.color.inactive),     // The color for the Disabled state
-                                ContextCompat.getColor(requireContext(), R.color.skinfore)      // The color for the Enabled state
+                    for (i in it.polloptions) {
+                        val radiobtn = RadioButton(requireContext())
+                        radiobtn.apply {
+                            val colorList = ColorStateList(
+                                arrayOf(
+                                    intArrayOf(-android.R.attr.state_enabled),  // Disabled
+                                    intArrayOf(android.R.attr.state_enabled)    // Enabled
+                                ),
+                                intArrayOf(
+                                    ContextCompat.getColor(
+                                        requireContext(),
+                                        R.color.inactive
+                                    ),     // The color for the Disabled state
+                                    ContextCompat.getColor(
+                                        requireContext(),
+                                        R.color.skinfore
+                                    )      // The color for the Enabled state
+                                )
                             )
-                        )
-                        this.buttonTintList=colorList
-                        val param=RadioGroup.LayoutParams(RadioGroup.LayoutParams.WRAP_CONTENT,RadioGroup.LayoutParams.WRAP_CONTENT)
-                        this.text=i.choicetext
+                            this.buttonTintList = colorList
+                            val param = RadioGroup.LayoutParams(
+                                RadioGroup.LayoutParams.WRAP_CONTENT,
+                                RadioGroup.LayoutParams.WRAP_CONTENT
+                            )
+                            this.text = i.choicetext
 
-                        this.id=i.optionid
-                        binding.rgVote.addView(radiobtn,param)
+                            this.id = i.optionid
+                            binding.rgVote.addView(radiobtn, param)
 
+                        }
                     }
+                } else if (it.resultCode == 300) {
+                    //투표결과얻어오기
+                    vmInteract.getvoteresult(post.postid, api)
                 }
-            }
-            else if(it.resultCode==300)
-            {
-                //투표결과얻어오기
-                vmInteract.getvoteresult(post.postid,api)
             }
 
         })
@@ -653,14 +660,13 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
-                commentAdapter.differ.submitList(listOf())
-                vmComment.clearcomments()
-            }
-            else
-            {
-                snackbar("서버 오류가 발생했습니다")
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    commentAdapter.differ.submitList(listOf())
+                    vmComment.clearcomments()
+                } else {
+                    snackbar("서버 오류가 발생했습니다")
+                }
             }
 
         })
@@ -669,14 +675,13 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
-                Toast.makeText(requireContext(),"게시물이 삭제되었습니다",Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
-            }
-            else
-            {
-                snackbar("서버 오류가 발생했습니다")
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    Toast.makeText(requireContext(), "게시물이 삭제되었습니다", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                } else {
+                    snackbar("서버 오류가 발생했습니다")
+                }
             }
         })
         vmComment.checkSelectedCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -684,13 +689,27 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-            when(it.resultCode)
-            {
-                100->Toast.makeText(requireContext(),"해당 댓글은 삭제되었습니다",Toast.LENGTH_SHORT).show()
-                400-> Toast.makeText(requireContext(),"해당 게시물에 댓글을 게시할수 없습니다.",Toast.LENGTH_SHORT).show()
-                500->Toast.makeText(requireContext(),"해당 댓글에 답글을 게시할수 없습니다",Toast.LENGTH_SHORT).show()
-                else-> {
-                    findNavController().navigate(PostFragmentDirections.actionGlobalReplyFragment(it.comments[0],post))
+            handleResponse(requireContext(),it.resultCode) {
+                when (it.resultCode) {
+                    100 -> Toast.makeText(requireContext(), "해당 댓글은 삭제되었습니다", Toast.LENGTH_SHORT)
+                        .show()
+                    400 -> Toast.makeText(
+                        requireContext(),
+                        "해당 게시물에 댓글을 게시할수 없습니다.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    500 -> Toast.makeText(
+                        requireContext(),
+                        "해당 댓글에 답글을 게시할수 없습니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    else -> {
+                        val bundle=Bundle()
+                        bundle.putParcelable("comment",it.comments[0])
+                        bundle.putParcelable("post",post)
+                        (activity as MainActivity).replaceFragment("replyFragment",ReplyFragment(),bundle)
+
+                    }
                 }
             }
         })
@@ -701,17 +720,16 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         ){
             if(srLayout.isRefreshing)
                 srLayout.isRefreshing=false
-            if(it.resultCode==100)
-            {
-                Toast.makeText(requireActivity(),"삭제된 게시물입니다",Toast.LENGTH_SHORT).show()
-            }
-            else
-            {
-                val temppost=postcontents
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 100) {
+                    Toast.makeText(requireActivity(), "삭제된 게시물입니다", Toast.LENGTH_SHORT).show()
+                } else {
+                    val temppost = postcontents
 
-                postcontents=it.posts[0]
-                postcontents.distance=temppost.distance
-                bindPostInfo()
+                    postcontents = it.posts[0]
+                    postcontents.distance = temppost.distance
+                    bindPostInfo()
+                }
             }
         })
         vmInteract.toggleLikeResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -719,26 +737,21 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-
-            if(it.resultCode==100)
-            {
-                Toast.makeText(requireContext(),"삭제된 글입니다",Toast.LENGTH_SHORT).show()
-            }
-            else
-            {
-                if(it.toggle==1)
-                {
-                    post.likecount=post.likecount-1
-                    binding.likecount.text="좋아요 ${post.likecount}개"
-                    post.isLiked=0
-                    binding.imgLike.setImageResource(R.drawable.favorite_off)
-                }
-                else
-                {
-                    post.likecount=post.likecount+1
-                    binding.likecount.text="좋아요 ${post.likecount}개"
-                    post.isLiked=1
-                    binding.imgLike.setImageResource(R.drawable.favorite_on)
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 100) {
+                    Toast.makeText(requireContext(), "삭제된 글입니다", Toast.LENGTH_SHORT).show()
+                } else {
+                    if (it.toggle == 1) {
+                        post.likecount = post.likecount - 1
+                        binding.likecount.text = "좋아요 ${post.likecount}개"
+                        post.isLiked = 0
+                        binding.imgLike.setImageResource(R.drawable.favorite_off)
+                    } else {
+                        post.likecount = post.likecount + 1
+                        binding.likecount.text = "좋아요 ${post.likecount}개"
+                        post.isLiked = 1
+                        binding.imgLike.setImageResource(R.drawable.favorite_on)
+                    }
                 }
             }
         })
@@ -747,21 +760,17 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 snackbar(it)
             }
         ){
-            if(it.resultCode==100)
-            {
-                Toast.makeText(requireContext(),"삭제된 글입니다",Toast.LENGTH_SHORT).show()
-            }
-            else
-            {
-                if(it.toggle==1)
-                {
-                    post.bookmarked=0
-                    binding.imgBookmark.setImageResource(R.drawable.ic_bookmarkoff)
-                }
-                else
-                {
-                    post.bookmarked=1
-                    binding.imgBookmark.setImageResource(R.drawable.ic_bookmarkon)
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 100) {
+                    Toast.makeText(requireContext(), "삭제된 글입니다", Toast.LENGTH_SHORT).show()
+                } else {
+                    if (it.toggle == 1) {
+                        post.bookmarked = 0
+                        binding.imgBookmark.setImageResource(R.drawable.ic_bookmarkoff)
+                    } else {
+                        post.bookmarked = 1
+                        binding.imgBookmark.setImageResource(R.drawable.ic_bookmarkon)
+                    }
                 }
             }
         })
@@ -801,6 +810,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             serviceUnbind()
             binding.progressMedia.progress=0
         }
+        (activity as MainActivity).setupTopBottom()
         super.onDestroy()
     }
 }

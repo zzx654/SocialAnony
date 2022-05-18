@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.example.appportfolio.*
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.SignManager
@@ -84,9 +85,39 @@ class InitActivity: AppCompatActivity() {
                 Toast.makeText(this,it, Toast.LENGTH_SHORT).show()
             }
         ) {
-
             binding.initprogressbar.visibility=View.GONE
-            if (it.resultcode == 200) {//프로필 완료된거
+            handleResponse(this,it.resultCode){
+                if (it.resultCode == 200) {//프로필 완료된거
+                    val intent = Intent(
+                        this,
+                        MainActivity::class.java
+                    ).apply {
+                        startActivity(this)
+                        finish()
+                    }
+                }
+                else if(it.resultCode==401){
+                    val intent = Intent(
+                        this,
+                        AuthActivity::class.java
+                    ).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        startActivity(this)
+                    }
+                }
+                else
+                {
+                    val intent = Intent(
+                        this,
+                        AuthCompleteActivity::class.java
+                    ).apply {
+                        startActivity(this)
+                        finish()
+                    }
+                }
+            }
+
+            /**if (it.resultcode == 200) {//프로필 완료된거
                 val intent = Intent(
                     this,
                     MainActivity::class.java
@@ -112,7 +143,7 @@ class InitActivity: AppCompatActivity() {
                     startActivity(this)
                     finish()
                 }
-            }
+            }**/
         })
     }
     private fun getFirebaseToken(){

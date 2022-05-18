@@ -8,11 +8,11 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.preference.PreferenceManager
 import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -50,12 +50,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         subsribeToObserver()
         (activity as MainActivity).getmyprofile()
-
-
-
         return binding.root
-
-
     }
     val prefListener =
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences: SharedPreferences?, key: String? ->
@@ -93,49 +88,53 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
 
             }
         ){
+            handleResponse(requireContext(),it.resultCode){
+
+            }
         })
         vmAuth.getmyprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 snackbar(it)
             }
         ){
-            if(it.resultCode==400)
-                snackbar("서버 오류 발생")
-            else
-            {
-                if(it.platform.equals("NONE"))
-                    binding.tvAccount.text=it.account
-                else{
-                    binding.tvAccount.text=(activity as MainActivity).getgooglemail()
-                }
-                binding.tvNick.text=it.nickname
-                gender=it.gender
-                if(it.profileimage==null)
-                {
-                    when(it.gender){
-                        "남자"->binding.imgProfile.setImageResource(R.drawable.icon_male)
-                        "여자"->binding.imgProfile.setImageResource(R.drawable.icon_female)
-                        else->binding.imgProfile.setImageResource(R.drawable.icon_none)
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 400)
+                    snackbar("서버 오류 발생")
+                else {
+                    if (it.platform.equals("NONE"))
+                        binding.tvAccount.text = it.account
+                    else {
+                        binding.tvAccount.text = (activity as MainActivity).getgooglemail()
                     }
-                }
-                else{
-                    profileimgurl=it.profileimage!!
-                    Glide.with(requireContext())
-                        .load(it.profileimage!!)
-                        .into(binding.imgProfile)
-                }
-                binding.imgProfile.setOnClickListener {
-                    findNavController().navigate(MypageFragmentDirections.actionGlobalProfileEditFragment(profileimgurl,binding.tvNick.text.toString(),gender))
+                    binding.tvNick.text = it.nickname
+                    gender = it.gender
+                    if (it.profileimage == null) {
+                        when (it.gender) {
+                            "남자" -> binding.imgProfile.setImageResource(R.drawable.icon_male)
+                            "여자" -> binding.imgProfile.setImageResource(R.drawable.icon_female)
+                            else -> binding.imgProfile.setImageResource(R.drawable.icon_none)
+                        }
+                    } else {
+                        profileimgurl = it.profileimage!!
+                        Glide.with(requireContext())
+                            .load(it.profileimage!!)
+                            .into(binding.imgProfile)
+                    }
+                    binding.imgProfile.setOnClickListener {
+                        val bundle=Bundle()
+                        bundle.putString("profileurl",profileimgurl)
+                        bundle.putString("nickname",binding.tvNick.text.toString())
+                        bundle.putString("gender",gender)
+                        (activity as MainActivity).replaceFragment("profileEditFragment",ProfileEditFragment(),bundle)
+
+                    }
                 }
             }
         })
 
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
         prefs.registerOnSharedPreferenceChangeListener(prefListener)
-
-        (activity as MainActivity).binding.title.text="마이페이지"
         super.onResume()
 
     }

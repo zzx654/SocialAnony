@@ -1,10 +1,12 @@
 package com.example.appportfolio.ui.main.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -47,23 +49,24 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_hot) {
         get() = binding.sr
     protected val viewModel: hotPostViewModel
         get() = basePostViewModel as hotPostViewModel
-
+    private var mRootView:View?=null
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding= DataBindingUtil.inflate<FragmentHotBinding>(inflater,
-            R.layout.fragment_hot,container,false)
-        hotpostAdapter= PostAdapter()
-        hotpostAdapter.setOntagClickListener { tag->
-            findNavController().navigate(HomeFragmentDirections.actionGlobalTagPostsFragment(tag))
-
+        if(mRootView==null) {
+            binding = DataBindingUtil.inflate<FragmentHotBinding>(
+                inflater,
+                R.layout.fragment_hot, container, false
+            )
+            hotpostAdapter = PostAdapter()
+            setView()
+            refreshPosts()
+            mRootView=binding.root
         }
-        hotpostAdapter.setOnPostClickListener { post->
-            findNavController().navigate(HomeFragmentDirections.actionGlobalPostFragment(post))
-        }
-        return binding.root
+        return mRootView
     }
     override fun loadNewPosts() {
         getPosts()
@@ -71,11 +74,6 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_hot) {
 
     override fun refreshPosts() {
         getPosts(true)
-    }
-
-
-    override fun navigateToPostFragment(post: Post) {
-        findNavController().navigate(HomeFragmentDirections.actionGlobalPostFragment(post))
     }
 
 
@@ -96,11 +94,11 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_hot) {
         if(SocialApplication.checkGeoPermission(requireContext()))
         {
 
-                viewModel.getTagHotPosts((this@HotTagFragment.parentFragment as TagPostsFragment).tagname,lastpostnum,lastposthot,gpsTracker.latitude,gpsTracker.longitude,api)
+                viewModel.getTagHotPosts((this@HotTagFragment.parentFragment as TagPostsFragment).tagname!!,lastpostnum,lastposthot,gpsTracker.latitude,gpsTracker.longitude,api)
 
         }
         else{
-            viewModel.getTagHotPosts((this@HotTagFragment.parentFragment as TagPostsFragment).tagname,lastpostnum,lastposthot,null,null,api)
+            viewModel.getTagHotPosts((this@HotTagFragment.parentFragment as TagPostsFragment).tagname!!,lastpostnum,lastposthot,null,null,api)
         }
     }
 }

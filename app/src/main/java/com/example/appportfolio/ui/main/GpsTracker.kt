@@ -1,21 +1,15 @@
 package com.example.appportfolio.ui.main
 
 import android.Manifest
-import android.app.Service
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
-import android.os.IBinder
 import android.util.Log
 import androidx.core.content.ContextCompat
-
-
-
 
 class GpsTracker(private val mContext:Context): LocationListener {
 
@@ -91,7 +85,7 @@ class GpsTracker(private val mContext:Context): LocationListener {
                 }
             }
         } catch (e: Exception) {
-            Log.d("@@@", "" + e.toString())
+            Log.d("GPSERR", "" + e.toString())
         }
         return location
     }

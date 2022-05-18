@@ -15,7 +15,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -23,6 +23,7 @@ import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getAge
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -35,6 +36,7 @@ import com.example.appportfolio.other.Constants.DELETE
 import com.example.appportfolio.other.Constants.REPORT
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
+import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.InteractionDialog
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.interactViewModel
@@ -325,7 +327,9 @@ abstract class BaseCommentFragment (layoutId:Int
             else
             {
                 profileimg.setOnClickListener {
-                    findNavController().navigate(PostFragmentDirections.actionGlobalImageFragment(profileimage))
+                    val bundle=Bundle()
+                    bundle.putString("image",profileimage)
+                    (activity as MainActivity).replaceFragment("imageFragment",ImageFragment(),bundle)
                     dialog.dismiss()
                     dialog.cancel()
                 }
@@ -351,24 +355,31 @@ abstract class BaseCommentFragment (layoutId:Int
                 snackbar(it)
             }
         ){
-            when(it.resultCode)
-            {
-                200->Toast.makeText(requireContext(),"대화 요청이 완료되었습니다",Toast.LENGTH_SHORT).show()
-                300->Toast.makeText(requireContext(),"해당유저가 대화요청을 차단한 상태입니다",Toast.LENGTH_SHORT).show()
-                else->Toast.makeText(requireContext(),"해당유저에게 이미 대화를 요청했습니다",Toast.LENGTH_SHORT).show()
+            handleResponse(requireContext(),it.resultCode){
+                when(it.resultCode)
+                {
+                    200->Toast.makeText(requireContext(),"대화 요청이 완료되었습니다",Toast.LENGTH_SHORT).show()
+                    300->Toast.makeText(requireContext(),"해당유저가 대화요청을 차단한 상태입니다",Toast.LENGTH_SHORT).show()
+                    500->Toast.makeText(requireContext(),"해당유저를 차단했거나 차단당한 상태입니다",Toast.LENGTH_SHORT).show()
+                    else->Toast.makeText(requireContext(),"해당유저에게 이미 대화를 요청했습니다",Toast.LENGTH_SHORT).show()
+                }
             }
+
         })
         vmInteract.getprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
-                showprofile(it.profileimage,it.gender,it.age,it.nickname,false)
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==200)
+                {
+                    showprofile(it.profileimage,it.gender,it.age,it.nickname,false)
+                }
+                else
+                    snackbar("서버오류 발생")
             }
-            else
-                snackbar("서버오류 발생")
+
 
         })
         vmInteract.reportResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -376,12 +387,14 @@ abstract class BaseCommentFragment (layoutId:Int
                 snackbar(it)
             }
         ){
-            if(it.resultCode==200)
-            {
-                Toast.makeText(requireContext(),"신고가 접수되었습니다",Toast.LENGTH_SHORT).show()
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==200)
+                {
+                    Toast.makeText(requireContext(),"신고가 접수되었습니다",Toast.LENGTH_SHORT).show()
+                }
+                else
+                    Toast.makeText(requireContext(),"서버 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
             }
-            else
-                Toast.makeText(requireContext(),"서버 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
 
         })
         vmInteract.blockuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -389,49 +402,55 @@ abstract class BaseCommentFragment (layoutId:Int
                 snackbar(it)
             }
         ){
-            Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
-            if(it.resultCode==300)
-                findNavController().popBackStack()
-            if(it.resultCode==200)
-            {
-                commentAdapter.differ.submitList(listOf())
-                baseCommentViewModel.clearcomments()
+            handleResponse(requireContext(),it.resultCode){
+                Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
+                if(it.resultCode==300)
+                    parentFragmentManager.popBackStack()
+                if(it.resultCode==200)
+                {
+                    commentAdapter.differ.submitList(listOf())
+                    baseCommentViewModel.clearcomments()
+                }
             }
+
         })
         baseCommentViewModel.toggleCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
                 snackbar(it)
             }
         ){
-            if(it.resultCode==100)
-            {
-                snackbar("삭제된 댓글입니다")
-            }
-            else
-            {
-                for(i in commentAdapter.comments.indices)
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==100)
                 {
-                    if(it.value==commentAdapter.comments[i].commentid)
+                    snackbar("삭제된 댓글입니다")
+                }
+                else
+                {
+                    for(i in commentAdapter.comments.indices)
                     {
-                        commentAdapter.comments[i].apply {
-                            if(this.commentliked==0)
-                            {
-                                this.commentliked=1
-                                this.likecount+=1
-                            }
+                        if(it.value==commentAdapter.comments[i].commentid)
+                        {
+                            commentAdapter.comments[i].apply {
+                                if(this.commentliked==0)
+                                {
+                                    this.commentliked=1
+                                    this.likecount+=1
+                                }
 
-                            else
-                            {
-                                this.commentliked=0
-                                this.likecount-=1
-                            }
+                                else
+                                {
+                                    this.commentliked=0
+                                    this.likecount-=1
+                                }
 
+                            }
+                            commentAdapter.notifyItemChanged(i)
+                            break
                         }
-                        commentAdapter.notifyItemChanged(i)
-                        break
                     }
                 }
             }
+
 
         })
         baseCommentViewModel.postCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -446,20 +465,24 @@ abstract class BaseCommentFragment (layoutId:Int
             }
 
         ){
+
             postcommentprogress.visibility=View.GONE
-            when(it.value)
-            {
-                100->shownotexist()
-                400-> Toast.makeText(requireContext(),"해당 게시물에 댓글을 게시할수 없습니다.",Toast.LENGTH_SHORT).show()
-                500->Toast.makeText(requireContext(),"해당 댓글에 답글을 게시할수 없습니다",Toast.LENGTH_SHORT).show()
-                else-> {
-                    var postcontent=postcontents
-                    postcontent.commentcount+=1
-                    postcontents=postcontent
-                    //commentAdapter.differ.submitList(listOf())
-                    baseCommentViewModel.clearcomments()
+            handleResponse(requireContext(),it.resultCode){
+                when(it.value)
+                {
+                    100->shownotexist()
+                    400-> Toast.makeText(requireContext(),"해당 게시물에 댓글을 게시할수 없습니다.",Toast.LENGTH_SHORT).show()
+                    500->Toast.makeText(requireContext(),"해당 댓글에 답글을 게시할수 없습니다",Toast.LENGTH_SHORT).show()
+                    else-> {
+                        var postcontent=postcontents
+                        postcontent.commentcount+=1
+                        postcontents=postcontent
+                        //commentAdapter.differ.submitList(listOf())
+                        baseCommentViewModel.clearcomments()
+                    }
                 }
             }
+
 
 
         })
@@ -480,24 +503,25 @@ abstract class BaseCommentFragment (layoutId:Int
             if(srLayout.isRefreshing)
                 srLayout.isRefreshing=false
 
-            if(it.resultCode==200) {
-                if(commentAdapter.differ.currentList.isEmpty())
-                {
-                    noComment?.let{it.visibility=View.GONE}
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==200) {
+                    if(commentAdapter.differ.currentList.isEmpty())
+                    {
+                        noComment?.let{it.visibility=View.GONE}
+                    }
+                    baseCommentViewModel.addcomments(it.comments)
                 }
-                baseCommentViewModel.addcomments(it.comments)
-            }
-            else{
-                //=true
-                isLoading=false
-                commentprogress.visibility=View.GONE
-                if(commentAdapter.differ.currentList.isEmpty()) {
-                    noComment?.let{it.visibility = View.VISIBLE}
-                    rgComment?.let{it.visibility=View.GONE}
+                else{
+                    //=true
+                    isLoading=false
+                    commentprogress.visibility=View.GONE
+                    if(commentAdapter.differ.currentList.isEmpty()) {
+                        noComment?.let{it.visibility = View.VISIBLE}
+                        rgComment?.let{it.visibility=View.GONE}
+                    }
                 }
-                else
-                    snackbar("더이상 표시할 댓글이 없습니다")
             }
+
         })
         baseCommentViewModel.curcomments.observe(viewLifecycleOwner,Event.EventObserver(
         ){
@@ -528,13 +552,16 @@ abstract class BaseCommentFragment (layoutId:Int
                 snackbar(it)
             }
         ){
-            if(it.resultCode==100)
-            {
-                baseCommentViewModel.setAnony(genAnonymous())
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==100)
+                {
+                    baseCommentViewModel.setAnony(genAnonymous())
+                }
+                else{
+                    baseCommentViewModel.setAnony(it.message)
+                }
             }
-            else{
-                baseCommentViewModel.setAnony(it.message)
-            }
+
         })
 
     }

@@ -5,6 +5,7 @@ import kotlinx.android.parcel.Parcelize
 
 
 data class TagResult(
+    val resultCode:Int?,
     val tagname:String,
     var count:Int?,
     var isLiked:Int?

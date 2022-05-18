@@ -6,12 +6,13 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import com.example.appportfolio.R
 
-class ProgressDialog(context: Context): Dialog(context)
+class DownloadProgressDialog(context: Context): Dialog(context)
 {
+
     init {
         setCanceledOnTouchOutside(false)
         window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        setContentView(R.layout.dialog_loading)
+        setContentView(R.layout.dialog_downloadloading)
     }
 
 

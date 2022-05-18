@@ -135,6 +135,7 @@ class ChatViewModel@ViewModelInject constructor(
     }
     fun getAllChats() = chatRepository.getAllChats()
 
+    fun loadimages(roomid: String) = chatRepository.loadimages(roomid)
     fun loadchatContents(roomid:String) = chatRepository.loadchatContents(roomid)
 
     fun loadbeforechatContents(roomid:String,id:Int) = chatRepository.loadbeforechatContents(roomid,id)

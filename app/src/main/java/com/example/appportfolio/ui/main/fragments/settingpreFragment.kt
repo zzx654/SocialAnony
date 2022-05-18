@@ -27,6 +27,7 @@ class settingpreFragment:PreferenceFragmentCompat() {
     var logoffPreference:Preference?=null
     var outPreference:Preference?=null
     var changepwPreference:Preference?=null
+    var following:Preference?=null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listView.overScrollMode=View.OVER_SCROLL_NEVER
@@ -46,24 +47,29 @@ class settingpreFragment:PreferenceFragmentCompat() {
             logoffPreference=findPreference("logoff")
             outPreference=findPreference("out")
             changepwPreference=findPreference("changepw")
+            following=findPreference("following")
 
             prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+
         }
         bookmarkPreference?.setOnPreferenceClickListener {
-            findNavController().navigate(MypageFragmentDirections.actionGlobalBookmarkFragment())
+            (activity as MainActivity).replaceFragment("bookmarkFragment",BookmarkFragment(),null)
             true
         }
         mypostPreference?.setOnPreferenceClickListener {
-            findNavController().navigate(MypageFragmentDirections.actionGlobalMyPostsFragment())
+            (activity as MainActivity).replaceFragment("myPostsFragment",MyPostsFragment(),null)
             true
         }
         blockPreference?.setOnPreferenceClickListener {
-            findNavController().navigate(MypageFragmentDirections.actionGlobalBlockFragment())
+            (activity as MainActivity).replaceFragment("blockFragment",BlockFragment(),null)
             true
         }
         changepwPreference?.setOnPreferenceClickListener {
-            //여기에비번변경창으로이동
-            findNavController().navigate(MypageFragmentDirections.actionGlobalSetPasswordFragment())
+            (activity as MainActivity).replaceFragment("setPasswordFragment",SetPasswordFragment(),null)
+            true
+        }
+        following?.setOnPreferenceClickListener {
+            (activity as MainActivity).replaceFragment("myFollowingFragment",MyFollowingFragment(),null)
             true
         }
 

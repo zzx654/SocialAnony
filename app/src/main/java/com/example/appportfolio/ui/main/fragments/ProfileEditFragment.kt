@@ -21,15 +21,16 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentProfileeditBinding
+import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -37,7 +38,10 @@ import com.example.appportfolio.ui.main.viewmodel.ProfileEditViewModel
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -51,11 +55,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     lateinit var binding: FragmentProfileeditBinding
-    private val args:ProfileEditFragmentArgs by navArgs()
     lateinit var inputMethodManager: InputMethodManager
     lateinit var nick:String
     var profileurl:String?=null
     private var curImageUri: Uri?=null
+    private var imgdeleted=false
+    private var alreadyexist=false
     private val vmEdit: ProfileEditViewModel by viewModels()
     lateinit var api: MainApi
     private lateinit var cropContent: ActivityResultLauncher<Any?>
@@ -82,17 +87,18 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentProfileeditBinding>(inflater,
             R.layout.fragment_profileedit,container,false)
+        (activity as MainActivity).setToolBarVisible("profileEditFragment")
         api= RemoteDataSource().buildApi(MainApi::class.java,
             runBlocking { preferences.authToken.first() })
-        nick=args.nickname
-        profileurl=args.profileurl
+        nick=arguments?.getString("nickname")!!
+        profileurl=arguments?.getString("profileurl")
         binding.edtnick.setText(nick)
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
         }
         if(profileurl==null)
         {
-            when(args.gender){
+            when(arguments?.getString("gender")!!){
                 "남자"->binding.imgProfile.setImageResource(R.drawable.icon_male)
                 "여자"->binding.imgProfile.setImageResource(R.drawable.icon_female)
                 else->binding.imgProfile.setImageResource(R.drawable.icon_none)
@@ -105,44 +111,83 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         }
         cropContent=registerForActivityResult(cropActivityResultContract){uri->
             uri?.let{
-                activebutton()
+                imgdeleted=false
+                if(!alreadyexist)
+                    activebutton()
                 vmEdit.setCurImageUri(it)
             }
         }
+        var job: Job? = null
         binding.edtnick.addTextChangedListener {editable->
-
-            editable?.let{
-                if(binding.edtnick.text.toString().trim().isEmpty())
-                {
-                    val color = getColor(requireContext(),R.color.inactive)
-                    binding.complete.isClickable=false
-                    binding.complete.setBackgroundColor(color)
-                }
-                else
-                {
-                    if(binding.edtnick.text.toString().equals(nick)&&curImageUri==null)
+            job?.cancel()
+            job = lifecycleScope.launch {
+                delay(Constants.SEARCH_TIME_DELAY)
+                editable?.let{
+                    if(binding.edtnick.text.toString().trim().isEmpty())
                     {
-                        //프사도 변경안하고 닉네임도 변화가없는경우
-                        inactivebutton()
+                        val color = getColor(requireContext(),R.color.inactive)
+                        binding.complete.isClickable=false
+                        binding.complete.setBackgroundColor(color)
+                        binding.tvexist.visibility=View.GONE
+                        binding.tvguide.visibility=View.VISIBLE
                     }
                     else
                     {
-                        //닉네임의 변화가있거나 변화가없어도 프사가 변경되어있는경우
-                        activebutton()
+                        if(binding.edtnick.text.toString().equals(nick)&&curImageUri==null&&!imgdeleted)
+                        {
+                            binding.tvexist.visibility=View.GONE
+                            binding.tvguide.visibility=View.VISIBLE
+                            //프사도 변경안하고 닉네임도 변화가없는경우
+                            inactivebutton()
+                        }
+                        else
+                        {
+                            vmEdit.checknick(binding.edtnick.text.toString(),api)
+                        }
                     }
-
                 }
             }
         }
         binding.complete.setOnClickListener {
-
             showComplete()
         }
         binding.imgProfile.setOnClickListener{
-            cropContent.launch(null)
+            if((curImageUri==null&&profileurl==null)||imgdeleted)
+                cropContent.launch(null)
+            else
+                showEditprofileimage()
         }
         subscribeToObserver()
         return binding.root
+    }
+    fun showEditprofileimage()
+    {
+        val dialog= AlertDialog.Builder(requireContext()).create()
+        val edialog: LayoutInflater = LayoutInflater.from(requireContext())
+        val mView: View =edialog.inflate(R.layout.dialog_editpfimg,null)
+        val change: Button =mView.findViewById(R.id.btnchange)
+        val delete: Button =mView.findViewById(R.id.btndelete)
+
+        change.setOnClickListener {
+            dialog.dismiss()
+            dialog.cancel()
+        }
+        delete.setOnClickListener {
+            curImageUri=null
+            if(!alreadyexist)
+                activebutton()
+            imgdeleted=true
+            when(arguments?.getString("gender")!!){
+                "남자"->binding.imgProfile.setImageResource(R.drawable.icon_male)
+                "여자"->binding.imgProfile.setImageResource(R.drawable.icon_female)
+                else->binding.imgProfile.setImageResource(R.drawable.icon_none)
+            }
+            dialog.dismiss()
+            dialog.cancel()
+        }
+        dialog.setView(mView)
+        dialog.create()
+        dialog.show()
     }
     fun showComplete()
     {
@@ -164,8 +209,6 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                 vmEdit.editprofile(null,binding.edtnick.text.toString(),api)
             dialog.dismiss()
             dialog.cancel()
-
-
         }
         dialog.setView(mView)
         dialog.create()
@@ -180,12 +223,11 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         }
         (activity as MainActivity).binding.title.text="프로필 수정"
         super.onResume()
-
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -204,6 +246,26 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     }
     private fun subscribeToObserver()
     {
+        vmEdit.checknickResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                snackbar(it)
+            }
+        ){
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    binding.tvguide.visibility = View.VISIBLE
+                    binding.tvexist.visibility = View.GONE
+                    alreadyexist = false
+                    activebutton()
+                } else {
+                    alreadyexist = true
+                    inactivebutton()
+                    binding.tvguide.visibility = View.GONE
+                    binding.tvexist.visibility = View.VISIBLE
+                }
+            }
+
+        })
         vmEdit.profileeditResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading = {
                 binding.editprogressbar.visibility=View.VISIBLE
@@ -215,15 +277,14 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             }
         ){
             binding.editprogressbar.visibility=View.GONE
-            if(it.resultCode==200)
-            {
-                Toast.makeText(requireContext(),"변경이 완료되었습니다",Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    Toast.makeText(requireContext(), "변경이 완료되었습니다", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                } else {
+                    snackbar("서버오류 발생")
+                }
             }
-            else{
-                snackbar("서버오류 발생")
-            }
-
         })
         vmEdit.curImageUri.observe(viewLifecycleOwner){
             curImageUri=it
@@ -238,32 +299,28 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             onError = {
                 binding.editprogressbar.visibility=View.GONE
                 snackbar(it)
-
             }
         ){
             binding.editprogressbar.visibility=View.GONE
-            if(it.resultCode==200)
-            {
-                it.imageUri
-                binding.edtnick.text.toString()
-                //프로필에디트함수호출
-                vmEdit.editprofile(it.imageUri,binding.edtnick.text.toString(),api)
-            }
-            else{
-                snackbar("서버오류 발생")
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    it.imageUri
+                    binding.edtnick.text.toString()
+                    //프로필에디트함수호출
+                    vmEdit.editprofile(it.imageUri, binding.edtnick.text.toString(), api)
+                } else {
+                    snackbar("서버오류 발생")
+                }
             }
         })
     }
     private fun uploadImages(imageUri: Uri, context: Context)
     {
         var requestImage:MultipartBody.Part
-
-
-            val file= File(getRealPathFromURI(imageUri,context))
-            val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
-            var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
-            requestImage=body
-
+        val file= File(getRealPathFromURI(imageUri,context))
+        val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
+        var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
+        requestImage=body
         vmEdit.uploadprofileimg(requestImage,api)
     }
     fun hideKeyboard() {
@@ -294,10 +351,14 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         }
         return filePath
     }
-
     override fun onStop() {
         super.onStop()
         hideKeyboard()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 
 }

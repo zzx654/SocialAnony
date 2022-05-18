@@ -27,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class NearFragment: BasePostFragment(R.layout.fragment_near) {
     lateinit var binding: FragmentNearBinding
     lateinit var nearpostAdapter: PostAdapter
+    private var mRootView:View?=null
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm:nearPostViewModel by viewModels()
@@ -49,28 +50,42 @@ class NearFragment: BasePostFragment(R.layout.fragment_near) {
         get() = binding.loadProgressBar
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
+    val adapterDataObserver = object:RecyclerView.AdapterDataObserver(){
 
+        override fun onItemRangeRemoved(positionStart: Int, itemCount: Int) {
+            super.onItemRangeRemoved(positionStart, itemCount)
+            refreshPosts()
+        }
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding= DataBindingUtil.inflate<FragmentNearBinding>(inflater,
-            R.layout.fragment_near,container,false)
-        binding.rgDistance.setOnCheckedChangeListener { group, checkedId ->
-            postAdapter.differ.submitList(listOf())
-            viewModel.clearposts()
+        if(mRootView==null)
+        {
+            binding = DataBindingUtil.inflate<FragmentNearBinding>(
+                inflater,
+                R.layout.fragment_near, container, false
+            )
+            binding.rgDistance.setOnCheckedChangeListener { group, checkedId ->
+                if(postAdapter.differ.currentList.size>0)
+                    postAdapter.differ.submitList(listOf())
+                else
+                    refreshPosts()
+                //refreshPosts()
+            }
+            nearpostAdapter = PostAdapter()
+            nearpostAdapter.registerAdapterDataObserver(adapterDataObserver)
+            setView()
+            mRootView=binding.root
+            refreshPosts()
         }
-        nearpostAdapter=PostAdapter()
-        nearpostAdapter.setOntagClickListener { tag->
-            findNavController().navigate(HomeFragmentDirections.actionGlobalTagPostsFragment(tag))
 
-        }
-        nearpostAdapter.setOnPostClickListener { post->
-            findNavController().navigate(HomeFragmentDirections.actionGlobalPostFragment(post))
-        }
-        return binding.root
+
+        return mRootView
+        //return binding.root
     }
     //라디오버튼선택변했을때는 일단 리스트비우고시작하기
 
@@ -80,9 +95,6 @@ class NearFragment: BasePostFragment(R.layout.fragment_near) {
 
     override fun refreshPosts() {
         getPosts(true)
-    }
-    override fun navigateToPostFragment(post: Post) {
-        (activity as MainActivity).navHostFragment.navController.navigate(HomeFragmentDirections.actionGlobalPostFragment(post))
     }
 
     fun getPosts(refresh:Boolean=false)

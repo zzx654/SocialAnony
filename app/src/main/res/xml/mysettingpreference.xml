@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
         android:icon="@drawable/ic_bookmarkoff"
         android:key="bookmark"
         android:title="북마크"
+        />
+    <Preference
+        android:icon="@drawable/favorite_off"
+        android:key="following"
+        android:title="팔로잉"
         />
     <Preference
         android:icon="@drawable/ic_mylibrary"
@@ -16,12 +21,12 @@
         android:key="blockuser"
         android:title="차단유저 관리"
         />
-    <SwitchPreference
+    <com.example.appportfolio.other.SwitchPreferenceExtend
         android:icon="@drawable/ic_outline_chat_24"
         android:key="chatonoff"
         android:title="대화요청 받기"
         />
-    <SwitchPreference
+    <com.example.appportfolio.other.SwitchPreferenceExtend
         android:defaultValue="true"
         android:icon="@drawable/ic_report"
         android:key="pushonoff"

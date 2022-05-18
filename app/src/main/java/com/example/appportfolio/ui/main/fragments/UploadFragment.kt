@@ -27,15 +27,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.PostImageAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -44,18 +43,14 @@ import com.example.appportfolio.data.entities.Voteoption
 import com.example.appportfolio.data.entities.Voteoptions
 import com.example.appportfolio.databinding.FragmentUploadBinding
 import com.example.appportfolio.other.Constants
-import com.example.appportfolio.other.Constants.TAG_CHAT
-import com.example.appportfolio.other.Constants.TAG_HOME
-import com.example.appportfolio.other.Constants.TAG_MYPAGE
-import com.example.appportfolio.other.Constants.TAG_NOTI
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
-import com.example.appportfolio.ui.main.dialog.ProgressDialog
 import com.example.appportfolio.ui.main.dialog.RecordFragment
+import com.example.appportfolio.ui.main.dialog.SetVoteoptionFragment
+import com.example.appportfolio.ui.main.dialog.UploadProgressDialog
 import com.example.appportfolio.ui.main.services.uploadService
-import com.example.appportfolio.ui.main.viewmodel.NavViewModel
 import com.example.appportfolio.ui.main.viewmodel.UploadViewModel
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,18 +85,17 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     //@Inject
     lateinit var postimageAdapter: PostImageAdapter
     @Inject
-    lateinit var progressDialog: ProgressDialog
+    lateinit var progressDialog: UploadProgressDialog
     @Inject
     lateinit var gpsTracker: GpsTracker
     lateinit var binding: FragmentUploadBinding
     val PERMISSION_REQUEST_CODE=26
     lateinit var api: MainApi
-    private val vmUpload: UploadViewModel by viewModels()
+    private lateinit var vmUpload: UploadViewModel
     private lateinit var vmAuth: AuthViewModel
     private var imgUris:List<Uri> = listOf()
     private var voteoptions:List<Voteoption>?=null
     private var mRootView:View?=null
-    lateinit var vmNav: NavViewModel
     private var mIsFirstLoad=false
     private val getContent =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -133,6 +127,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         postimageAdapter= PostImageAdapter()
+
     }
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -142,9 +137,9 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
 
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
-            vmNav= ViewModelProvider(this).get(NavViewModel::class.java)
-
         }
+        vmUpload=ViewModelProvider(requireActivity()).get(UploadViewModel::class.java)
+        (activity as MainActivity).setToolBarVisible("uploadFragment")
         if(mRootView==null){
             binding= DataBindingUtil.inflate<FragmentUploadBinding>(inflater,
                 R.layout.fragment_upload,container,false)
@@ -226,21 +221,17 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                 vmUpload.setGpsAllowed(false)
             }
         }
-        val navController=findNavController()
-        navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Voteoptions>("return")?.observe(viewLifecycleOwner){
-            vmUpload.setvoteoptions(it.options)
-
-        }
 
 
         binding.btnVote.setOnClickListener {
             var voptions:Voteoptions?=null
             voteoptions?.let{
-                voptions=Voteoptions((voteoptions))
+                voptions=Voteoptions(voteoptions)
             }
-            findNavController().navigate(
-                UploadFragmentDirections.actionGlobalSetVoteoptionFragment(voptions)
-            )
+            val bundle=Bundle()
+            bundle.putParcelable("voteoptions",voptions)
+            (activity as MainActivity).replaceFragment("setVoteOptionFragment",
+                SetVoteoptionFragment(),bundle)
         }
         binding.deletevote.setOnClickListener {
 
@@ -489,15 +480,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             dialog.cancel()
         }
         positive.setOnClickListener {
-            when(vmNav.destinationFragment.value!!)
-            {
-                TAG_HOME->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.homeFragment
-                TAG_CHAT->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.chatroomFragment
-                TAG_NOTI->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.notificationFragment
-                TAG_MYPAGE->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.mypageFragment
-            }
-            binding.rlbottom.visibility=View.GONE
-            findNavController().popBackStack()
+            parentFragmentManager.popBackStack()
             dialog.dismiss()
             dialog.cancel()
         }
@@ -530,16 +513,9 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             if(it.equals("200"))
             {
                 progressDialog.dismiss()
-                when(vmNav.destinationFragment.value!!)
-                {
-                    TAG_HOME->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.homeFragment
-                    TAG_CHAT->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.chatroomFragment
-                    TAG_NOTI->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.notificationFragment
-                    TAG_MYPAGE->(activity as MainActivity).binding.bottomNavigationView.selectedItemId=R.id.mypageFragment
-
-                }
-                binding.rlbottom.visibility=View.GONE
-                findNavController().popBackStack()
+                //binding.rlbottom.visibility=View.GONE
+                //findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
             else
             {
@@ -555,7 +531,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             else{
                 binding.votelayout.visibility=View.VISIBLE
                 binding.imgvoteset.visibility=View.VISIBLE
-                //Toast.makeText(requireContext(),it.toString(),Toast.LENGTH_LONG).show()
             }
             voteoptions=it
         }
@@ -584,37 +559,36 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                 snackbar(it)
             }
         ){
-            binding.cgSearched.removeAllViews()
-            binding.cgSearched.visibility= View.VISIBLE
-            binding.tvTag.visibility= View.VISIBLE
-            if(it.resultCode==100)
-            { //검색결과 연관태그가 없을시
-                var tagstr=binding.edtTag.text.toString()
-                var changedtag=tagstr
-                if(tagstr.contains("#"))
-                {
-                    changedtag=tagstr.replace("#","")
-                }
-                val chip= Chip(requireContext()).apply {
-                    text = changedtag + "(0)"
-                    chipStrokeWidth =1f
-                    setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        chipBackgroundColor =
-                            AppCompatResources.getColorStateList(requireContext(), R.color.skin)
-                        setChipStrokeColorResource(R.color.chiptext)
-                        setTextColor(ContextCompat.getColor(requireContext(), R.color.chiptext))
+            handleResponse(requireContext(),it.resultCode) {
+                binding.cgSearched.removeAllViews()
+                binding.cgSearched.visibility = View.VISIBLE
+                binding.tvTag.visibility = View.VISIBLE
+                if (it.resultCode == 100) { //검색결과 연관태그가 없을시
+                    var tagstr = binding.edtTag.text.toString()
+                    var changedtag = tagstr
+                    if (tagstr.contains("#")) {
+                        changedtag = tagstr.replace("#", "")
                     }
-                    setOnClickListener {
-                        binding.edtTag.setText(null)
-                        hideKeyboard()
-                        genSelectedChip(this.text.toString())
+                    val chip = Chip(requireContext()).apply {
+                        text = changedtag + "(0)"
+                        chipStrokeWidth = 1f
+                        setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            chipBackgroundColor =
+                                AppCompatResources.getColorStateList(requireContext(), R.color.skin)
+                            setChipStrokeColorResource(R.color.chiptext)
+                            setTextColor(ContextCompat.getColor(requireContext(), R.color.chiptext))
+                        }
+                        setOnClickListener {
+                            binding.edtTag.setText(null)
+                            hideKeyboard()
+                            genSelectedChip(this.text.toString())
+                        }
                     }
+                    binding.cgSearched.addView(chip)
+                } else {
+                    genSearchedChip(it.tags)
                 }
-                binding.cgSearched.addView(chip)
-            }
-            else{
-                genSearchedChip(it.tags)
             }
         })
     }
@@ -723,5 +697,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     override fun onDestroy() {
         serviceUnbind()
         super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

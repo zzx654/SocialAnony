@@ -66,7 +66,6 @@ class PostImageAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         return imgUris.size
     }
 
-
     var deleteClickListener:((Uri)->Unit)?=null
 
     fun setOnDeleteClickListener(listener:(Uri)->Unit){

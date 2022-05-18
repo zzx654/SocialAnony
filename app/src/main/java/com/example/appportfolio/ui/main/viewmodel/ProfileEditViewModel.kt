@@ -25,8 +25,22 @@ class ProfileEditViewModel @ViewModelInject constructor(private val mainReposito
     val uploadimgResponse:LiveData<Event<Resource<uploadImageResponse>>> = _uploadimgResponse
     private val _profileeditResponse=MutableLiveData<Event<Resource<intResponse>>>()
     val profileeditResponse:LiveData<Event<Resource<intResponse>>> = _profileeditResponse
+
+    private val _checknickResponse=MutableLiveData<Event<Resource<intResponse>>>()
+    val checknickResponse:LiveData<Event<Resource<intResponse>>> = _checknickResponse
     fun setCurImageUri(uri:Uri){
         _curImageUri.postValue(uri)
+    }
+    fun checknick(
+        nickname: String,
+        api: MainApi
+    ){
+
+        _checknickResponse.postValue(Event(Resource.Loading()))
+        viewModelScope.launch(dispatcher) {
+            val result=mainRepository.checknick(nickname, api)
+            _checknickResponse.postValue(Event(result))
+        }
     }
     fun uploadprofileimg(
         image:MultipartBody.Part,

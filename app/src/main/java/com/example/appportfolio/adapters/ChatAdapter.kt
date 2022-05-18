@@ -74,7 +74,6 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 RightLocationViewHolder(it)
             }
         }
-
         else{
             return DataBindingUtil.inflate<ChatCenteritemBinding>(
                 layoutInflater,
@@ -85,9 +84,7 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 CenterViewHolder(it)
             }
         }
-
     }
-
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
         val chat=chatlist[position]
@@ -116,9 +113,7 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun getItemCount(): Int {
         return chatlist.size
-
     }
-
     override fun getItemViewType(position: Int): Int {
         if(chatlist[position].type.equals("DATE")||chatlist[position].type.equals("EXIT"))
         {
@@ -162,10 +157,8 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.imgProfile.setOnClickListener {
                 profileimgClickListener?.let{ click->
                     click(chat)
-
                 }
             }
-
         }
     }
     inner class LeftLocationViewHolder(private val binding: ChatLeftLocationBinding):
@@ -175,13 +168,11 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.locationlinear.setOnClickListener {
                 locationClickListener?.let{ click->
                     click(chat)
-
                 }
             }
             binding.imgProfile.setOnClickListener {
                 profileimgClickListener?.let{ click->
                     click(chat)
-
                 }
             }
 
@@ -194,18 +185,15 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.imageView.setOnClickListener {
                 imageClickListener?.let{ click->
                     click(chat)
-
                 }
             }
             binding.imgProfile.setOnClickListener {
                 profileimgClickListener?.let{ click->
                     click(chat)
-
                 }
             }
         }
     }
-
     inner class RightImageViewHolder(private val binding: ChatRightImageBinding):
         RecyclerView.ViewHolder(binding.root){
         fun onbind(chat:MessageData){
@@ -213,10 +201,8 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.imageView.setOnClickListener {
                 imageClickListener?.let{ click->
                     click(chat)
-
                 }
             }
-
         }
     }
     inner class RightTextViewHolder(private val binding: ChatRighttextBinding):
@@ -232,10 +218,8 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.locationlinear.setOnClickListener {
                 locationClickListener?.let{ click->
                     click(chat)
-
                 }
             }
-
         }
     }
 
@@ -249,7 +233,6 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         override fun areContentsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
             return oldItem.hashCode()==newItem.hashCode()
         }
-
         override fun areItemsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
             return (oldItem.num==newItem.num)&&(oldItem.nickname==newItem.nickname)
         }

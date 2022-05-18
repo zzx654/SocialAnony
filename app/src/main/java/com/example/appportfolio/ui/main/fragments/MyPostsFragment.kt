@@ -1,11 +1,13 @@
 package com.example.appportfolio.ui.main.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
@@ -48,19 +50,25 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
         get() = binding.sr
     protected val viewModel: myPostsViewModel
         get() = basePostViewModel as myPostsViewModel
+    private var mRootView:View?=null
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding= DataBindingUtil.inflate<FragmentNewBinding>(inflater,
-            R.layout.fragment_new,container,false)
-        mypostsAdapter= PostAdapter()
-        mypostsAdapter.setOntagClickListener { tag->
-            findNavController().navigate(MyPostsFragmentDirections.actionGlobalTagPostsFragment(tag))
+        if(mRootView==null) {
+            binding = DataBindingUtil.inflate<FragmentNewBinding>(
+                inflater,
+                R.layout.fragment_new, container, false
+            )
+            (activity as MainActivity).setToolBarVisible("myPostsFragment")
+            mypostsAdapter = PostAdapter()
+            setView()
+            refreshPosts()
+            mRootView=binding.root
         }
-        return binding.root
-
+        return mRootView
     }
     override fun onResume() {
         setHasOptionsMenu(true)
@@ -76,7 +84,7 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -90,9 +98,6 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
         getPosts(true)
     }
 
-    override fun navigateToPostFragment(post: Post) {
-        findNavController().navigate(MyPostsFragmentDirections.actionGlobalPostFragment(post))
-    }
     fun getPosts(refresh:Boolean=false)
     {
         var lastpostnum:Int?=null
@@ -109,5 +114,10 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
         }
             viewModel.getmyPosts(lastpostnum,lastpostdate,api)
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

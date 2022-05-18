@@ -9,6 +9,7 @@
         xmlns:app="http://schemas.android.com/apk/res-auto">
 
         <com.google.android.material.tabs.TabLayout
+            app:tabRippleColor="@null"
             android:background="@drawable/outline_bottom"
             app:tabTextColor="@drawable/tab_selector"
             app:tabIndicatorColor="@color/skinfore"

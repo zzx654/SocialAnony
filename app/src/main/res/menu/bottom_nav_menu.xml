@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@id/homeFragment"
+
+    <item android:id="@+id/homeFragment"
         android:title="홈"
         android:icon="@drawable/home_selector" />
     <item android:id="@+id/chatroomFragment"
@@ -15,6 +16,7 @@
     <item android:id="@+id/uploadFragment"
         android:title="글쓰기"
         android:icon="@drawable/post_selector"/>
+
 
 
 </menu>

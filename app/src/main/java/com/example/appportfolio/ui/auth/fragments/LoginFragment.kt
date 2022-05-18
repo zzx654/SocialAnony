@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.appportfolio.*
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.SignManager
@@ -94,15 +95,6 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
         subscribeToObserver()
         return binding.root
     }
-    private fun oginCheck(){
-
-        var applyResult={ status: Status, resultdata1: String?, resultdata2: String? ->
-            if(status!= Status.NOTFOUND && status!=Status.ERROR) {//sns로그인이 안되어있는경우
-                viewModel.autologin(api)//이메일로 자동로그인시도
-            }
-        }
-        signManager.getCurAccountInfo(applyResult)
-    }
     fun checklogout(deletetoken:Boolean=true)
     {
         var applyresult:(Status, String?, String?)->Unit={ status,str1,str2->
@@ -162,7 +154,6 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
             onLoading = {
             }
         ){
-
             if(it.restoken.equals("")){
                 snackbar(it.message)
             }
@@ -181,17 +172,20 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
             onLoading = {
             }
         ) {
-            if (it.resultcode == 200) {//프로필 완료된거
-                Intent(requireContext(), MainActivity::class.java).apply{
-                    startActivity(this)
-                    requireActivity().finish()
-                }
-            } else {//프로필완료안된거
+            handleResponse(requireContext(),it.resultCode){
+                if (it.resultCode == 200) {//프로필 완료된거
+                    Intent(requireContext(), MainActivity::class.java).apply{
+                        startActivity(this)
+                        requireActivity().finish()
+                    }
+                } else {//프로필완료안된거
                     Intent(requireContext(), AuthCompleteActivity::class.java).apply{
-                    startActivity(this)
-                    requireActivity().finish()
+                        startActivity(this)
+                        requireActivity().finish()
+                    }
                 }
             }
+
         })
     }
     private fun getFirebaseToken(){

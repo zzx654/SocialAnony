@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.*
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -29,13 +30,12 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
-    private val args:TagPostsFragmentArgs by navArgs()
     private val vmTag: TagViewModel by viewModels()
     lateinit var mainapi: MainApi
     @Inject
     lateinit var preferences: UserPreferences
-    val tagname:String
-    get() = args.tagname
+    val tagname:String?
+    get() = arguments?.getString("tag","")
     private lateinit var vmAuth: AuthViewModel
     lateinit var binding: FragmentTagpostsBinding
     override fun onCreateView(
@@ -45,12 +45,13 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentTagpostsBinding>(inflater,
             R.layout.fragment_tagposts,container,false)
+        (activity as MainActivity).setToolBarVisible("tagPostsFragment")
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
         }
         mainapi= RemoteDataSource().buildApi(MainApi::class.java,
             runBlocking { preferences.authToken.first() })
-        vmTag.getTagLiked(tagname,mainapi)
+        vmTag.getTagLiked(tagname!!,mainapi)
         binding.vp.apply{
             adapter= TagPagerAdapter(this@TagPostsFragment)
             getChildAt(0).overScrollMode= View.OVER_SCROLL_NEVER
@@ -95,14 +96,14 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
     }
     fun goback()
     {
-        findNavController().popBackStack()
+        parentFragmentManager.popBackStack()
     }
     fun toggleLike()
     {
         if(vmTag.isLiked.value==1)
             showToggleDialog()
         else
-            vmTag.toggleLikeTag(tagname,0,vmTag.isLiked.value!!,mainapi)
+            vmTag.toggleLikeTag(tagname!!,0,vmTag.isLiked.value!!,mainapi)
     }
     fun showToggleDialog()
     {
@@ -120,7 +121,7 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         positive.setOnClickListener {
             dialog.dismiss()
             dialog.cancel()
-            vmTag.toggleLikeTag(tagname,0,vmTag.isLiked.value!!,mainapi)
+            vmTag.toggleLikeTag(tagname!!,0,vmTag.isLiked.value!!,mainapi)
         }
         dialog.setView(mView)
         dialog.create()
@@ -134,18 +135,19 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         vmTag.getisLikedResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
         ){
-            vmTag.setisLiked(it.value)
+            handleResponse(requireContext(),it.resultCode) {
+                vmTag.setisLiked(it.value)
+            }
         })
         vmTag.toggleTagResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
         ){
-            if(it.isLiked==0)
-            {
-                vmTag.setisLiked(1)
-            }
-            else
-            {
-                vmTag.setisLiked(0)
+            handleResponse(requireContext(),it.resultCode!!) {
+                if (it.isLiked == 0) {
+                    vmTag.setisLiked(1)
+                } else {
+                    vmTag.setisLiked(0)
+                }
             }
         })
     }
@@ -155,5 +157,10 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
             TAGNEW_INDEX ->requireContext().getString(R.string.newposts)
             else->null
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

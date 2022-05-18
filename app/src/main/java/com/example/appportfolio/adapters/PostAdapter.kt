@@ -43,6 +43,7 @@ class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         {
 
             binding.post=post
+
             binding.postitem.setOnClickListener {
                 PostClickListener?.let{ click->
                     click(post)
@@ -83,6 +84,8 @@ class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                     binding.cgTag.addView(chip)
                 }
             }
+            binding.commentimg.visibility=View.VISIBLE
+            binding.favoriteimg.visibility=View.VISIBLE
 
 
         }

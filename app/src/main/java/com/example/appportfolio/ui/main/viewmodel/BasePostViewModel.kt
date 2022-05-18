@@ -20,17 +20,9 @@ abstract class BasePostViewModel(
 ): ViewModel() {
     var posts:MutableList<Post> = mutableListOf()
 
-    private val _beforesize=MutableLiveData<Int>()
-    val beforesize:LiveData<Int> = _beforesize
-    private  val _curposts= MutableLiveData<List<Post>>()
-    val curposts:LiveData<List<Post>> = _curposts
-
     abstract val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
     private val _getPostResponse=MutableLiveData<Event<Resource<getPostResponse>>>()
     val getPostResponse:LiveData<Event<Resource<getPostResponse>>> = _getPostResponse
-    init{
-        clearposts()
-    }
 
     fun getSelectedPost(postid:String, latitude:Double?, longitude:Double?, api: MainApi)
     {
@@ -42,20 +34,6 @@ abstract class BasePostViewModel(
 
 
     }
-    fun setbeforeSize(size:Int)
-    {
-        _beforesize.postValue(size)
-    }
 
-    fun addposts(post:List<Post>)
-    {
-        posts.addAll(post)
-        _curposts.postValue(posts.toList())
-    }
-    fun clearposts()
-    {
-        posts= mutableListOf()
-        _curposts.postValue(posts)
-    }
 
 }

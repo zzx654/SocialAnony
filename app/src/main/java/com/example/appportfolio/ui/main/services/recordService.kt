@@ -1,22 +1,16 @@
 package com.example.appportfolio.ui.main.services
 
-import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_LOW
-import android.app.PendingIntent
-import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.media.AudioRecord
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.MutableLiveData
 import com.example.appportfolio.other.Constants.ACTION_RECORD_PLAY
@@ -34,15 +28,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Named
-import kotlin.concurrent.thread
-import kotlin.experimental.and
 
 @AndroidEntryPoint
-class recordService: LifecycleService() {
+class recordService:LifecycleService() {
     @Inject
     @Named("recordNoti")
     lateinit var baseNotificationBuilder: NotificationCompat.Builder
     lateinit var curNotificationBuilder: NotificationCompat.Builder
+
     private var audioRecorder: AudioRecord? = null
     var mediaPlayer: MediaPlayer? = null
     lateinit var recordingjob: Job
@@ -52,7 +45,7 @@ class recordService: LifecycleService() {
     lateinit var buffer:ByteArray
 
     companion object {
-        val isRecording =MutableLiveData<Boolean>()
+        val isRecording = MutableLiveData<Boolean>()
         val isRecorded =MutableLiveData<Boolean>()
         val isPlaying = MutableLiveData<Boolean>()
         val mediamax = MutableLiveData<Int>()
@@ -139,7 +132,7 @@ class recordService: LifecycleService() {
     }
     private fun playAudio() {
         val file= File(path.value!!)
-        val fis=FileInputStream(file)
+        val fis= FileInputStream(file)
         val fd=fis.fd
         fis.close()
         mediaPlayer = MediaPlayer()
@@ -147,8 +140,8 @@ class recordService: LifecycleService() {
                 reset()
                 setDataSource(path.value!!)
                 prepare() // 재생 할 수 있는 상태 (큰 파일 또는 네트워크로 가져올 때는 prepareAsync() )
-                }
-            // 전부 재생 했을 때
+            }
+        // 전부 재생 했을 때
         mediaPlayer?.setOnCompletionListener {
             stopAudio()
             isPlaying.postValue(false)
@@ -354,7 +347,7 @@ class recordService: LifecycleService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             createNotificationChannel(notificationManager)
         }
-            startForeground(NOTIFICATION_ID, baseNotificationBuilder.build())
+        startForeground(NOTIFICATION_ID, baseNotificationBuilder.build())
     }
     private fun updateNoti(title:String,time: String) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE)
@@ -362,7 +355,7 @@ class recordService: LifecycleService() {
         val notification = curNotificationBuilder
             .setContentTitle(title)
             .setContentText(time)
-            notificationManager.notify(NOTIFICATION_ID, notification.build())
+        notificationManager.notify(NOTIFICATION_ID, notification.build())
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

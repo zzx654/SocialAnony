@@ -9,6 +9,7 @@ import com.example.appportfolio.data.entities.ChatData
 @Database(
     entities=[ChatData::class],
     version=2
+    ,exportSchema = false
 )
 abstract class ChatDatabase: RoomDatabase() {
     abstract fun getChatDao():ChatDao

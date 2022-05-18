@@ -5,8 +5,6 @@ import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.data.entities.LocationLatLngEntity
@@ -24,10 +22,9 @@ import com.google.android.gms.maps.model.MarkerOptions
 
 class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     lateinit var binding: FragmentMapBinding
-    private val args: MapFragmentArgs by navArgs()
     private val location:LocationLatLngEntity
         get(){
-            return args.location
+            return arguments?.getParcelable("location")!!
         }
     private lateinit var map: GoogleMap
     private var currentSelectMarker: Marker? = null
@@ -39,6 +36,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentMapBinding>(inflater,
             R.layout.fragment_map,container,false)
+        (activity as MainActivity).setToolBarVisible("mapFragment")
         setupGoogleMap()
 
         return binding.root
@@ -105,9 +103,14 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }

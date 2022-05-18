@@ -14,24 +14,33 @@ import com.google.android.material.tabs.TabLayoutMediator
 class HomeFragment: Fragment(R.layout.fragment_home) {
 
     lateinit var binding:FragmentHomeBinding
+    private var mRootView:View?=null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         binding= DataBindingUtil.inflate<FragmentHomeBinding>(inflater,
-            R.layout.fragment_home,container,false)
-
-        binding.vp.apply{
-            adapter=HomePagerAdapter(this@HomeFragment)
-            getChildAt(0).overScrollMode=View.OVER_SCROLL_NEVER
-
-        }
-        TabLayoutMediator(binding.tab,binding.vp){ tab,position->
-            tab.text=getTabTitle(position)
-
-        }.attach()
+                R.layout.fragment_home,container,false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        activity?.runOnUiThread {
+            binding.vp.apply{
+                adapter=HomePagerAdapter(childFragmentManager,lifecycle)
+                offscreenPageLimit=6
+                getChildAt(0).overScrollMode=View.OVER_SCROLL_NEVER
+
+            }
+            TabLayoutMediator(binding.tab,binding.vp){ tab,position->
+                tab.text=getTabTitle(position)
+
+            }.attach()
+        }
+
     }
     private fun getTabTitle(position: Int):String?{
         return when(position){
@@ -39,6 +48,8 @@ class HomeFragment: Fragment(R.layout.fragment_home) {
             HOT_INDEX->requireContext().getString(R.string.hot)
             NEW_INDEX->requireContext().getString(R.string.newposts)
             TAG_INDEX->requireContext().getString(R.string.tag)
+            SEARCH_INDEX->requireContext().getString(R.string.person)
+            FOLLOW_INDEX->requireContext().getString(R.string.follow)
             else->null
         }
     }

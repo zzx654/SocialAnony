@@ -24,6 +24,9 @@ interface ChatDao {
     @Query("DELETE FROM chatcontents")
     fun deleteAllroom()
 
+    @Query("SELECT *FROM chatcontents WHERE roomid=:roomid AND type=:image ORDER BY date DESC")
+    fun loadimages(roomid:String,image:String="IMAGE"):LiveData<List<ChatData>>
+
     @Query("SELECT *FROM chatcontents WHERE roomid=:roomid AND type!=:start ORDER BY id DESC LIMIT 20")
     fun loadchatContents(roomid:String,start:String="start"):LiveData<List<ChatData>>
 

@@ -2,6 +2,7 @@ package com.example.appportfolio.ui.auth.activity
 
 import android.Manifest
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.view.LayoutInflater
@@ -17,6 +18,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import com.example.appportfolio.*
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
@@ -33,6 +35,7 @@ import javax.inject.Inject
 class AuthCompleteActivity: AppCompatActivity() {
     lateinit var binding:ActivityAuthcompleteBinding
     private val viewModel: AuthViewModel by viewModels()
+
     lateinit var api: AuthApi
     var nicknameChecked:Boolean=false
     var curplatform:String?=null
@@ -205,23 +208,26 @@ class AuthCompleteActivity: AppCompatActivity() {
 
             }
         ){
-            if(it.resultCode==100)
-            {
-                viewModel.setNicknameChecked(true)
-                binding.tilNickname.apply{
-                    helperText=context.getString(R.string.nickname_success)
-                }
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==100)
+                {
+                    viewModel.setNicknameChecked(true)
+                    binding.tilNickname.apply{
+                        helperText=context.getString(R.string.nickname_success)
+                    }
 
-            }
-            else{
-                binding.tilNickname.apply{
-                    isHelperTextEnabled=false
-                    helperText=context.getString(R.string.nickname_guide)
-                    isErrorEnabled=true
-                    error=context.getString(R.string.nickname_using)
                 }
+                else{
+                    binding.tilNickname.apply{
+                        isHelperTextEnabled=false
+                        helperText=context.getString(R.string.nickname_guide)
+                        isErrorEnabled=true
+                        error=context.getString(R.string.nickname_using)
+                    }
 
+                }
             }
+
         })
         viewModel.curGender.observe(this){
             curgender=it

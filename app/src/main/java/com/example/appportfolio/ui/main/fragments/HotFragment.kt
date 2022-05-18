@@ -1,10 +1,12 @@
 package com.example.appportfolio.ui.main.fragments
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -16,6 +18,7 @@ import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentHotBinding
+import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.hotPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -46,20 +49,25 @@ class HotFragment: BasePostFragment(R.layout.fragment_hot) {
         get() = binding.sr
     protected val viewModel: hotPostViewModel
         get() = basePostViewModel as hotPostViewModel
-
+    private var mRootView:View?=null
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding= DataBindingUtil.inflate<FragmentHotBinding>(inflater,
+        if(mRootView==null)
+        {
+            binding= DataBindingUtil.inflate<FragmentHotBinding>(inflater,
             R.layout.fragment_hot,container,false)
-        hotpostAdapter= PostAdapter()
-        hotpostAdapter.setOntagClickListener { tag->
-            findNavController().navigate(HomeFragmentDirections.actionGlobalTagPostsFragment(tag))
+            hotpostAdapter= PostAdapter()
+            setView()
+            mRootView=binding.root
+            refreshPosts()
 
         }
-        return binding.root
+
+        return mRootView
     }
     override fun loadNewPosts() {
         getPosts()
@@ -69,9 +77,6 @@ class HotFragment: BasePostFragment(R.layout.fragment_hot) {
         getPosts(true)
     }
 
-    override fun navigateToPostFragment(post: Post) {
-        findNavController().navigate(HomeFragmentDirections.actionGlobalPostFragment(post))
-    }
 
 
 

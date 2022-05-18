@@ -35,14 +35,13 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.datetostr
 import com.example.appportfolio.SocialApplication.Companion.getTodayString
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.strtodate
 import com.example.appportfolio.adapters.ChatAdapter
 import com.example.appportfolio.api.build.MainApi
@@ -68,6 +67,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.*
+import java.net.URISyntaxException
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -78,7 +78,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     lateinit var vmAuth: AuthViewModel
     lateinit var vmChat: ChatViewModel
     private var gson: Gson = Gson()
-    private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
     private var scrollbottom=true
     private var shouldScrollBottom=false
     private var shouldScroll=false
@@ -88,7 +87,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private var userprofileimage:String?="none"
     private var usernickname:String=""
     private var usergender:String=""
-    private val args: ChatFragmentArgs by navArgs()
+private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
     lateinit var api: MainApi
     private var beforechatsSize=0
     private var lastFirstVisiblePosition:Int=0
@@ -99,7 +98,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     lateinit var userPreferences: UserPreferences
     private val roomid:String
         get(){
-            return args.roomid
+            return arguments?.getString("roomid","")!!
         }
     lateinit var binding: FragmentChatBinding
     val keyboard = Keyboard() // 키보드 클래스의 객체
@@ -145,7 +144,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 map["EXPLAINED"]?.let {
                 }
             } else -> {
-
             dispatchTakePictureIntent()
         }
         }
@@ -210,6 +208,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
             vmChat= ViewModelProvider(this).get(ChatViewModel::class.java)
         }
+
         val adapterDataObserver = object:RecyclerView.AdapterDataObserver(){
 
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
@@ -227,7 +226,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                     else
                     {
                         binding.rvChat.smoothScrollToPosition(unreadIndex)
-                        vmChat.readChats(roomid)
+
                         var templst=chatAdapter.differ.currentList.toList()
                         for(i in templst.indices)
                         {
@@ -242,13 +241,17 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         chatAdapter.registerAdapterDataObserver(adapterDataObserver)
         chatAdapter.setMyId(vmAuth.userid.value!!)
         chatAdapter.setOnImageClickListener {
-            findNavController().navigate(ChatFragmentDirections.actionGlobalImageFragment(it.content))
+            val bundle=Bundle()
+            bundle.putString("image",it.content)
+            (activity as MainActivity).replaceFragment("imageFragment",ImageFragment(),bundle)
         }
         chatAdapter.setOnProfileImageClickListener {
             if(it.profileimage!="none")
             {
                 it.profileimage?.let{
-                    findNavController().navigate(ChatFragmentDirections.actionGlobalImageFragment(it))
+                    val bundle=Bundle()
+                    bundle.putString("image",it)
+                    (activity as MainActivity).replaceFragment("imageFragment",ImageFragment(),bundle)
                 }
             }
 
@@ -258,18 +261,28 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             val lat=token[0].toFloat()
             val lon=token[1].toFloat()
             val location=LocationLatLngEntity(lat,lon)
-            findNavController().navigate(ChatFragmentDirections.actionGlobalMapFragment(location))
+            val bundle=Bundle()
+            bundle.putParcelable("location",location)
+            (activity as MainActivity).replaceFragment("mapFragment",MapFragment(),bundle)
         }
-        (activity as MainActivity).mSocket.emit(
-            "enter",
-            gson.toJson(read(roomid,vmAuth.userid.value!!))
-        )
+        try{
+            (activity as MainActivity).mSocket.emit(
+                "enter",
+                gson.toJson(read(roomid,vmAuth.userid.value!!))
+            )
+        }catch(e: Exception){
+            e.printStackTrace();
+            Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
+        }
+
         activity?.let{
             (it as MainActivity).mSocket.on("update"){ args: Array<Any> ->
                 var data = gson.fromJson(
                     args[0].toString(),
                     MessageData::class.java
                 )
+                if(!scrollbottom)
+                    previewMessage(data)
                 if(data.profileimage==null)
                     data.profileimage="none"
                 var chatroomlist=vmChat.mychats.value!!
@@ -295,9 +308,30 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 )
                 if(data.resultCode==200)
                 {
+                    activity?.runOnUiThread {
+                        if(!binding.edtText.text.toString().equals(""))
+                            binding.sendcomment.visibility=View.VISIBLE
+                        binding.postcommentprogress.visibility=View.GONE
+                    }
                     sendContent(data.ImageUrl,"IMAGE")
                 }
-
+            }
+        }
+    }
+    private fun previewMessage(data:MessageData)
+    {
+        activity?.runOnUiThread {
+            var message=""
+            when(data.type)
+            {
+                "IMAGE"->message="${data.nickname}:사진을 보냈습니다"
+                "EXIT"->message="상대방이 대화방을 나갔습니다"
+                "LOCATION"->message="${data.nickname}:(위치정보)"
+                "TEXT"->message="${data.nickname}:${data.content}"
+            }
+            binding.tvmsg.apply {
+                visibility=View.VISIBLE
+                text=message
             }
         }
     }
@@ -306,61 +340,66 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        rootView = activity?.window!!.decorView
-        var job: Job? = null
-        rootView.viewTreeObserver.addOnGlobalLayoutListener { // 뷰에 변화가 있을 때마다 실행되는 리스너
-            var resourceId = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-            if (resourceId > 0) {
-                navigationBarHeight = resources.getDimensionPixelSize(resourceId)
-            }
-            resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
-            if (resourceId > 0) {
-                statusBarHeight = resources.getDimensionPixelSize(resourceId)
-            }
-            isKeyboardShowing = keyboard.isShowing(rootView)
-        }
+        if(mRootView==null) {
+            (activity as MainActivity).setToolBarVisible("chatFragment")
+            rootView = activity?.window!!.decorView
 
-        if(mRootView==null){
-            binding= DataBindingUtil.inflate<FragmentChatBinding>(inflater,
-                R.layout.fragment_chat,container,false)
-            var templist=vmChat.mychats.value!!
-            for(i in templist.indices)
-            {
-                if(templist[i].roomid==roomid)
-                {
-                    templist[i].isread=1
-                    break
+            rootView.viewTreeObserver.addOnGlobalLayoutListener { // 뷰에 변화가 있을 때마다 실행되는 리스너
+                var resourceId =
+                    resources.getIdentifier("navigation_bar_height", "dimen", "android")
+                if (resourceId > 0) {
+                    navigationBarHeight = resources.getDimensionPixelSize(resourceId)
                 }
+                resourceId = resources.getIdentifier("status_bar_height", "dimen", "android")
+                if (resourceId > 0) {
+                    statusBarHeight = resources.getDimensionPixelSize(resourceId)
+                }
+                isKeyboardShowing = keyboard.isShowing(rootView)
             }
-            vmChat.setChats(templist)
-            opponentid=args.userid
 
-            val firstChatLoad=vmChat.loadchatContents(roomid)
-            firstChatLoad.observe(viewLifecycleOwner){
-                curChatContents=it
-                var oppoid=opponentid
-                if(opponentid==0)
-                {
-                    (activity as MainActivity).binding.title.text="대화상대없음"
-                    val opponentcontent=it.find{content-> content.senderid!=vmAuth.userid.value!!}
-                    opponentcontent?.let{
-                        oppoid=it.senderid!!
+            binding = DataBindingUtil.inflate<FragmentChatBinding>(
+                inflater,
+                R.layout.fragment_chat, container, false
+            )
+
+            opponentid = arguments?.getInt("userid", 0)!!
+
+            val firstChatLoad = vmChat.loadchatContents(roomid)
+            firstChatLoad.observe(viewLifecycleOwner) {
+                curChatContents = it
+                var oppoid = opponentid
+                if (opponentid == 0) {
+                    (activity as MainActivity).binding.title.text = "대화상대없음"
+                    val opponentcontent =
+                        it.find { content -> content.senderid != vmAuth.userid.value!! }
+                    opponentcontent?.let {
+                        oppoid = it.senderid!!
                     }
                 }
-                vmChat.getuserprofile(oppoid,api)
+                var templist = vmChat.mychats.value!!
+                for (i in templist.indices) {
+                    if (templist[i].roomid == roomid) {
+                        templist[i].isread = 1
+                        break
+                    }
+                }
+                vmChat.setChats(templist)
+                vmChat.readChats(roomid)
+                vmChat.getuserprofile(oppoid, api)
 
                 firstChatLoad.removeObservers(viewLifecycleOwner)
             }
             setupRecyclerView()
             subsribeToObserver()
-            mRootView=binding.root
+            mRootView = binding.root
         }
-        else{
+       else{
             if(opponentid==0)
                 (activity as MainActivity).binding.title.text="대화상대없음"
             else
                 (activity as MainActivity).binding.title.text=usernickname
         }
+        var job: Job? = null
         binding.edtText.setOnFocusChangeListener(object : View.OnFocusChangeListener {
             override fun onFocusChange(view: View, hasFocus: Boolean) {
                 if (hasFocus) {
@@ -393,8 +432,8 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                     binding.toolbox.visibility=View.VISIBLE
                     showcontainer=true
                     binding.toolBtn.setImageResource(R.drawable.toolcancel)
-
-                    binding.rvChat.smoothScrollToPosition(chatAdapter.differ.currentList.size - 1)
+                    if(chatAdapter.differ.currentList.size>0)
+                        binding.rvChat.smoothScrollToPosition(chatAdapter.differ.currentList.size - 1)
                 }
                 else{
                     if(showcontainer)
@@ -561,13 +600,19 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             dateChanged,
             getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일"))
         )
-        (activity as MainActivity).mSocket.emit("newMessage",gson.toJson(
-            sendData
-        ))
+        try{
+            (activity as MainActivity).mSocket.emit("newMessage",gson.toJson(
+                sendData
+            ))
+        }catch (e:Exception){
+            Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
+            return
+        }
+
         if(Type.equals("EXIT"))
         {
             vmChat.deleteroom(roomid)
-            findNavController().popBackStack()
+            parentFragmentManager.popBackStack()
         }
         else
         {
@@ -625,11 +670,14 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     }
     private fun uploadImage(imageUri: Uri, context: Context)
     {
+        binding.sendcomment.visibility=View.GONE
+        binding.postcommentprogress.visibility=View.VISIBLE
         var requestImage:MultipartBody.Part
         val file= File(getRealPathFromURI(imageUri,context))
         val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
         var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
         requestImage=body
+
         vmChat.uploadimg(requestImage,api)
     }
     private fun getRealPathFromURI(contentUri: Uri, context: Context):String?
@@ -677,9 +725,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             super.onScrolled(recyclerView, dx, dy)
             if(!recyclerView.canScrollVertically(-1)&&(beforechatsSize!=chatAdapter.differ.currentList.size)){
                 beforechatsSize=chatAdapter.differ.currentList.size
-                //val date=chatAdapter.differ.currentList[0].date
                 val num=chatAdapter.differ.currentList[0].num
-                //vmChat.getchatcontents(roomid,date,num,api)
                 val loadbefore=vmChat.loadbeforechatContents(roomid,num!!)
                 loadbefore.observe(viewLifecycleOwner){
                     var chatlist:List<MessageData> = listOf()
@@ -696,6 +742,8 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
 
             }
             scrollbottom = !recyclerView.canScrollVertically(1)
+            if(scrollbottom)
+                binding.tvmsg.visibility=View.GONE
         }
     }
     override fun onResume() {
@@ -714,7 +762,10 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
-                findNavController().popBackStack()
+                parentFragmentManager.popBackStack()
+            }
+            R.id.images->{
+                navigateToImages()
             }
             R.id.exit->{
                 showexit()
@@ -724,6 +775,20 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+    private fun navigateToImages()
+    {
+        val loadimgs=vmChat.loadimages(roomid)
+        loadimgs.observe(viewLifecycleOwner){
+            val images=it.map { ChatImage(it.date,it.content,false)  }
+            val bundle=Bundle()
+            if(it.isEmpty())
+                bundle.putParcelable("chatimages",ChatImages(null))
+            else
+                bundle.putParcelable("chatimages",ChatImages(images))
+            (activity as MainActivity).replaceFragment("chatContentsFragment",ChatContentsFragment(),bundle)
+            loadimgs.removeObservers(viewLifecycleOwner)
+        }
     }
     private fun showblock()
     {
@@ -805,56 +870,70 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
             }
         ){
-
-            if(it.resultCode==300)
-            {
-                Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
-                exitroom()
+            handleResponse(requireContext(),it.resultCode){
+                if(it.resultCode==300)
+                {
+                    Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
+                    exitroom()
+                }
             }
+
         })
         vmChat.uploadimgResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
+                if(!binding.edtText.text.toString().equals(""))
+                    binding.sendcomment.visibility=View.VISIBLE
+                binding.postcommentprogress.visibility=View.GONE
+                Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
             }
         ){
-            if(it.resultCode==200)
-            {
-                //sendContent(it.imageUri,"IMAGE")
-                it.imageUri
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200)
+                    it.imageUri
             }
+
         })
         vmChat.getprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
         ){
-            if(it.resultCode==200)
-            {
-                if(it.account==null)
-                { //상대방이 탈퇴한상황
-                    binding.edtText.hint="대화가 불가능한 사용자입니다"
-                    binding.edtText.isClickable=false
-                    binding.edtText.isEnabled=false
-                    binding.toolBtn.isClickable=false
-                    binding.toolBtn.setColorFilter(getColor(requireContext(),R.color.gray))
-                }
-                usernickname=it.nickname
-                usergender=it.gender
-                userprofileimage=it.profileimage
-                if(userprofileimage==null)
-                    userprofileimage="none"
-                if(opponentid!=0)
-                    (activity as MainActivity).binding.title.text=usernickname
-                var chatlist:List<MessageData> = listOf()
-                for(i in curChatContents)
-                {
-                    chatlist+=MessageData(i.id,i.senderid,i.date,i.type,i.content,i.isread!!,usernickname,usergender,userprofileimage)
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    if (it.account == null) { //상대방이 탈퇴한상황
+                        binding.edtText.hint = "대화가 불가능한 사용자입니다"
+                        binding.edtText.isClickable = false
+                        binding.edtText.isEnabled = false
+                        binding.toolBtn.isClickable = false
+                        binding.toolBtn.setColorFilter(getColor(requireContext(), R.color.gray))
+                    }
+                    usernickname = it.nickname
+                    usergender = it.gender
+                    userprofileimage = it.profileimage
+                    if (userprofileimage == null)
+                        userprofileimage = "none"
+                    if (opponentid != 0)
+                        (activity as MainActivity).binding.title.text = usernickname
+                    var chatlist: List<MessageData> = listOf()
+                    for (i in curChatContents) {
+                        chatlist += MessageData(
+                            i.id,
+                            i.senderid,
+                            i.date,
+                            i.type,
+                            i.content,
+                            i.isread!!,
+                            usernickname,
+                            usergender,
+                            userprofileimage
+                        )
 
-                }
-                val oldchats=chatAdapter.differ.currentList
+                    }
+                    val oldchats = chatAdapter.differ.currentList
 
-                activity?.runOnUiThread {
-                    if(oldchats.isEmpty())
-                        setchatcontents(chatlist.reversed(),true)
-                    else
-                        setchatcontents(chatlist.reversed()+oldchats,false)
+                    activity?.runOnUiThread {
+                        if (oldchats.isEmpty())
+                            setchatcontents(chatlist.reversed(), true)
+                        else
+                            setchatcontents(chatlist.reversed() + oldchats, false)
+                    }
                 }
             }
         })
@@ -945,5 +1024,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         )
         (activity as MainActivity).mSocket.off("update")
         (activity as MainActivity).mSocket.off("getuploadedimg")
+        (activity as MainActivity).setupTopBottom()
     }
 }

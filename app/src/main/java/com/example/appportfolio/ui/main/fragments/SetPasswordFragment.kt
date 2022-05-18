@@ -9,15 +9,16 @@ import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentChangepwBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
+import com.example.appportfolio.ui.main.activity.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -37,6 +38,7 @@ class SetPasswordFragment:Fragment(R.layout.fragment_changepw) {
     ): View? {
         binding= DataBindingUtil.inflate<FragmentChangepwBinding>(inflater,
             R.layout.fragment_changepw,container,false)
+        (activity as MainActivity).setToolBarVisible("setPasswordFragment")
         api= RemoteDataSource().buildApi(AuthApi::class.java,
             runBlocking { preferences.authToken.first() })
         viewModel= ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
@@ -59,7 +61,7 @@ class SetPasswordFragment:Fragment(R.layout.fragment_changepw) {
             }
         }
         binding.btnback.setOnClickListener {
-            findNavController().popBackStack()
+            parentFragmentManager.popBackStack()
         }
         subscribeToObserver()
         return binding.root
@@ -69,16 +71,20 @@ class SetPasswordFragment:Fragment(R.layout.fragment_changepw) {
         viewModel.changepasswordResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
         ){
-            if(it.resultCode==200)
-            {
-                Toast.makeText(requireContext(),"비밀번호가 변경되었습니다.",Toast.LENGTH_SHORT).show()
-                findNavController().popBackStack()
-            }
-            else if(it.resultCode==300)
-            {
-                snackbar("입력된 비밀번호가 현재비밀번호와 같습니다")
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
+                    Toast.makeText(requireContext(), "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+                    parentFragmentManager.popBackStack()
+                } else if (it.resultCode == 300) {
+                    snackbar("입력된 비밀번호가 현재비밀번호와 같습니다")
+                }
             }
 
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).setupTopBottom()
     }
 }
