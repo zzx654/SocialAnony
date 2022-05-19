@@ -729,6 +729,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                     postcontents = it.posts[0]
                     postcontents.distance = temppost.distance
                     bindPostInfo()
+                    bindvote()
                 }
             }
         })
