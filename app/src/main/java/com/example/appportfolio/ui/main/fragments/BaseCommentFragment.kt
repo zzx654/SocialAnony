@@ -51,6 +51,7 @@ abstract class BaseCommentFragment (layoutId:Int
     val vmInteract: interactViewModel by viewModels()
     lateinit var vmAuth: AuthViewModel
     lateinit var postcontents:Post
+    protected var addtolast=false
     protected abstract val baseCommentViewModel: BaseCommentViewModel
     protected abstract val commentAdapter: CommentAdapter
     protected abstract val srLayout: SwipeRefreshLayout
@@ -76,7 +77,7 @@ abstract class BaseCommentFragment (layoutId:Int
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        init()
+        //init()
         scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
             if(!v.canScrollVertically(1)){
                 if(!isLoading&&beforeitemssize!=commentAdapter.comments.size) {
@@ -91,10 +92,7 @@ abstract class BaseCommentFragment (layoutId:Int
         srLayout.setOnRefreshListener {
             scrollRefresh()
         }
-        sendcomment.setOnClickListener {
-            sendComment()
-            hideKeyboard()
-        }
+
         edtComment.addTextChangedListener {editable->
 
             editable?.let{
@@ -153,7 +151,7 @@ abstract class BaseCommentFragment (layoutId:Int
         subscribeToObserver()
 
     }
-    private fun hideKeyboard() {
+    protected fun hideKeyboard() {
         if (::inputMethodManager.isInitialized.not()) {
             inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         }
@@ -231,7 +229,7 @@ abstract class BaseCommentFragment (layoutId:Int
 
 
     }
-    private fun sendComment()
+    protected fun sendComment()
     {
         var anony=""
         if(!cbAnony.isChecked)
@@ -255,7 +253,7 @@ abstract class BaseCommentFragment (layoutId:Int
     {
 
     }
-    private fun init()
+    protected fun init()
     {
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
@@ -408,8 +406,7 @@ abstract class BaseCommentFragment (layoutId:Int
                     parentFragmentManager.popBackStack()
                 if(it.resultCode==200)
                 {
-                    commentAdapter.differ.submitList(listOf())
-                    baseCommentViewModel.clearcomments()
+                        refreshComments()
                 }
             }
 
@@ -436,13 +433,11 @@ abstract class BaseCommentFragment (layoutId:Int
                                     this.commentliked=1
                                     this.likecount+=1
                                 }
-
                                 else
                                 {
                                     this.commentliked=0
                                     this.likecount-=1
                                 }
-
                             }
                             commentAdapter.notifyItemChanged(i)
                             break
@@ -450,8 +445,6 @@ abstract class BaseCommentFragment (layoutId:Int
                     }
                 }
             }
-
-
         })
         baseCommentViewModel.postCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
@@ -477,16 +470,11 @@ abstract class BaseCommentFragment (layoutId:Int
                         var postcontent=postcontents
                         postcontent.commentcount+=1
                         postcontents=postcontent
-                        //commentAdapter.differ.submitList(listOf())
-                        baseCommentViewModel.clearcomments()
+                        refreshComments()
                     }
                 }
             }
-
-
-
         })
-
         baseCommentViewModel.getCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading={
                 isLoading=true
@@ -494,22 +482,37 @@ abstract class BaseCommentFragment (layoutId:Int
 
             },
             onError = {
+                addtolast=true
+                isLoading=false
                 commentprogress.visibility = View.GONE
                 snackbar(it)
-
-
             }
         ){
             if(srLayout.isRefreshing)
                 srLayout.isRefreshing=false
 
             handleResponse(requireContext(),it.resultCode){
+
                 if(it.resultCode==200) {
                     if(commentAdapter.differ.currentList.isEmpty())
                     {
                         noComment?.let{it.visibility=View.GONE}
                     }
-                    baseCommentViewModel.addcomments(it.comments)
+                    var templist=commentAdapter.differ.currentList.toList()
+                    if(addtolast)
+                        beforeitemssize=templist.size
+                    else
+                        beforeitemssize=0
+                    if(beforeitemssize==0)
+                        rgComment?.let{it.visibility=View.VISIBLE}
+                    if(!addtolast)
+                        templist=it.comments
+                    else
+                        templist+=it.comments
+                        commentprogress.visibility=View.GONE
+                    applyList(templist)
+
+                    isLoading=false
                 }
                 else{
                     //=true
@@ -520,29 +523,9 @@ abstract class BaseCommentFragment (layoutId:Int
                         rgComment?.let{it.visibility=View.GONE}
                     }
                 }
+                addtolast=true
             }
 
-        })
-        baseCommentViewModel.curcomments.observe(viewLifecycleOwner,Event.EventObserver(
-        ){
-            if(it.isEmpty())
-            {
-                refreshComments()
-            }
-            else
-            {
-                beforeitemssize=commentAdapter.comments.size
-                if(beforeitemssize==0)
-                    rgComment?.let{it.visibility=View.VISIBLE}
-                baseCommentViewModel.setbeforeSize(commentAdapter.comments.size)
-                commentprogress.visibility=View.GONE
-                applyList(it)
-                isLoading=false
-            }
-        })
-        baseCommentViewModel.beforesize.observe(viewLifecycleOwner,Event.EventObserver(
-        ){
-            beforeitemssize=it
         })
         baseCommentViewModel.anonymousnick.observe(viewLifecycleOwner){
             anonymousnick=it

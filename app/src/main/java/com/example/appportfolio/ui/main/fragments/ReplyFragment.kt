@@ -27,6 +27,8 @@ import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.ReplyViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 
 @AndroidEntryPoint
@@ -81,12 +83,18 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         if(mRootView==null){
             binding= DataBindingUtil.inflate<FragmentReplyBinding>(inflater,
                 R.layout.fragment_reply,container,false)
-
+            sendcomment.setOnClickListener {
+                addtolast=false
+                sendComment()
+                hideKeyboard()
+            }
             comment=arguments?.getParcelable("comment")!!
-            api= RemoteDataSource().buildApi(MainApi::class.java)
+
             commentadapter= CommentAdapter()
-            commentAdapter.differ.submitList(listOf())
-            vmReply.clearcomments()
+            init()
+            commentadapter.differ.submitList(listOf(comment))
+            addtolast=false
+            refreshComments()
             mRootView=binding.root
         }
 
@@ -113,18 +121,19 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
     override fun deletereply(commentid: Int) {
         super.deletereply(commentid)
+        addtolast=false
         vmReply.deletereply(commentid,api)
     }
 
     override fun scrollRefresh() {
         super.scrollRefresh()
+        addtolast=false
         vmReply.checkSelectedComment(comment.userid,post.userid,comment.commentid,comment.postid,api)
     }
 
     override fun refreshComments() {
         super.refreshComments()
         isLast=false
-        commentAdapter.differ.submitList(listOf(comment))
         vmReply.getReply(comment.ref,null,null,api)
     }
     override fun postComment(anony: String) {
@@ -194,8 +203,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    commentAdapter.differ.submitList(listOf())
-                    vmReply.clearcomments()
+                    refreshComments()
                 } else {
                     Toast.makeText(requireContext(), "서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                 }
@@ -226,14 +234,12 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
                         comment = it.comments[0]
                         comment.commentliked = commentAdapter.comments[0].commentliked
                         comment.likecount = commentAdapter.comments[0].likecount
-                        commentAdapter.differ.submitList(listOf())
-                        vmReply.clearcomments()
+                        refreshComments()
                     }
                 }
             }
         })
     }
-
     override fun onDestroy() {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()

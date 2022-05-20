@@ -29,6 +29,7 @@ import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.flow.first
@@ -55,6 +56,9 @@ abstract class BasePostFragment(
     lateinit var gpsTracker: GpsTracker
     @Inject
     lateinit var userPreferences: UserPreferences
+
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init()
@@ -150,10 +154,15 @@ abstract class BasePostFragment(
     protected fun subscribeToObserver()
     {
         basePostViewModel.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 when(it.resultCode)
                 {

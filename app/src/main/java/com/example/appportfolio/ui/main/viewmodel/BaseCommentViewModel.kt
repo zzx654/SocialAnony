@@ -20,12 +20,12 @@ import kotlinx.coroutines.launch
 abstract class BaseCommentViewModel( private val repository: MainRepository,
 private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
-    var comments:MutableList<Comment> = mutableListOf()
+    //var comments:MutableList<Comment> = mutableListOf()
 
-    private val _beforesize= MutableLiveData<Event<Resource<Int>>>()
-    val beforesize: LiveData<Event<Resource<Int>>> = _beforesize
-    private  val _curcomments= MutableLiveData<Event<Resource<List<Comment>>>>()
-    val curcomments:LiveData<Event<Resource<List<Comment>>>> = _curcomments
+    //private val _beforesize= MutableLiveData<Event<Resource<Int>>>()
+    //val beforesize: LiveData<Event<Resource<Int>>> = _beforesize
+    //private  val _curcomments= MutableLiveData<Event<Resource<List<Comment>>>>()
+    //val curcomments:LiveData<Event<Resource<List<Comment>>>> = _curcomments
 
     abstract val getCommentResponse:LiveData<Event<Resource<commentResponse>>>
 
@@ -84,18 +84,18 @@ private val dispatcher: CoroutineDispatcher = Dispatchers.Main
             _checkSelectedCommentResponse.postValue(Event(result))
         }
     }
-    fun setbeforeSize(size:Int)
-    {
-        _beforesize.postValue(Event(Resource.Success(size)))
-    }
-    fun addcomments(post:List<Comment>)
-    {
-        comments.addAll(post)
-        _curcomments.postValue(Event(Resource.Success(comments.toList())))
-    }
-    fun clearcomments()
-    {
-        comments= mutableListOf()
-        _curcomments.postValue(Event(Resource.Success(comments)))
-    }
+    //fun setbeforeSize(size:Int)
+    //{
+     //   _beforesize.postValue(Event(Resource.Success(size)))
+    //}
+    //fun addcomments(post:List<Comment>)
+    //{
+     //   comments.addAll(post)
+      //  _curcomments.postValue(Event(Resource.Success(comments.toList())))
+    //}
+    //fun clearcomments()
+    //{
+     //   comments= mutableListOf()
+      //  _curcomments.postValue(Event(Resource.Success(comments)))
+    //}
 }

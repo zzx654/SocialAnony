@@ -30,6 +30,7 @@ import com.example.appportfolio.other.Constants.POSTLIKED
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.NotiViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -49,6 +50,9 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     lateinit var selectedComment:Comment
     @Inject
     lateinit var notiAdapter: NotiAdapter
+
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     @Inject
     lateinit var preferences:UserPreferences
     @RequiresApi(Build.VERSION_CODES.M)
@@ -86,6 +90,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 }
             }
             notiAdapter.setOnNotiClickListener {
+                loadingDialog.show()
                 vmNoti.readNoti(it.notiid,api)
                 vmNoti.setSelectedNoti(it)
             }
@@ -114,13 +119,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    //vmNoti.readAllNoti(api)
-                    /**for (i in notiAdapter.notis.indices) {
-                        notiAdapter.notis[i].apply {
-                            this.isread = 1
-                            notiAdapter.notifyItemChanged(i)
-                        }
-                    }**/
+
                     var templist=vmNoti.curnotis.value!!
                     for(i in templist)
                             i.isread=1
@@ -144,9 +143,11 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         vmNoti.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
+                loadingDialog.dismiss()
                 when (it.resultCode) {
                     100 -> Toast.makeText(requireActivity(), "삭제된 게시물입니다", Toast.LENGTH_SHORT)
                         .show()
@@ -177,11 +178,13 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         vmNoti.checkSelectedCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
                     Toast.makeText(requireContext(), "해당 댓글은 삭제되었습니다", Toast.LENGTH_SHORT).show()
+                    loadingDialog.dismiss()
                 } else {
                     selectedComment = it.comments[0]
                     vmNoti.getSelectedPost(selectedNoti.postid, null, null, api)
@@ -194,6 +197,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         vmNoti.readNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
             handleResponse(requireContext(),it.resultCode) {

@@ -10,6 +10,7 @@ import com.example.appportfolio.repositories.LocRepository
 import com.example.appportfolio.repositories.MainRepository
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.dialog.DownloadProgressDialog
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.dialog.UploadProgressDialog
 
 import dagger.Module
@@ -28,6 +29,12 @@ object MainModule {
     fun provideUploadDialogProgress(@ActivityContext context:Context): UploadProgressDialog
     {
         return UploadProgressDialog(context)
+    }
+    @Provides
+    @ActivityScoped
+    fun provideLoadingDialogProgress(@ActivityContext context:Context): LoadingDialog
+    {
+        return LoadingDialog(context)
     }
     @Provides
     @ActivityScoped

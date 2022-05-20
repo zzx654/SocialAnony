@@ -206,7 +206,14 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             if(curImageUri!=null)
                 uploadImages(curImageUri!!,requireContext())
             else
-                vmEdit.editprofile(null,binding.edtnick.text.toString(),api)
+            {
+                if(imgdeleted)
+                    vmEdit.editprofile(null,binding.edtnick.text.toString(),api)
+                else
+                    vmEdit.editprofile("notchanged",binding.edtnick.text.toString(),api)
+
+            }
+
             dialog.dismiss()
             dialog.cancel()
         }

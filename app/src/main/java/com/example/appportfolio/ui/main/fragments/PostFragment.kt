@@ -22,8 +22,6 @@ import androidx.core.content.ContextCompat.getColor
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -44,6 +42,7 @@ import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.TimeValue
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.services.audioService
 import com.example.appportfolio.ui.main.viewmodel.*
 import com.google.android.material.chip.Chip
@@ -96,6 +95,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
     @Inject
     lateinit var preferences: UserPreferences
+
     lateinit var commentadapter: CommentAdapter
 
     lateinit var voteresultadapter:VoteResultAdapter
@@ -128,10 +128,15 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         if(mRootView==null){
             binding= DataBindingUtil.inflate<FragmentPostBinding>(inflater,
                 R.layout.fragment_post,container,false)
-            api= RemoteDataSource().buildApi(MainApi::class.java,
-                runBlocking { preferences.authToken.first() })
 
+
+            sendcomment.setOnClickListener {
+                addtolast=false
+                sendComment()
+                hideKeyboard()
+            }
             commentadapter=CommentAdapter()
+            init()
             voteresultadapter=VoteResultAdapter()
 
             if(!post.audio.equals("NONE"))
@@ -149,8 +154,8 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 aService?.toggle_play()
             }
             rgComment?.setOnCheckedChangeListener { group, checkedId ->
-                commentAdapter.differ.submitList(listOf())
-                vmComment.clearcomments()
+                addtolast=false
+                refreshComments()
             }
             commentAdapter.setOnrootClickListener { comment->
                 vmComment.checkSelectedComment(comment.userid,post.userid,comment.commentid,comment.postid,api)
@@ -208,6 +213,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     }
     override fun scrollRefresh() {
         super.scrollRefresh()
+        addtolast=false
         vmInteract.getSelectedPost(post.postid,null,null,api)
 
     }
@@ -549,8 +555,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         }
         else{
             rgComment!!.visibility=View.VISIBLE
-            commentAdapter.differ.submitList(listOf())
-            vmComment.clearcomments()
+            refreshComments()
 
         }
         binding.likecount.text="좋아요 ${post.likecount}개"
@@ -662,8 +667,8 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    commentAdapter.differ.submitList(listOf())
-                    vmComment.clearcomments()
+                        addtolast=false
+                    refreshComments()
                 } else {
                     snackbar("서버 오류가 발생했습니다")
                 }
