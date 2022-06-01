@@ -18,6 +18,7 @@ import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
+import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -49,19 +50,16 @@ abstract class BasePersonFragment (layoutId:Int
     protected abstract val searchedAdapter: PersonAdapter
     protected abstract val followingAdapter:PersonAdapter?
     protected abstract val rvSearched:RecyclerView
-    protected abstract val loadSearched:ProgressBar
     protected abstract val edtSearch: EditText
     protected abstract val rvFollowed:RecyclerView?
     protected abstract val loadfirstprogress:ProgressBar
     protected var curTogglinguser=0
+    var isLoading=false
+    var isLast=false
     protected lateinit var vmToggle:applyFollowViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         vmToggle=ViewModelProvider(requireActivity()).get(applyFollowViewModel::class.java)
-    }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
     }
     protected fun setView()
     {
@@ -78,6 +76,8 @@ abstract class BasePersonFragment (layoutId:Int
                         if(searchingperson!=it.toString())
                         {
                             firstloading=true
+                            isLast=false
+                            isLoading=false
                             beforeitemSize=0
                             isScrolling=false
                             searchedAdapter.differ.submitList(listOf())
@@ -93,30 +93,32 @@ abstract class BasePersonFragment (layoutId:Int
                     }
                     isScrolling=false
                     beforeitemSize=0
+                    isLast=false
+                    isLoading=false
                     searchedAdapter.differ.submitList(listOf())
                     searchingperson=null
                 }
             }
         }
         searchedAdapter.setOnPersonClickListener { person->
-            curTogglinguser=person.userid
+            curTogglinguser=person.userid!!
             curselectedfollowing=person.following
-            basePersonViewModel.checkuser(person.userid,api)
+            basePersonViewModel.checkuser(person.userid!!,api)
         }
         searchedAdapter.setOnFollowClickListener { person->
-            curTogglinguser=person.userid
+            curTogglinguser=person.userid!!
             if(person.following==1)
                 showToggleDialog(curTogglinguser)
             else
                 basePersonViewModel.toggleFollow(curTogglinguser,person.following,api)
         }
         followingAdapter?.setOnPersonClickListener { person->
-            curTogglinguser=person.userid
+            curTogglinguser=person.userid!!
             curselectedfollowing=person.following
-            basePersonViewModel.checkuser(person.userid,api)
+            basePersonViewModel.checkuser(person.userid!!,api)
         }
         followingAdapter?.setOnFollowClickListener { person ->
-            curTogglinguser = person.userid
+            curTogglinguser = person.userid!!
             if (person.following == 1)
                 showToggleDialog(curTogglinguser)
             else
@@ -127,9 +129,7 @@ abstract class BasePersonFragment (layoutId:Int
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val layoutManager=recyclerView.layoutManager as LinearLayoutManager
-            val totalItemCount=layoutManager.itemCount//화면을 무시한 전체 아이템의 수
-
-            if(!recyclerView.canScrollVertically(1)&&beforeitemSize!=searchedAdapter.differ.currentList.size&&isScrolling){
+            if(!recyclerView.canScrollVertically(1)&&beforeitemSize!=searchedAdapter.differ.currentList.size&&isScrolling&&!isLoading&&!isLast){
                 isScrolling=false
                 beforeitemSize=searchedAdapter.differ.currentList.size
                 val lastuserid=searchedAdapter.differ.currentList[beforeitemSize-1].userid
@@ -297,44 +297,61 @@ abstract class BasePersonFragment (layoutId:Int
         })
         basePersonViewModel.getsearchedPersonResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
+                isLoading=false
                 if(firstloading)
                     loadfirstprogress.visibility=View.GONE
                 else
-                    loadSearched.visibility=View.GONE
+                {
+                    var currentlist=searchedAdapter.differ.currentList.toMutableList()
+                    currentlist.removeLast()
+                    searchedAdapter.differ.submitList(currentlist)
+                }
+
                 firstloading=false
 
                 snackbar(it)
             },
             onLoading={
+                isLoading=true
                 if(firstloading)
                     loadfirstprogress.visibility=View.VISIBLE
                 else
-                    loadSearched.visibility=View.VISIBLE
+                {
+                    if(searchedAdapter.persons.size>0)
+                    {
+                        searchedAdapter.persons+=listOf(Person(null,"","","",0))
+                        searchedAdapter.notifyItemInserted(searchedAdapter.itemCount)
+                    }
+
+                }
             }
         ){
+            var currentlist=searchedAdapter.differ.currentList.toMutableList()
             if(firstloading)
                 loadfirstprogress.visibility=View.GONE
-            else
-                loadSearched.visibility=View.GONE
+            else if(currentlist.size>0)
+                currentlist.removeLast()
             firstloading=false
             handleResponse(requireContext(),it.resultCode){
+                var persons=currentlist.toList()
+                isLoading=false
                 when(it.resultCode){
                     400->{
                         snackbar("서버 에러 발생")
                     }
                     300->{
-
+                        isLast=true
+                        searchedAdapter.differ.submitList(persons)
+                        if(persons.size>0)
+                        snackbar("더이상 표시할 목록이 없습니다")
                     }
                     200->{
                         hideFollowedRv()
-                        var searchedlist=searchedAdapter.differ.currentList.toList()
                         if(firstloading)
-                            searchedlist=listOf()
+                            persons=listOf()
 
-
-
-                        searchedlist+=it.persons
-                        searchedAdapter.differ.submitList(searchedlist)
+                        persons+=it.persons
+                        searchedAdapter.differ.submitList(persons)
                     }
                     else-> null
                 }

@@ -40,8 +40,6 @@ class SearchPersonFragment: BasePersonFragment(R.layout.fragment_searchperson) {
         get() =null
     override val rvSearched: RecyclerView
         get() = binding.rvSearchedPerson
-    override val loadSearched: ProgressBar
-        get() = binding.loadMoreSearcedProgressbar
     override val edtSearch: EditText
         get() = binding.edtNick
     override val rvFollowed: RecyclerView?

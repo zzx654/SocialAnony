@@ -21,7 +21,11 @@ import com.example.appportfolio.databinding.FragmentMypageBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MypageFragment: Fragment(R.layout.fragment_mypage) {
     lateinit var vmAuth: AuthViewModel
     lateinit var prefs: SharedPreferences
@@ -32,7 +36,8 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
     lateinit var gender:String
     var curtoggle:Boolean?=null
     var error=false
-
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -78,6 +83,17 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
 
     private fun subsribeToObserver()
     {
+        vmAuth.logoutResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+                loadingDialog.show()
+            },
+            onError={
+                loadingDialog.dismiss()
+                snackbar(it)
+            }
+        ){
+            loadingDialog.dismiss()
+        })
         vmAuth.toggleChatResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
             onError={

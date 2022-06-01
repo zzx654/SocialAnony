@@ -17,24 +17,20 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.data.entities.Post
-import com.example.appportfolio.databinding.FragmentHotBinding
+import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.hotPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HotTagFragment: BasePostFragment(R.layout.fragment_hot) {
-    lateinit var binding: FragmentHotBinding
+class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
+    lateinit var binding: FragmentPostsBinding
     lateinit var hotpostAdapter: PostAdapter
-    override val scrollView: NestedScrollView
-        get() = binding.scrollView
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
         get() = binding.rvPosts
-    override val loadMoreProgressBar: ProgressBar
-        get() = binding.loadMoreProgressbar
     override val loadProgressBar: ProgressBar
         get() = binding.loadProgressBar
     override val basePostViewModel: BasePostViewModel
@@ -57,9 +53,9 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_hot) {
         savedInstanceState: Bundle?
     ): View? {
         if(mRootView==null) {
-            binding = DataBindingUtil.inflate<FragmentHotBinding>(
+            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
                 inflater,
-                R.layout.fragment_hot, container, false
+                R.layout.fragment_posts, container, false
             )
             hotpostAdapter = PostAdapter()
             setView()

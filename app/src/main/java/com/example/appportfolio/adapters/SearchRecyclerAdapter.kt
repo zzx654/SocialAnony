@@ -9,20 +9,36 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.SearchResultEntity
 import com.example.appportfolio.databinding.ItemLocBinding
+import com.example.appportfolio.databinding.NetworkStateItemBinding
 
 
 class SearchRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var currentPage = 1
     var currentSearchString = ""
+    private val LOADING_VIEW_TYPE=2
+    private val LOCATION_VIEW_TYPE=1
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        return DataBindingUtil.inflate<ItemLocBinding>(
-            layoutInflater,
-            R.layout.item_loc,
-            parent,
-            false
-        ).let{
-            searchViewHolder(it)
+        return if(viewType==LOADING_VIEW_TYPE)
+        {
+            DataBindingUtil.inflate<NetworkStateItemBinding>(
+                layoutInflater,
+                R.layout.network_state_item,
+                parent,
+                false
+            ).let{
+                NetworkStateItemViewHolder(it)
+            }
+        }
+        else{
+            DataBindingUtil.inflate<ItemLocBinding>(
+                layoutInflater,
+                R.layout.item_loc,
+                parent,
+                false
+            ).let{
+                searchViewHolder(it)
+            }
         }
     }
     inner class searchViewHolder(val binding:ItemLocBinding):RecyclerView.ViewHolder(binding.root) {
@@ -36,11 +52,19 @@ class SearchRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val result=results[position]
-        (holder as SearchRecyclerAdapter.searchViewHolder).onbind(result)
+        if(getItemViewType(position)!=LOADING_VIEW_TYPE)
+            (holder as SearchRecyclerAdapter.searchViewHolder).onbind(results[position])
     }
     override fun getItemCount(): Int {
         return results.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if(results[position].fullAddress==null)
+            LOADING_VIEW_TYPE
+        else
+            LOCATION_VIEW_TYPE
+
     }
     private val diffCallback=object: DiffUtil.ItemCallback<SearchResultEntity>(){
         override fun areContentsTheSame(oldItem: SearchResultEntity, newItem: SearchResultEntity): Boolean {
@@ -51,6 +75,7 @@ class SearchRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             return oldItem==newItem
         }
     }
+    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
     val differ= AsyncListDiffer(this,diffCallback)
 
     var results:List<SearchResultEntity>

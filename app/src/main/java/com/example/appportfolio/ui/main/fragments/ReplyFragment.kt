@@ -139,7 +139,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun postComment(anony: String) {
         post.userid
         comment.userid
-        vmReply.postReply(comment.ref,post.postid,comment.commentid,getTodayString(
+        vmReply.postReply(comment.ref,post.postid!!,comment.commentid,getTodayString(
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),post.userid,comment.userid,api)
     }
 
@@ -203,7 +203,9 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    refreshComments()
+                    var templist=commentAdapter.differ.currentList.toList()
+                    templist-=curdeletingcomm
+                    commentAdapter.differ.submitList(templist)
                 } else {
                     Toast.makeText(requireContext(), "서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                 }

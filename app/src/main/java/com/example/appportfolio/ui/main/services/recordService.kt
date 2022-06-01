@@ -252,7 +252,6 @@ class recordService:LifecycleService() {
             recordingjob.cancel()
             audioRecorder = null
         }
-        //updateNoti("녹음 완료됨",elapsedStr.value!!)
     }
     private fun processCapture(os:FileOutputStream,buffer: ByteArray, status: Int) {
         if (status == AudioRecord.ERROR_INVALID_OPERATION || status == AudioRecord.ERROR_BAD_VALUE) return

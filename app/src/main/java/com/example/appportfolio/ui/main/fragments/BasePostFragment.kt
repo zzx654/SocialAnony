@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AbsListView
 import android.widget.ProgressBar
 import android.widget.ScrollView
 import android.widget.Toast
@@ -24,8 +25,11 @@ import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
+import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.data.entities.Post
+import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Event
+import com.example.appportfolio.other.Resource
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -42,14 +46,14 @@ abstract class BasePostFragment(
     lateinit var vmAuth: AuthViewModel
     protected abstract val basePostViewModel: BasePostViewModel
     protected abstract val postAdapter:PostAdapter
-    protected abstract val scrollView:NestedScrollView
     protected abstract val scrollTool:FloatingActionButton
     protected abstract val rvPosts:RecyclerView
-    protected abstract val loadMoreProgressBar:ProgressBar
     protected abstract val loadProgressBar:ProgressBar
     protected abstract val srLayout:SwipeRefreshLayout
     var isLoading=false
+    var isScrolling=false
     var isLast=false
+    var isScrollTop=true
     var beforeitemssize=0
     lateinit var api: MainApi
 
@@ -82,30 +86,6 @@ abstract class BasePostFragment(
             scrollTool.setOnClickListener {
                 scrollTopOrRefresh()
             }
-            scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
-
-                if(!v.canScrollVertically(1)){
-                    if(!isLoading&&beforeitemssize!=postAdapter.posts.size) {
-                        loadNewPosts()
-                    }
-                }
-                if(!v.canScrollVertically(-1)){
-                    scrollTool.setImageDrawable(context?.let {
-                        AppCompatResources.getDrawable(
-                            it,
-                            R.drawable.ic_refresh
-                        )
-                    })
-                }
-                else{
-                    scrollTool.setImageDrawable(context?.let {
-                        AppCompatResources.getDrawable(
-                            it,
-                            R.drawable.ic_totop
-                        )
-                    })
-                }
-            }
             postAdapter.setOntagClickListener { tag->
                 val bundle=Bundle()
                 bundle.putString("tag",tag)
@@ -113,14 +93,51 @@ abstract class BasePostFragment(
 
             }
             postAdapter.setOnPostClickListener {
-                basePostViewModel.getSelectedPost(it.postid,gpsTracker.latitude,gpsTracker.longitude,api)
+                basePostViewModel.getSelectedPost(it.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             setupRecyclerView()
+        }
+    }
+    val scrollListener= object: RecyclerView.OnScrollListener(){
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            if(!recyclerView.canScrollVertically(1)&&(beforeitemssize!=postAdapter.differ.currentList.size)&&!isLoading&&isScrolling&&!isLast&&postAdapter.differ.currentList.size>=PAGE_SIZE){
+                isScrolling=false
+                loadNewPosts()
+            }
+            if(!recyclerView.canScrollVertically(-1))
+            {
+                isScrollTop=true
+                scrollTool.setImageDrawable(context?.let {
+                    AppCompatResources.getDrawable(
+                        it,
+                        R.drawable.ic_refresh
+                    )
+                })
+            }
+            else
+            {
+                isScrollTop=false
+                scrollTool.setImageDrawable(context?.let {
+                    AppCompatResources.getDrawable(
+                        it,
+                        R.drawable.ic_totop
+                    )
+                })
+            }
+        }
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            if(newState== AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
+                isScrolling=true
         }
     }
     protected fun setupRecyclerView()=rvPosts.apply{
         adapter=postAdapter
         layoutManager= LinearLayoutManager(requireContext())
+        addOnScrollListener(this@BasePostFragment.scrollListener)
+        setHasFixedSize(true)
+        setItemViewCacheSize(20)
         itemAnimator=null
     }
     fun init()
@@ -132,7 +149,6 @@ abstract class BasePostFragment(
         api= RemoteDataSource().buildApi(
             MainApi::class.java,
             runBlocking { userPreferences.authToken.first() })
-
     }
 
     override fun onResume() {
@@ -182,7 +198,15 @@ abstract class BasePostFragment(
                         loadProgressBar.visibility = View.VISIBLE
                     }
                     else {
-                        loadMoreProgressBar.visibility = View.VISIBLE
+                        if(postAdapter.posts.size>0)
+                        {
+                            postAdapter.posts+=listOf(Post(0,null,0,null,null,"",null,
+                                null,null,",null,",",","","","",0,0,null,null,null,"",0))
+
+
+                            postAdapter.notifyItemInserted(postAdapter.itemCount)
+                        }
+
                     }
                 }
             },
@@ -192,22 +216,28 @@ abstract class BasePostFragment(
                 {
                     if(postAdapter.differ.currentList.isEmpty())
                         loadProgressBar.visibility=View.GONE
-                    else
-                        loadMoreProgressBar.visibility=View.GONE
+                    else{
+                        var currentllist=postAdapter.differ.currentList.toMutableList()
+                        currentllist.removeLast()
+                        postAdapter.differ.submitList(currentllist)
+                    }
+
                 }
                 else
                     srLayout.isRefreshing=false
             }
         ){
+            var currentllist=postAdapter.differ.currentList.toMutableList()
             if(!srLayout.isRefreshing)
             {
                 if(postAdapter.differ.currentList.isEmpty())
                     loadProgressBar.visibility=View.GONE
-                else
-                    loadMoreProgressBar.visibility=View.GONE
+                else if(postAdapter.differ.currentList.size>0) {
+                    currentllist.removeLast()
+                }
             }
-
             handleResponse(requireContext(),it.resultCode){
+                var posts=currentllist.toList()
                 if(it.resultCode==200) {
                     if(srLayout.isRefreshing)
                     {
@@ -217,17 +247,22 @@ abstract class BasePostFragment(
                     }
                     else
                     {
-                        var posts=postAdapter.differ.currentList.toList()
+                        if(posts.isEmpty())
+                            rvPosts.scrollToPosition(0)
                         beforeitemssize=posts.size
                         posts+=it.posts
+
                         postAdapter.differ.submitList(posts)
+
                     }
                     isLoading=false
                 }
                 else{
+                    postAdapter.differ.submitList(posts)
+                    if(posts.size>0)
+                        snackbar("더이상 표시할 게시물이 없습니다")
                     isLast=true
                     isLoading=false
-                    loadMoreProgressBar.visibility=View.GONE
                     loadProgressBar.visibility=View.GONE
                     srLayout.isRefreshing=false
                 }
@@ -235,14 +270,13 @@ abstract class BasePostFragment(
         })
     }
     fun scrollTopOrRefresh(){
-        if(scrollView.scrollY==0)
-        {
-            postAdapter.differ.submitList(listOf())
+        if(isScrollTop) {
+            isLast=false
+            srLayout.isRefreshing=true
             refreshPosts()
         }
         else
-        {
-            scrollView.fullScroll(ScrollView.FOCUS_UP)
-        }
+            rvPosts.smoothScrollToPosition(0)
+
     }
 }

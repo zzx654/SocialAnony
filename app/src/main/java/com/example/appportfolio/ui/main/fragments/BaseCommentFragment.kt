@@ -66,6 +66,7 @@ abstract class BaseCommentFragment (layoutId:Int
     protected abstract val noComment:ConstraintLayout?
     protected abstract val rgComment:RadioGroup?
     var anonymousnick:String?=null
+    var curdeletingcomm:Comment?=null
     var isLoading=false
     var isLast=false
     var beforeitemssize=0
@@ -170,6 +171,7 @@ abstract class BaseCommentFragment (layoutId:Int
             dialog.cancel()
         }
         positive.setOnClickListener {
+            curdeletingcomm=comment
             if(comment.depth==0)
                 baseCommentViewModel.deletecomment(comment.ref,api)
             else
@@ -271,7 +273,7 @@ abstract class BaseCommentFragment (layoutId:Int
         }
         else
         {
-            baseCommentViewModel.getAnonymous(post.postid,api)
+            baseCommentViewModel.getAnonymous(post.postid!!,api)
         }
     }
 

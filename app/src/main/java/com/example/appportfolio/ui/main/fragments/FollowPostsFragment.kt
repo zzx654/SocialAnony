@@ -15,23 +15,20 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.databinding.FragmentNewBinding
+
+import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.followingPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class FollowPostsFragment: BasePostFragment(R.layout.fragment_new) {
+class FollowPostsFragment: BasePostFragment(R.layout.fragment_posts) {
     lateinit var followpostAdapter: PostAdapter
-    override val scrollView: NestedScrollView
-        get() = binding.scrollView
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
         get() = binding.rvPosts
-    override val loadMoreProgressBar: ProgressBar
-        get() = binding.loadMoreProgressbar
     override val loadProgressBar: ProgressBar
         get() = binding.loadProgressBar
     override val basePostViewModel: BasePostViewModel
@@ -47,7 +44,7 @@ class FollowPostsFragment: BasePostFragment(R.layout.fragment_new) {
         get() = basePostViewModel as followingPostViewModel
 
 
-    lateinit var binding:FragmentNewBinding
+    lateinit var binding:FragmentPostsBinding
     private var mRootView:View?=null
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
@@ -57,8 +54,8 @@ class FollowPostsFragment: BasePostFragment(R.layout.fragment_new) {
     ): View? {
         if(mRootView==null)
         {
-            binding= DataBindingUtil.inflate<FragmentNewBinding>(inflater,
-                R.layout.fragment_new,container,false)
+            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
+                R.layout.fragment_posts,container,false)
             followpostAdapter=PostAdapter()
             setView()
             mRootView=binding.root

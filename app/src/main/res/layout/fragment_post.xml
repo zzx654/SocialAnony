@@ -139,6 +139,15 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/vpimg" />
+                    <ProgressBar
+                        android:visibility="gone"
+                        app:layout_constraintTop_toBottomOf="@+id/layoutIndicators"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        android:id="@+id/loadvote"
+                        android:indeterminateTint="@color/skin_bar"
+                        android:layout_width="35dp"
+                        android:layout_height="35dp"/>
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:visibility="gone"
                         android:paddingBottom="8dp"
@@ -150,6 +159,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/layoutIndicators"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content">
+
                         <ImageView
                             android:id="@+id/imgvotechart"
                             android:layout_marginTop="10dp"

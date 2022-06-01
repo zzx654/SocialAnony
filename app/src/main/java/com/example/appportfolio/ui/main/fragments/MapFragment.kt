@@ -71,8 +71,8 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         currentSelectMarker?.remove()
         // 구글맵 전용 위도/경도 객체
         val positionLatLng = LatLng(
-            searchResult.locationLatLng.lat.toDouble(),
-            searchResult.locationLatLng.lon.toDouble()
+            searchResult.locationLatLng!!.lat.toDouble(),
+            searchResult.locationLatLng!!.lon.toDouble()
         )
 
         // 구글맵 마커 객체 설정

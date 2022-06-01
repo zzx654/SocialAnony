@@ -3,17 +3,20 @@ package com.example.appportfolio.ui.main.fragments
 import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.AbsListView
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -23,9 +26,11 @@ import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.data.entities.Noti
+import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentNotificationBinding
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.COMMENTLIKED
+import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Constants.POSTLIKED
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -43,11 +48,13 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     private lateinit var vmNoti: NotiViewModel
     private var mRootView:View?=null
     lateinit var vmAuth:AuthViewModel
-    var isLoading=false
     var beforeitemssize=0
     lateinit var api: MainApi
     lateinit var selectedNoti:Noti
     lateinit var selectedComment:Comment
+    private var isScrolling=false
+    private var isLast=false
+    private var isLoading=false
     @Inject
     lateinit var notiAdapter: NotiAdapter
 
@@ -66,6 +73,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             binding= DataBindingUtil.inflate<FragmentNotificationBinding>(inflater,
                 R.layout.fragment_notification,container,false)
             binding.srLayout.setOnRefreshListener {
+                isLast=false
                 vmNoti.getNotis(null,null,api)
             }
             (activity as MainActivity).checkunreadnoti()
@@ -75,41 +83,46 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
             api= RemoteDataSource().buildApi(MainApi::class.java,
                 runBlocking { preferences.authToken.first() })
-            binding.scrollview.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
-                if(!v.canScrollVertically(1)){
-                    if(!isLoading&&beforeitemssize!=notiAdapter.notis.size) {
-                        val curNotis=notiAdapter.differ.currentList
-                        if(!curNotis.isEmpty())
-                        {
-                            val lastNoti=curNotis.last()
-                            lastNoti.date
-                            lastNoti.notiid
-                            vmNoti.getNotis(lastNoti.notiid,lastNoti.date,api)
-                        }
-                    }
-                }
-            }
             notiAdapter.setOnNotiClickListener {
                 loadingDialog.show()
-                vmNoti.readNoti(it.notiid,api)
+                vmNoti.readNoti(it.notiid!!,api)
                 vmNoti.setSelectedNoti(it)
             }
-
-            //notiAdapter.differ.submitList(listOf())
             notiAdapter.apply {
                 stateRestorationPolicy= RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-                setHasStableIds(true)
-            }
+           }
 
             vmNoti.getNotis(null,null,api)
             mRootView=binding.root
         }
         setupRecyclerView()
+
         subsribeToObserver()
 
         return mRootView
     }
+    val scrollListener= object: RecyclerView.OnScrollListener(){
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            if(!recyclerView.canScrollVertically(1)&&(beforeitemssize!=notiAdapter.differ.currentList.size)&&!isLoading&&isScrolling&&!isLast&&notiAdapter.differ.currentList.size>=PAGE_SIZE){
+                isScrolling=false
+                if(!isLoading&&beforeitemssize!=notiAdapter.notis.size) {
+                    val curNotis=notiAdapter.differ.currentList
+                    if(!curNotis.isEmpty())
+                    {
+                        val lastNoti=curNotis.last()
+                        vmNoti.getNotis(lastNoti.notiid,lastNoti.date,api)
+                    }
+                }
+            }
 
+        }
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            if(newState== AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
+                isScrolling=true
+        }
+    }
     private fun subsribeToObserver()
     {
         vmNoti.readAllNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -133,6 +146,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 snackbar(it)
             }
         ){
+            isLast=false
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     notiAdapter.differ.submitList(listOf())
@@ -225,46 +239,80 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         })
         vmNoti.getNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
+                if(!binding.srLayout.isRefreshing)
+                {
+                    if(notiAdapter.differ.currentList.isEmpty())
+                        binding.loadProgressBar.visibility=View.VISIBLE
+                    else{
+                        if(notiAdapter.notis.size>0)
+                        {
+                            notiAdapter.notis+=listOf(
+                                Noti(null,0,"","","",null,0)
+                            )
+                            notiAdapter.notifyItemInserted(notiAdapter.itemCount)
+                        }
+                    }
+                }
                 isLoading=true
-                binding.notiprogress.visibility=View.VISIBLE
-
             },
             onError = {
-                binding.notiprogress.visibility = View.GONE
                 snackbar(it)
-            }
-        ){
-
-            handleResponse(requireContext(),it.resultCode) {
-                if (it.resultCode == 200) {
-                    var templist:List<Noti>
-                    if(binding.srLayout.isRefreshing)
-                    {
-                        templist=listOf()
-                        binding.srLayout.isRefreshing=false
-                        beforeitemssize=0
-                    }
+                if(!binding.srLayout.isRefreshing)
+                {
+                    if(notiAdapter.differ.currentList.isEmpty())
+                        binding.loadProgressBar.visibility=View.GONE
                     else{
-                        templist=notiAdapter.differ.currentList.toList()
-                        beforeitemssize=notiAdapter.notis.size
-
+                        var currentllist=notiAdapter.differ.currentList.toMutableList()
+                        currentllist.removeLast()
+                        notiAdapter.differ.submitList(currentllist)
                     }
-
-                    binding.notiprogress.visibility=View.GONE
-
-                    isLoading=false
-
-                    templist+=it.notis
-                    vmNoti.setNotis(templist)
-                } else {
-                    isLoading = false
-                    binding.notiprogress.visibility = View.GONE
 
                 }
+                else
+                    binding.srLayout.isRefreshing=false
+            }
+        ){
+            isLoading = false
+            var currentllist=notiAdapter.differ.currentList.toMutableList()
+            if(!binding.srLayout.isRefreshing)
+            {
+                if(notiAdapter.differ.currentList.isEmpty())
+                    binding.loadProgressBar.visibility=View.GONE
+                else if(notiAdapter.differ.currentList.size>=20) {
+                    currentllist.removeLast()
+                }
+            }
+            handleResponse(requireContext(),it.resultCode) {
+                var notis=currentllist.toList()
+                if(it.resultCode==200) {
+                    if(binding.srLayout.isRefreshing)
+                    {
+                        beforeitemssize=0
+                        vmNoti.setNotis(it.notis)
+                        binding.srLayout.isRefreshing=false
+                    }
+                    else
+                    {
+                        if(notis.isEmpty())
+                            binding.rvNoti.scrollToPosition(0)
+                        beforeitemssize=notis.size
+                        notis+=it.notis
+                        vmNoti.setNotis(notis)
+                    }
+                    isLoading=false
+                }
+                else{
+                    vmNoti.setNotis(notis)
+                    if(notis.size>20)
+                        snackbar("더이상 표시할 알림이 없습니다")
+                    isLast=true
+                    binding.loadProgressBar.visibility=View.GONE
+                    binding.srLayout.isRefreshing=false
+                }
+
             }
         })
         vmNoti.curnotis.observe(viewLifecycleOwner){
-            //처음불러올때 새로불러올때 읽을때 전부읽을때
                   notiAdapter.differ.submitList(it)
             notiAdapter.notifyDataSetChanged()
         }
@@ -344,6 +392,9 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     private fun setupRecyclerView()=binding.rvNoti.apply{
         adapter=notiAdapter
         layoutManager= LinearLayoutManager(requireContext())
+        setHasFixedSize(true)
         itemAnimator=null
+        addOnScrollListener(this@NotificationFragment.scrollListener)
+        setItemViewCacheSize(20)
     }
 }

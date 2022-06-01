@@ -18,7 +18,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.data.entities.Post
-import com.example.appportfolio.databinding.FragmentNewBinding
+import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.myPostsViewModel
@@ -26,17 +26,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
-    lateinit var binding: FragmentNewBinding
+class MyPostsFragment :BasePostFragment(R.layout.fragment_posts) {
+    lateinit var binding: FragmentPostsBinding
     lateinit var mypostsAdapter: PostAdapter
-    override val scrollView: NestedScrollView
-        get() = binding.scrollView
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
         get() = binding.rvPosts
-    override val loadMoreProgressBar: ProgressBar
-        get() = binding.loadMoreProgressbar
     override val loadProgressBar: ProgressBar
         get() = binding.loadProgressBar
     override val basePostViewModel: BasePostViewModel
@@ -58,9 +54,9 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_new) {
         savedInstanceState: Bundle?
     ): View? {
         if(mRootView==null) {
-            binding = DataBindingUtil.inflate<FragmentNewBinding>(
+            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
                 inflater,
-                R.layout.fragment_new, container, false
+                R.layout.fragment_posts, container, false
             )
             (activity as MainActivity).setToolBarVisible("myPostsFragment")
             mypostsAdapter = PostAdapter()

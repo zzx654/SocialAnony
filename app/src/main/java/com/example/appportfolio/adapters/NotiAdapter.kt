@@ -9,18 +9,32 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Noti
 import com.example.appportfolio.databinding.ItemNotiBinding
+import com.example.appportfolio.databinding.NetworkStateItemBinding
 
 class NotiAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    private val NOTI_VIEW_TYPE=1
+    private val LOADING_VIEW_TYPE=2
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        return DataBindingUtil.inflate<ItemNotiBinding>(
-            layoutInflater,
-            R.layout.item_noti,
-            parent,
-            false
-        ).let{
-            notiViewHolder(it)
+        return if(viewType==NOTI_VIEW_TYPE){
+            DataBindingUtil.inflate<ItemNotiBinding>(
+                layoutInflater,
+                R.layout.item_noti,
+                parent,
+                false
+            ).let{
+                notiViewHolder(it)
+            }
+        }else{
+            DataBindingUtil.inflate<NetworkStateItemBinding>(
+                layoutInflater,
+                R.layout.network_state_item,
+                parent,
+                false
+            ).let{
+                NetworkStateItemViewHolder(it)
+            }
         }
     }
     inner class notiViewHolder(val binding:ItemNotiBinding):RecyclerView.ViewHolder(binding.root){
@@ -36,10 +50,16 @@ class NotiAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val noti=notis[position]
-        (holder as NotiAdapter.notiViewHolder).onbind(noti)
+        if(getItemViewType(position)!=LOADING_VIEW_TYPE)
+            (holder as NotiAdapter.notiViewHolder).onbind(notis[position])
     }
 
+    override fun getItemViewType(position: Int): Int {
+        return if(notis[position].notiid==null)
+            LOADING_VIEW_TYPE
+        else
+            NOTI_VIEW_TYPE
+    }
     override fun getItemCount(): Int {
         return notis.size
     }
@@ -63,5 +83,6 @@ class NotiAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun setOnNotiClickListener(listener: (Noti) -> Unit){
         NotiClickListener=listener
     }
+    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
 
 }

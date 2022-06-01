@@ -62,13 +62,11 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
             gpsTracker= GpsTracker(requireContext())
             if(vmLoc.curloc.value==null)
             {
-
                 //자기위치로 설정
                     vmLoc.setLoc(LocationLatLngEntity(gpsTracker.latitude!!.toFloat(),gpsTracker.longitude!!.toFloat()))
                 curloc=LocationLatLngEntity(gpsTracker.latitude!!.toFloat(),gpsTracker.longitude!!.toFloat())
                 getLocation(gpsTracker.latitude!!,gpsTracker.longitude!!)?.let{
                     showmarker(it)
-
                 }
             }
             else
@@ -105,7 +103,6 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
         }
         return binding.root
     }
-
     private fun showmarker(loc:String){
         currentSelectMarker = setupMarker(
             SearchResultEntity(
@@ -116,7 +113,6 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
         )
         // 마커 보여주기
         currentSelectMarker?.showInfoWindow()
-
     }
     override fun onMapReady(p0: GoogleMap) {
         map = p0!!
@@ -125,7 +121,6 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
             vmLoc.setLoc(curloc)
             getLocation(curloc.lat.toDouble(), curloc.lon.toDouble())?.let {
                 showmarker(it)
-
             }
         }
         if(SocialApplication.checkGeoPermission(requireContext()))
@@ -138,7 +133,6 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
                 curloc=LocationLatLngEntity(gpsTracker.latitude!!.toFloat(),gpsTracker.longitude!!.toFloat())
                 getLocation(gpsTracker.latitude!!,gpsTracker.longitude!!)?.let{
                     showmarker(it)
-
                 }
             }
             else
@@ -150,26 +144,20 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
             }
         }
         else
-        {
             requestPermissionLauncher.launch(permissions)
-
-
-        }
     }
     private fun setupGoogleMap() {
         val mapFragment =
             childFragmentManager.findFragmentById(R.id.mfragment) as SupportMapFragment
         mapFragment.getMapAsync(this) // callback 구현 (onMapReady)
-
         // 마커 데이터 보여주기
-
     }
     private fun setupMarker(searchResult: SearchResultEntity): Marker {
         currentSelectMarker?.remove()
         // 구글맵 전용 위도/경도 객체
         val positionLatLng = LatLng(
-            searchResult.locationLatLng.lat.toDouble(),
-            searchResult.locationLatLng.lon.toDouble()
+            searchResult.locationLatLng!!.lat.toDouble(),
+            searchResult.locationLatLng!!.lon.toDouble()
         )
 
         // 구글맵 마커 객체 설정
@@ -178,7 +166,6 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
             title(searchResult.name)
             snippet(searchResult.fullAddress)
         }
-
         // 카메라 줌 설정
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(positionLatLng, CAMERA_ZOOM_LEVEL))
 

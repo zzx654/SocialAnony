@@ -6,6 +6,8 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
@@ -22,7 +24,7 @@ import java.util.regex.Pattern
 
 @AndroidEntryPoint
 class RegisterFragment: Fragment(R.layout.fragment_register) {
-
+    lateinit var inputMethodManager: InputMethodManager
     private lateinit var viewModel: AuthViewModel
     lateinit var binding: FragmentRegisterBinding
     lateinit var api: AuthApi
@@ -73,9 +75,16 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
             }
         }
         binding.btnEmail.setOnClickListener {
+            hideKeyboard()
             if(!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString()).matches())
             {
-                snackbar("이메일 형식이 올바르지 않습니다.")
+                //snackbar("이메일 형식이 올바르지 않습니다.")
+                binding.tilEmail.apply{
+                    isHelperTextEnabled=false
+                    helperText=null
+                    isErrorEnabled=true
+                    error="이메일 형식이 올바르지 않습니다."
+                }
             }
             else
             {
@@ -86,17 +95,30 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
 
         }
         binding.btnPhone.setOnClickListener {
+            hideKeyboard()
             if(Pattern.matches("^01(?:0|1|[6-9])(?:\\d{3}|\\d{4})\\d{4}$",binding.etPhone.text.toString()))
             {
                 viewModel.requestVerify(binding.etPhone.text.toString(),api)
+                binding.tilPhone.apply{
+                    isHelperTextEnabled=false
+                    helperText=null
+                    isErrorEnabled=false
+                    error=null
+                }
             }
             else
             {
-                snackbar("휴대폰번호를 정확히 입력해주세요")
+                binding.tilPhone.apply{
+                    isHelperTextEnabled=false
+                    helperText=null
+                    isErrorEnabled=true
+                    error="휴대폰번호를 정확히 입력해주세요"
+                }
             }
 
         }
         binding.btnAuth.setOnClickListener {
+            hideKeyboard()
             if(!binding.etAuth.text.toString().isNullOrEmpty())
                 viewModel.verifycode(binding.etPhone.text.toString(),binding.etAuth.text.toString(),api)
             else
@@ -111,6 +133,13 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
                     binding.imgCheck.visibility=View.INVISIBLE
                     binding.btnPhone.visibility=View.VISIBLE
                 }
+
+            }
+            binding.tilPhone.apply{
+                isErrorEnabled=false
+                error=null
+                isHelperTextEnabled=true
+                helperText="휴대폰 번호 인증을 해주세요"
             }
 
         }
@@ -120,6 +149,12 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
                 {
                     viewModel.setemailChecked(false)
                 }
+            }
+            binding.tilEmail.apply{
+                isErrorEnabled=false
+                error=null
+                isHelperTextEnabled=true
+                helperText=context.getString(R.string.nickname_guide)
             }
         }
         subsribeToObserver()
@@ -158,6 +193,7 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
             }
             else
             {
+
                 snackbar("인증번호가 틀렸습니다")
             }
         })
@@ -215,11 +251,22 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
             binding.registerProgressBar.isVisible=false
             if(it.resultCode==100)
             {//이미존재하는 이메일일경우
-                snackbar(requireContext().getString(R.string.email_exist))
+                        binding.tilEmail.apply{
+                            isHelperTextEnabled=false
+                            helperText=null
+                            isErrorEnabled=true
+                            error="이미 등록된 이메일입니다"
+                        }
             }
             else{
-                snackbar("사용가능한 이메일입니다")
+
                 viewModel.setemailChecked(true)
+                binding.tilEmail.apply{
+                    isErrorEnabled=false
+                    error=null
+                    isHelperTextEnabled=true
+                    helperText="사용가능한 이메일입니다"
+                }
 
             }
         })
@@ -239,5 +286,11 @@ class RegisterFragment: Fragment(R.layout.fragment_register) {
                 toLogin()
             }
         })
+    }
+    fun hideKeyboard() {
+        if (::inputMethodManager.isInitialized.not()) {
+            inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        }
+        inputMethodManager.hideSoftInputFromWindow(binding.etEmail.windowToken, 0)
     }
 }

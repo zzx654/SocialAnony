@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.PersonAdapter
+import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.FragmentSearchpersonBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -45,8 +46,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
         get() =followingadapter
     override val rvSearched: RecyclerView
         get() = binding.rvSearchedPerson
-    override val loadSearched: ProgressBar
-        get() = binding.loadMoreSearcedProgressbar
+
     override val edtSearch: EditText
         get() = binding.edtNick
     override val rvFollowed: RecyclerView?
@@ -57,6 +57,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     protected val viewModel: MyFollowingViewModel
         get() = basePersonViewModel as MyFollowingViewModel
 
+    private var followlast=false
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -120,7 +121,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     private val followingscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if(!recyclerView.canScrollVertically(1)&&(beforeitemSize!=followingAdapter!!.differ.currentList.size)&&isScrolling){
+            if(!recyclerView.canScrollVertically(1)&&(beforeitemSize!=followingAdapter!!.differ.currentList.size)&&isScrolling&&!followlast){
                 isScrolling=false
                 beforeitemSize=followingAdapter!!.differ.currentList.size
                 val lastuserid=followingAdapter!!.differ.currentList[beforeitemSize-1].userid
@@ -138,40 +139,57 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
         super.subscribeToObserver()
         viewModel.getfollowingPersonResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
+                isLoading=false
                 if(firstloading)
                     loadfirstprogress.visibility=View.GONE
                 else
-                    binding.loadMoreFollowdProgressbar.visibility=View.GONE
+                {
+                    var currentlist=followingadapter!!.differ.currentList.toMutableList()
+                    currentlist.removeLast()
+                    followingadapter!!.differ.submitList(currentlist)
+                }
                 firstloading=false
                 snackbar(it)
             },
             onLoading={
+                isLoading=true
                 if(firstloading)
                     loadfirstprogress.visibility=View.VISIBLE
                 else
-                    binding.loadMoreFollowdProgressbar.visibility=View.VISIBLE
+                {
+                    if(followingadapter!!.persons.size>0)
+                    {
+                        followingadapter!!.persons+=listOf(Person(null,"","","",0))
+                        followingadapter.notifyItemInserted(followingadapter.itemCount)
+                    }
+
+                }
             }
         ){
+            var currentlist=followingadapter.differ.currentList.toMutableList()
             if(firstloading)
                 loadfirstprogress.visibility=View.GONE
-            else
-                binding.loadMoreFollowdProgressbar.visibility=View.GONE
+            else if(currentlist.size>0)
+                currentlist.removeLast()
             firstloading=false
             handleResponse(requireContext(),it.resultCode) {
+                var persons=currentlist.toList()
                 when (it.resultCode) {
                     400 -> {
                         snackbar("서버 에러 발생")
                     }
                     300 -> {
-
+                        followlast=true
+                        followingadapter.differ.submitList(persons)
+                        if(persons.size>0)
+                            snackbar("더이상 표시할 목록이 없습니다")
                     }
                     200 -> {
                         showFollowedRv()
-
-
-                        var list = followingAdapter!!.differ.currentList.toList()
-                        list += it.persons
-                        followingadapter.differ.submitList(list)
+                        if(firstloading)
+                            persons=listOf()
+                        persons+= it.persons
+                        followingadapter.differ.submitList(persons)
                     }
                     else -> null
                 }

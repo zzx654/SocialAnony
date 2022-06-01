@@ -6,7 +6,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Post(
     val postnum:Int,
-    val postid:String,
+    val postid:String?,
     val userid:Int,
     val account:String?,
     val platform:String?,

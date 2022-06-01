@@ -16,7 +16,7 @@ object Constants {
     const val NOTIFICATION_ID=1
     const val TOGGLE_PLAY="TOGGLE_PLAY"
 
-    const val PAGE_SIZE:Long=10
+    const val PAGE_SIZE:Long=20
 
     const val COMMENT=0
     const val REPLY=1
@@ -39,4 +39,8 @@ object Constants {
     const val GET_TMAP_REVERSE_GEO_CODE="/tmap/geo/reversegeocoding"
 
     const val CAMERA_ZOOM_LEVEL = 17f
+
+    const val NONE_HEADER=0
+    const val RG_HEADER=1
+    const val PROFILE_HEADER=2
 }

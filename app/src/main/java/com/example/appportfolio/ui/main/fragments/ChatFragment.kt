@@ -425,7 +425,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
             job?.cancel()
             job = lifecycleScope.launch {
                 if (!showcontainer && keyboard.keyboardHeight < 200) {
-                    //lastFirstVisiblePosition=(binding.rvChat.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
                     prescrollbottom=scrollbottom
                     //최초 키보드띄우지않고 컨테이너 띄울경우
                     binding.toolbox.setHeight(600)

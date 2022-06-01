@@ -10,25 +10,49 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.ItemUserBinding
+import com.example.appportfolio.databinding.NetworkStateItemBinding
 
 class PersonAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+    private val PERSON_VIEW_TYPE=1
+    private val LOADING_VIEW_TYPE=2
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        return DataBindingUtil.inflate<ItemUserBinding>(
-            layoutInflater,
-            R.layout.item_user,
-            parent,
-            false
-        ).let{
-            personViewHolder(it)
+        return if(viewType==PERSON_VIEW_TYPE)
+        {
+            DataBindingUtil.inflate<ItemUserBinding>(
+                layoutInflater,
+                R.layout.item_user,
+                parent,
+                false
+            ).let{
+                personViewHolder(it)
+            }
+        }
+        else{
+            DataBindingUtil.inflate<NetworkStateItemBinding>(
+                layoutInflater,
+                R.layout.network_state_item,
+                parent,
+                false
+            ).let{
+                NetworkStateItemViewHolder(it)
+            }
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val person=persons[position]
-        (holder as PersonAdapter.personViewHolder).onbind(person)
+        if(getItemViewType(position)!=LOADING_VIEW_TYPE)
+            (holder as PersonAdapter.personViewHolder).onbind(persons[position])
     }
     override fun getItemCount(): Int {
         return persons.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if(persons[position].userid==null)
+            LOADING_VIEW_TYPE
+        else
+            PERSON_VIEW_TYPE
     }
 
     inner class personViewHolder(val binding: ItemUserBinding):RecyclerView.ViewHolder(binding.root) {
@@ -46,6 +70,7 @@ class PersonAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
     }
+    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
 
     private val diffCallback=object: DiffUtil.ItemCallback<Person>(){
         override fun areContentsTheSame(oldItem: Person, newItem: Person): Boolean {

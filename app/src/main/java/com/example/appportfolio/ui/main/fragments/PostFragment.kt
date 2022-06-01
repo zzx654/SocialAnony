@@ -92,7 +92,8 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         get() = commentadapter
     @Inject
     lateinit var imagesAdapter: ImagesAdapter
-
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     @Inject
     lateinit var preferences: UserPreferences
 
@@ -167,7 +168,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             }
             binding.btnVote.onSingleClick {
 
-                vmInteract.vote(post.postid,binding.rgVote.checkedRadioButtonId,api)
+                vmInteract.vote(post.postid!!,binding.rgVote.checkedRadioButtonId,api)
 
             }
             binding.imgProfile.setOnClickListener {
@@ -203,18 +204,18 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         {
             if(post.userid!=vmAuth.userid.value!!)
             {
-                vmInteract.getpolloptions(post.postid,api)
+                vmInteract.getpolloptions(post.postid!!,api)
             }
             else
             {
-                vmInteract.getvoteresult(post.postid,api)
+                vmInteract.getvoteresult(post.postid!!,api)
             }
         }
     }
     override fun scrollRefresh() {
         super.scrollRefresh()
         addtolast=false
-        vmInteract.getSelectedPost(post.postid,null,null,api)
+        vmInteract.getSelectedPost(post.postid!!,null,null,api)
 
     }
     private fun bindPostInfo()
@@ -250,11 +251,11 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         when(rgComment!!.checkedRadioButtonId){
             R.id.hotcomment->{
                 //최신순
-                vmComment.getHotComment(lastComment.commentid,post.postid,lastComment.likecount,api)
+                vmComment.getHotComment(lastComment.commentid,post.postid!!,lastComment.likecount,api)
             }
             R.id.timecomment->{
                 //등록순
-                vmComment.getComment(lastComment.commentid,post.postid,lastComment.time,api)
+                vmComment.getComment(lastComment.commentid,post.postid!!,lastComment.time,api)
             }
         }
         }
@@ -269,22 +270,22 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         when(rgComment!!.checkedRadioButtonId){
             R.id.hotcomment->{
                 //최신순
-                vmComment.getHotComment(null,post.postid,null,api)
+                vmComment.getHotComment(null,post.postid!!,null,api)
             }
             R.id.timecomment->{
                 //등록순
-                vmComment.getComment(null,post.postid,null,api)
+                vmComment.getComment(null,post.postid!!,null,api)
             }
         }
     }
     fun toggleLike()
     {
         var togglemy=post.userid==vmAuth.userid.value!!
-        vmInteract.toggleLikePost(getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),togglemy,post.userid,post.postid,post.isLiked!!,api)
+        vmInteract.toggleLikePost(getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),togglemy,post.userid,post.postid!!,post.isLiked!!,api)
     }
     fun toggleBookmark()
     {
-        vmInteract.toggleBookmarkPost(post.postid,post.bookmarked!!,api)
+        vmInteract.toggleBookmarkPost(post.postid!!,post.bookmarked!!,api)
     }
     private fun setupViewPager()=binding.vpimg.apply{
         adapter=imagesAdapter
@@ -375,7 +376,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             postuserid=null
         else
             postuserid=post.userid
-        vmComment.postComment(postuserid,post.postid,getTodayString(
+        vmComment.postComment(postuserid,post.postid!!,getTodayString(
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),api)
     }
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -421,7 +422,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             dialog.cancel()
         }
         positive.setOnClickListener {
-            vmInteract.deletepost(post.postid,api)
+            vmInteract.deletepost(post.postid!!,api)
 
             dialog.dismiss()
             dialog.cancel()
@@ -579,12 +580,19 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
        vmInteract.getVoteResultResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
+           onLoading={
+             binding.loadvote.visibility=View.VISIBLE
+               binding.votelayout.visibility=View.GONE
+           },
            onError={
                snackbar(it)
+               binding.loadvote.visibility=View.GONE
            }
        ){
+           binding.loadvote.visibility=View.GONE
            handleResponse(requireContext(),it.resultCode) {
                if (it.resultCode == 200) {
+
                    binding.rgVote.visibility = View.GONE
                    binding.votelayout.visibility = View.VISIBLE
                    binding.rvvote.visibility = View.VISIBLE
@@ -611,14 +619,17 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
        })
         vmInteract.getPollResponse.observe(viewLifecycleOwner,Event.EventObserver(
-
+            onLoading={
+              binding.loadvote.visibility=View.VISIBLE
+            },
             onError={
                 snackbar(it)
+                binding.loadvote.visibility=View.GONE
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-
+                    binding.loadvote.visibility=View.GONE
                     binding.votelayout.visibility = View.VISIBLE
 
                     for (i in it.polloptions) {
@@ -654,7 +665,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                     }
                 } else if (it.resultCode == 300) {
                     //투표결과얻어오기
-                    vmInteract.getvoteresult(post.postid, api)
+                    vmInteract.getvoteresult(post.postid!!, api)
                 }
             }
 
@@ -667,8 +678,9 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                        addtolast=false
-                    refreshComments()
+                    var templist=commentAdapter.differ.currentList.toList()
+                    templist-=curdeletingcomm
+                    commentAdapter.differ.submitList(templist)
                 } else {
                     snackbar("서버 오류가 발생했습니다")
                 }
@@ -676,10 +688,15 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
         })
         vmInteract.deletepostResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     Toast.makeText(requireContext(), "게시물이 삭제되었습니다", Toast.LENGTH_SHORT).show()

@@ -116,34 +116,6 @@ class InitActivity: AppCompatActivity() {
                     }
                 }
             }
-
-            /**if (it.resultcode == 200) {//프로필 완료된거
-                val intent = Intent(
-                    this,
-                    MainActivity::class.java
-                ).apply {
-                    startActivity(this)
-                    finish()
-                }
-            } else if(it.resultcode==500){
-                val intent = Intent(
-                    this,
-                    AuthActivity::class.java
-                ).apply {
-                    startActivity(this)
-                    finish()
-                }
-            }
-            else
-            {
-                val intent = Intent(
-                    this,
-                    AuthCompleteActivity::class.java
-                ).apply {
-                    startActivity(this)
-                    finish()
-                }
-            }**/
         })
     }
     private fun getFirebaseToken(){

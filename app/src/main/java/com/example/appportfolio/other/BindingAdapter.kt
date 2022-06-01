@@ -195,7 +195,7 @@ object BindingAdapter {
     }
     @BindingAdapter("gender","profileimage")
     @JvmStatic
-    fun bindprofileImg(view: ImageView,gender:String,profileimage:String?) {
+    fun bindprofileImg(view: ImageView,gender:String?,profileimage:String?) {
         //익명이 아닌경우
         if(profileimage.equals("none"))
         {

@@ -135,9 +135,10 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
             }
 
         ){
-            binding.loginProgressBar.isVisible=false
+
             if(it.restoken.equals("")){
                 snackbar(it.message)
+                binding.loginProgressBar.isVisible=false
             }
             else{
                 lifecycleScope.launch {
@@ -150,8 +151,11 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
         viewModel.SocialSignResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
                       Log.d("socialSignErr",it)
+                binding.loginProgressBar.isVisible=false
+                snackbar(it)
             },
             onLoading = {
+                binding.loginProgressBar.isVisible=true
             }
         ){
             if(it.restoken.equals("")){
@@ -168,10 +172,14 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
 
         viewModel.checkProfileResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
+                binding.loginProgressBar.isVisible=false
+                snackbar(it)
             },
             onLoading = {
+
             }
         ) {
+            binding.loginProgressBar.isVisible=false
             handleResponse(requireContext(),it.resultCode){
                 if (it.resultCode == 200) {//프로필 완료된거
                     Intent(requireContext(), MainActivity::class.java).apply{

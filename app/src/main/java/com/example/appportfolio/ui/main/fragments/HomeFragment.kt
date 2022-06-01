@@ -11,7 +11,7 @@ import com.example.appportfolio.adapters.*
 import com.example.appportfolio.databinding.FragmentHomeBinding
 import com.google.android.material.tabs.TabLayoutMediator
 
-class HomeFragment: Fragment(R.layout.fragment_home) {
+class HomeFragment: Fragment(R.layout.fragment_posts) {
 
     lateinit var binding:FragmentHomeBinding
     private var mRootView:View?=null

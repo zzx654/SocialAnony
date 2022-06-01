@@ -26,8 +26,6 @@ class OthersProfileViewModel@ViewModelInject constructor(private val repository:
     override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
         get() = _getPostsResponse
 
-    //private val _togglefollowResponse= MutableLiveData<Event<Resource<intResponse>>>()
-    //val togglefollowResponse: LiveData<Event<Resource<intResponse>>> = _togglefollowResponse
 
     fun getuserPosts(userid:Int,lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,api: MainApi)
     {
@@ -52,15 +50,5 @@ class OthersProfileViewModel@ViewModelInject constructor(private val repository:
             _getprofileResponse.postValue(Event(result))
         }
     }
-
-
-    /**fun toggleFollow(userid:Int,following:Int,api:MainApi){
-
-        _togglefollowResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch(dispatcher) {
-            val result=repository.toggleFollow(userid,following,api)
-            _togglefollowResponse.postValue(Event(result))
-        }
-    }**/
 
 }

@@ -22,6 +22,7 @@ import com.example.appportfolio.api.build.RetrofitLoc
 import com.example.appportfolio.data.entities.*
 import com.example.appportfolio.databinding.FragmentSearchlocBinding
 import com.example.appportfolio.other.Event
+import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.LocationActivity
 import com.example.appportfolio.ui.main.viewmodel.LocViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +33,10 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
     lateinit var searchadapter: SearchRecyclerAdapter
     lateinit var inputMethodManager: InputMethodManager
     lateinit var vmLoc: LocViewModel
+    private var isLast=false
+    private var isLoading=false
     private var itemclicked=false
+    private var firstLoading=true
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -58,6 +62,9 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         }
         binding.btnsearch.setOnClickListener {
             //searchKeyword(binding.searchBarInputView.text.toString())
+            firstLoading=true
+            isLast=false
+            searchadapter.currentPage=1
             vmLoc.getSearchLocation(binding.edtText.text.toString(),1, RetrofitLoc.apiService)
             searchadapter.currentSearchString=binding.edtText.text.toString()
             binding.edtText.setText("")
@@ -67,7 +74,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         searchadapter= SearchRecyclerAdapter()
         searchadapter.setOnItemClickListener {
             itemclicked=true
-           vmLoc.setLoc(LocationLatLngEntity(it.locationLatLng.lat,it.locationLatLng.lon))
+           vmLoc.setLoc(LocationLatLngEntity(it.locationLatLng!!.lat,it.locationLatLng!!.lon))
 
             //여기에 뷰모델에 result값 설정하고 설정되면 popbackstack
         }
@@ -120,7 +127,8 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             val totalItemCount = recyclerView.adapter!!.itemCount - 1
 
             // 페이지 끝에 도달한 경우
-            if (!recyclerView.canScrollVertically(1) && lastVisibleItemPosition == totalItemCount) {
+            if (!recyclerView.canScrollVertically(1) && lastVisibleItemPosition == totalItemCount&&!isLast&&!isLoading) {
+                firstLoading=false
                 loadNext()
             }
         }
@@ -161,19 +169,38 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
 
         }
         vmLoc.getLocResponse.observe(viewLifecycleOwner, Event.EventObserver(
-            onError={
-                Toast.makeText(requireContext(),it, Toast.LENGTH_SHORT).show()
-                //binding.progressCircular.visibility= View.GONE
+            onLoading={
+              isLoading=true
+                if(!firstLoading)
+                {
+                    searchadapter.results+=listOf(SearchResultEntity(null,"",null))
+                    searchadapter.notifyItemInserted(searchadapter.itemCount)
+                }
+
             },
-            onLoading = {
-                //binding.progressCircular.visibility= View.VISIBLE
+            onError={
+                isLoading=false
+                Toast.makeText(requireContext(),it, Toast.LENGTH_SHORT).show()
+                var currentlist=searchadapter.differ.currentList.toMutableList()
+                currentlist.removeLast()
+                searchadapter.differ.submitList(currentlist)
             }
         ){
-           // binding.progressCircular.visibility=View.GONE
+            isLoading=false
+            var currentlist=searchadapter.differ.currentList.toMutableList()
+            if(!firstLoading)
+            {
+                currentlist.removeLast()
+            }
+            if(it.body()==null)
+            {
+                isLast=true
+                searchadapter.differ.submitList(currentlist)
+                snackbar("더 이상 표시할 목록이 없습니다")
+            }
 
             it.body()?.let{ searchResponse ->
-               // binding.emptyResultTextView.visibility=View.GONE
-                setData(searchResponse.searchPoiInfo)
+                setData(currentlist.toList(),searchResponse.searchPoiInfo)
 
             }
 
@@ -185,7 +212,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
 
         vmLoc.getSearchLocation(searchadapter.currentSearchString,searchadapter.currentPage+1,RetrofitLoc.apiService)
     }
-    private fun setData(searchInfo: SearchPoiInfo){
+    private fun setData(oldlist:List<SearchResultEntity>,searchInfo: SearchPoiInfo){
         val pois: Pois = searchInfo.pois
         // mocking data
         val dataList = pois.poi.map {
@@ -199,7 +226,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             )
         }
 
-        val oldlist=searchadapter.differ.currentList
+
         if(searchInfo.page.toInt()==1)
             searchadapter.differ.submitList(dataList)
         else
