@@ -47,19 +47,6 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"/>
 
-        <Button
-            android:visibility="gone"
-            android:layout_marginRight="10dp"
-            android:backgroundTint="@color/skinfore"
-            android:id="@+id/btnsearch"
-            android:text="검색"
-            app:layout_constraintTop_toTopOf="@id/edtText"
-            app:layout_constraintBottom_toBottomOf="@id/edtText"
-
-            app:layout_constraintEnd_toEndOf="@id/edtText"
-            android:layout_width="70dp"
-            android:layout_height="40dp"/>
-
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

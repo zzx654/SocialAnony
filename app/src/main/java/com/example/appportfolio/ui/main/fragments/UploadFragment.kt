@@ -557,8 +557,13 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         vmUpload.tagSearchResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
                 snackbar(it)
+                binding.progresstag.visibility=View.GONE
+            },
+            onLoading={
+              binding.progresstag.visibility=View.VISIBLE
             }
         ){
+            binding.progresstag.visibility=View.GONE
             handleResponse(requireContext(),it.resultCode) {
                 binding.cgSearched.removeAllViews()
                 binding.cgSearched.visibility = View.VISIBLE

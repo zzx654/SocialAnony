@@ -50,26 +50,16 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         binding.edtText.addTextChangedListener {editable->
 
             editable?.let{
-                if(binding.edtText.text.toString().trim().isEmpty())
-                {
-                    binding.btnsearch.visibility=View.GONE
-                }
+                firstLoading=true
+                isLast=false
+                searchadapter.currentPage=1
+                searchadapter.currentSearchString=binding.edtText.text.toString()
+                if(binding.edtText.text.toString().length>1)
+                    vmLoc.getSearchLocation(binding.edtText.text.toString(),1, RetrofitLoc.apiService)
                 else
-                {
-                    binding.btnsearch.visibility=View.VISIBLE
-                }
+                    searchadapter.differ.submitList(listOf())
+
             }
-        }
-        binding.btnsearch.setOnClickListener {
-            //searchKeyword(binding.searchBarInputView.text.toString())
-            firstLoading=true
-            isLast=false
-            searchadapter.currentPage=1
-            vmLoc.getSearchLocation(binding.edtText.text.toString(),1, RetrofitLoc.apiService)
-            searchadapter.currentSearchString=binding.edtText.text.toString()
-            binding.edtText.setText("")
-            // 키보드 숨기기
-            hideKeyboard()
         }
         searchadapter= SearchRecyclerAdapter()
         searchadapter.setOnItemClickListener {
@@ -196,7 +186,10 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             {
                 isLast=true
                 searchadapter.differ.submitList(currentlist)
-                snackbar("더 이상 표시할 목록이 없습니다")
+                if(searchadapter.currentPage>1)
+                    snackbar("더 이상 표시할 목록이 없습니다")
+                else
+                    searchadapter.differ.submitList(listOf())
             }
 
             it.body()?.let{ searchResponse ->
@@ -225,8 +218,6 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
                 )
             )
         }
-
-
         if(searchInfo.page.toInt()==1)
             searchadapter.differ.submitList(dataList)
         else
