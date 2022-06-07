@@ -132,7 +132,6 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
 
             sendcomment.setOnClickListener {
-                addtolast=false
                 sendComment()
                 hideKeyboard()
             }
@@ -242,6 +241,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         }
 
     }
+
     override fun loadNewComments()
     {
         val curComments=commentAdapter.differ.currentList
@@ -266,6 +266,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     }
     override fun refreshComments()
     {
+        lastcomment=0
         isLast=false
         when(rgComment!!.checkedRadioButtonId){
             R.id.hotcomment->{
@@ -378,6 +379,13 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             postuserid=post.userid
         vmComment.postComment(postuserid,post.postid!!,getTodayString(
         SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),api)
+    }
+
+    override fun fixtotop(postedcomment: Comment) {
+        super.fixtotop(postedcomment)
+        var oldcomments=commentAdapter.differ.currentList.toList()
+        var newcomments = listOf(postedcomment)+oldcomments
+        applyList(newcomments)
     }
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)

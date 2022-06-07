@@ -30,7 +30,7 @@ private val dispatcher: CoroutineDispatcher = Dispatchers.Main
     private val _deletecommentResponse=MutableLiveData<Event<Resource<intResponse>>>()
     val deletecommentResponse:LiveData<Event<Resource<intResponse>>> = _deletecommentResponse
 
-    abstract val postCommentResponse:LiveData<Event<Resource<intResponse>>>
+    abstract val postCommentResponse:LiveData<Event<Resource<commentResponse>>>
 
     private val _anonymousnick=MutableLiveData<String>()
     val anonymousnick:LiveData<String> = _anonymousnick

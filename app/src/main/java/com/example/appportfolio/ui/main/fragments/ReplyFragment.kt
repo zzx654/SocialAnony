@@ -84,7 +84,6 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             binding= DataBindingUtil.inflate<FragmentReplyBinding>(inflater,
                 R.layout.fragment_reply,container,false)
             sendcomment.setOnClickListener {
-                addtolast=false
                 sendComment()
                 hideKeyboard()
             }
@@ -133,6 +132,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
     override fun refreshComments() {
         super.refreshComments()
+        lastcomment=0
         isLast=false
         vmReply.getReply(comment.ref,null,null,api)
     }
@@ -178,6 +178,13 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         newComments+=comment
         newComments+=comments
         commentAdapter.differ.submitList(newComments)
+    }
+
+    override fun fixtotop(postedcomment: Comment) {
+        var oldcomments=commentAdapter.differ.currentList.toList()
+        oldcomments-=comment//최상단 댓글제거
+        var newcomments = listOf(postedcomment)+oldcomments
+        applyList(newcomments)
     }
     override fun subscribeToObserver() {
         super.subscribeToObserver()

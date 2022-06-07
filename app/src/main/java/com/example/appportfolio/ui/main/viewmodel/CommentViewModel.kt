@@ -18,8 +18,8 @@ class CommentViewModel @ViewModelInject constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): BaseCommentViewModel(repository, dispatcher) {
 
-    private val _postCommentResponse=MutableLiveData<Event<Resource<intResponse>>>()
-    override val postCommentResponse: LiveData<Event<Resource<intResponse>>>
+    private val _postCommentResponse=MutableLiveData<Event<Resource<commentResponse>>>()
+    override val postCommentResponse: LiveData<Event<Resource<commentResponse>>>
         get() = _postCommentResponse
     private val _getCommentResponse=MutableLiveData<Event<Resource<commentResponse>>>()
     override val getCommentResponse:LiveData<Event<Resource<commentResponse>>>

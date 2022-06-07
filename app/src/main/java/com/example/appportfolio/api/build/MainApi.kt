@@ -201,7 +201,7 @@ interface MainApi {
         @Field("text")text:String,
         @Field("postuserid")postuserid:Int,
         @Field("commentuserid")commentuserid:Int
-    ):intResponse
+    ):commentResponse
     @FormUrlEncoded
     @POST("/toggleComment")
     suspend fun toggleComment(
@@ -222,7 +222,7 @@ interface MainApi {
         @Field("time")time:String,
         @Field("anonymous")anonymous: String,
         @Field("text")text:String
-    ):intResponse
+    ):commentResponse
 
     @FormUrlEncoded
     @POST("/getComment")

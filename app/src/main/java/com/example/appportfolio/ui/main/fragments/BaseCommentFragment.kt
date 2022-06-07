@@ -51,7 +51,7 @@ abstract class BaseCommentFragment (layoutId:Int
     val vmInteract: interactViewModel by viewModels()
     lateinit var vmAuth: AuthViewModel
     lateinit var postcontents:Post
-    protected var addtolast=false
+    protected var addtolast=true
     protected abstract val baseCommentViewModel: BaseCommentViewModel
     protected abstract val commentAdapter: CommentAdapter
     protected abstract val srLayout: SwipeRefreshLayout
@@ -70,6 +70,7 @@ abstract class BaseCommentFragment (layoutId:Int
     var isLoading=false
     var isLast=false
     var beforeitemssize=0
+    var lastcomment=0
     var selecteduserid=0
     lateinit var api: MainApi
     lateinit var inputMethodManager: InputMethodManager
@@ -81,7 +82,8 @@ abstract class BaseCommentFragment (layoutId:Int
         //init()
         scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
             if(!v.canScrollVertically(1)){
-                if(!isLoading&&beforeitemssize!=commentAdapter.comments.size) {
+                if(!isLoading&&lastcomment!=commentAdapter.comments.last().commentid) {
+                    lastcomment=commentAdapter.comments.last().commentid
                     loadNewComments()
                 }
             }
@@ -289,6 +291,10 @@ abstract class BaseCommentFragment (layoutId:Int
     open fun shownotexist()
     {
     }
+    open fun fixtotop(postedcomment:Comment)
+    {
+
+    }
     fun showprofile(profileimage:String?,gender:String,age:Int?,nickname:String,anonymous:Boolean)
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
@@ -463,7 +469,7 @@ abstract class BaseCommentFragment (layoutId:Int
 
             postcommentprogress.visibility=View.GONE
             handleResponse(requireContext(),it.resultCode){
-                when(it.value)
+                when(it.resultCode)
                 {
                     100->shownotexist()
                     400-> Toast.makeText(requireContext(),"해당 게시물에 댓글을 게시할수 없습니다.",Toast.LENGTH_SHORT).show()
@@ -472,7 +478,9 @@ abstract class BaseCommentFragment (layoutId:Int
                         var postcontent=postcontents
                         postcontent.commentcount+=1
                         postcontents=postcontent
-                        refreshComments()
+                        var postedcomment=it.comments[0]
+                        postedcomment.topfixed=true
+                        fixtotop(it.comments[0])
                     }
                 }
             }
@@ -512,11 +520,13 @@ abstract class BaseCommentFragment (layoutId:Int
                     else
                         templist+=it.comments
                         commentprogress.visibility=View.GONE
-                    applyList(templist)
+
+                    applyList(templist.filter{ comment-> !comment.topfixed})
 
                     isLoading=false
                 }
                 else{
+                    lastcomment=0
                     //=true
                     isLoading=false
                     commentprogress.visibility=View.GONE
