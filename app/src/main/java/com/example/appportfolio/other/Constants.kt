@@ -18,8 +18,11 @@ object Constants {
 
     const val PAGE_SIZE:Long=20
 
-    const val COMMENT=0
-    const val REPLY=1
+    const val COMMENT_VIEW_TYPE=0
+    const val REPLY_VIEW_TYPE=1
+    const val POST_VIEW_TYPE=2
+    const val LOADING_VIEW_TYPE=3
+    const val NOCOMMENT_VIEW_TYPE=4
 
     const val COMMENTADDED=1
     const val POSTLIKED=2
@@ -43,4 +46,6 @@ object Constants {
     const val NONE_HEADER=0
     const val RG_HEADER=1
     const val PROFILE_HEADER=2
+
+    const val POST_HEADER=1
 }

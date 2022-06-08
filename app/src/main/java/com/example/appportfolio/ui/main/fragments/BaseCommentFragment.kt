@@ -83,7 +83,7 @@ abstract class BaseCommentFragment (layoutId:Int
         scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
             if(!v.canScrollVertically(1)){
                 if(!isLoading&&lastcomment!=commentAdapter.comments.last().commentid) {
-                    lastcomment=commentAdapter.comments.last().commentid
+                    lastcomment=commentAdapter.comments.last().commentid!!
                     loadNewComments()
                 }
             }
@@ -177,7 +177,7 @@ abstract class BaseCommentFragment (layoutId:Int
             if(comment.depth==0)
                 baseCommentViewModel.deletecomment(comment.ref,api)
             else
-                deletereply(comment.commentid)
+                deletereply(comment.commentid!!)
 
             dialog.dismiss()
             dialog.cancel()
@@ -227,9 +227,9 @@ abstract class BaseCommentFragment (layoutId:Int
     open fun togglecomment(com:Comment)
     {
         if(com.userid==vmAuth.userid.value!!)
-            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid!!,com.commentliked,api)
         else
-            baseCommentViewModel.toggleComment(null,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid!!,com.commentliked,api)
 
 
     }

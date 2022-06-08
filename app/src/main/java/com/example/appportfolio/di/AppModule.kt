@@ -20,6 +20,7 @@ object AppModule {
         @ApplicationContext context: Context
     )=context
 
+
     @Singleton
     @Provides
     fun provideMainDispatcher()= Dispatchers.Main as CoroutineDispatcher

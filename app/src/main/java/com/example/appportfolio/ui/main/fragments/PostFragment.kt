@@ -158,7 +158,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 refreshComments()
             }
             commentAdapter.setOnrootClickListener { comment->
-                vmComment.checkSelectedComment(comment.userid,post.userid,comment.commentid,comment.postid,api)
+                vmComment.checkSelectedComment(comment.userid,post.userid,comment.commentid!!,comment.postid,api)
             }
             binding.rgVote.setOnCheckedChangeListener { group, checkedId ->
                 val color = getColor(requireContext(),R.color.skinfore)
@@ -248,16 +248,16 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         if(!curComments.isEmpty())
         {
             val lastComment=curComments.last()
-        when(rgComment!!.checkedRadioButtonId){
-            R.id.hotcomment->{
-                //최신순
-                vmComment.getHotComment(lastComment.commentid,post.postid!!,lastComment.likecount,api)
+            when(rgComment!!.checkedRadioButtonId){
+                R.id.hotcomment->{
+                    //최신순
+                    vmComment.getHotComment(lastComment.commentid,post.postid!!,lastComment.likecount,api)
+                }
+                R.id.timecomment->{
+                    //등록순
+                    vmComment.getComment(lastComment.commentid,post.postid!!,lastComment.time,api)
+                }
             }
-            R.id.timecomment->{
-                //등록순
-                vmComment.getComment(lastComment.commentid,post.postid!!,lastComment.time,api)
-            }
-        }
         }
     }
     override fun applyList(comments: List<Comment>) {
@@ -378,7 +378,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         else
             postuserid=post.userid
         vmComment.postComment(postuserid,post.postid!!,getTodayString(
-        SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),api)
+            SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),api)
     }
 
     override fun fixtotop(postedcomment: Comment) {
@@ -586,49 +586,49 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     {
         super.subscribeToObserver()
 
-       vmInteract.getVoteResultResponse.observe(viewLifecycleOwner,Event.EventObserver(
+        vmInteract.getVoteResultResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
-           onLoading={
-             binding.loadvote.visibility=View.VISIBLE
-               binding.votelayout.visibility=View.GONE
-           },
-           onError={
-               snackbar(it)
-               binding.loadvote.visibility=View.GONE
-           }
-       ){
-           binding.loadvote.visibility=View.GONE
-           handleResponse(requireContext(),it.resultCode) {
-               if (it.resultCode == 200) {
+            onLoading={
+                binding.loadvote.visibility=View.VISIBLE
+                binding.votelayout.visibility=View.GONE
+            },
+            onError={
+                snackbar(it)
+                binding.loadvote.visibility=View.GONE
+            }
+        ){
+            binding.loadvote.visibility=View.GONE
+            handleResponse(requireContext(),it.resultCode) {
+                if (it.resultCode == 200) {
 
-                   binding.rgVote.visibility = View.GONE
-                   binding.votelayout.visibility = View.VISIBLE
-                   binding.rvvote.visibility = View.VISIBLE
-                   binding.btnVote.visibility = View.GONE
-                   var sum = 0
-                   val vresult: List<Voteresult> = it.voteresult
-                   for (i in it.voteresult) {
-                       sum += i.votecount
-                   }
-                   for (i in it.voteresult.indices) {
-                       if (it.voteresult[i].votecount == 0)
-                           vresult[i].proportion = 0
-                       else {
-                           val a: Double =
-                               (it.voteresult[i].votecount.toDouble() / sum.toDouble()) * 100
-                           vresult[i].proportion = a.roundToInt()
-                       }
+                    binding.rgVote.visibility = View.GONE
+                    binding.votelayout.visibility = View.VISIBLE
+                    binding.rvvote.visibility = View.VISIBLE
+                    binding.btnVote.visibility = View.GONE
+                    var sum = 0
+                    val vresult: List<Voteresult> = it.voteresult
+                    for (i in it.voteresult) {
+                        sum += i.votecount
+                    }
+                    for (i in it.voteresult.indices) {
+                        if (it.voteresult[i].votecount == 0)
+                            vresult[i].proportion = 0
+                        else {
+                            val a: Double =
+                                (it.voteresult[i].votecount.toDouble() / sum.toDouble()) * 100
+                            vresult[i].proportion = a.roundToInt()
+                        }
 
-                   }
-                   voteresultadapter.differ.submitList(vresult)
+                    }
+                    voteresultadapter.differ.submitList(vresult)
 
-               }
-           }
+                }
+            }
 
-       })
+        })
         vmInteract.getPollResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-              binding.loadvote.visibility=View.VISIBLE
+                binding.loadvote.visibility=View.VISIBLE
             },
             onError={
                 snackbar(it)
@@ -697,7 +697,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         })
         vmInteract.deletepostResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-              loadingDialog.show()
+                loadingDialog.show()
             },
             onError = {
                 snackbar(it)
@@ -829,6 +829,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     private fun servicebind()
     {
         var intent=Intent(requireContext(), AudioService::class.java)
+
         activity?.bindService(intent,connection, Context.BIND_AUTO_CREATE)
     }
     fun serviceUnbind()

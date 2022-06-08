@@ -57,6 +57,7 @@ object MainModule {
     @Provides
     @ActivityScoped
     fun provideImagesAdapter()= ImagesAdapter()
+
     @Provides
     @ActivityScoped
     fun provideCommentAdapter()= CommentAdapter()

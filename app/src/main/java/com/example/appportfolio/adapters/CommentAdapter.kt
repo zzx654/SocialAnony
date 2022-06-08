@@ -11,13 +11,13 @@ import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.databinding.ItemCommentBinding
 import com.example.appportfolio.databinding.ItemReplyBinding
-import com.example.appportfolio.other.Constants.COMMENT
-import com.example.appportfolio.other.Constants.REPLY
+import com.example.appportfolio.other.Constants.COMMENT_VIEW_TYPE
+import com.example.appportfolio.other.Constants.REPLY_VIEW_TYPE
 
 class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        if(viewType== COMMENT) {
+        if(viewType== COMMENT_VIEW_TYPE) {
             return DataBindingUtil.inflate<ItemCommentBinding>(
                 layoutInflater,
                 R.layout.item_comment,
@@ -40,7 +40,7 @@ class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val comment=comments[position]
-        if(getItemViewType(position)== COMMENT)
+        if(getItemViewType(position)==COMMENT_VIEW_TYPE)
             (holder as CommentAdapter.commentViewHolder).onbind(comment)
         else
             (holder as CommentAdapter.replyViewHolder).onbind(comment)
@@ -53,10 +53,10 @@ class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun getItemViewType(position: Int): Int {
         if(comments[position].depth==0)
         {
-            return COMMENT
+            return COMMENT_VIEW_TYPE
         }
         else{
-            return REPLY
+            return REPLY_VIEW_TYPE
         }
     }
     inner class replyViewHolder(val binding:ItemReplyBinding):RecyclerView.ViewHolder(binding.root){

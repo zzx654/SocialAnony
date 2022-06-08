@@ -6,7 +6,7 @@ import kotlinx.android.parcel.Parcelize
 @Parcelize
 data class Comment (
     var topfixed:Boolean=false,
-    val commentid:Int,
+    val commentid:Int?,
     val postid:String,
     val userid:Int,
     val text:String,

@@ -127,7 +127,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun scrollRefresh() {
         super.scrollRefresh()
         addtolast=false
-        vmReply.checkSelectedComment(comment.userid,post.userid,comment.commentid,comment.postid,api)
+        vmReply.checkSelectedComment(comment.userid,post.userid,comment.commentid!!,comment.postid,api)
     }
 
     override fun refreshComments() {
@@ -139,15 +139,15 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun postComment(anony: String) {
         post.userid
         comment.userid
-        vmReply.postReply(comment.ref,post.postid!!,comment.commentid,getTodayString(
+        vmReply.postReply(comment.ref,post.postid!!,comment.commentid!!,getTodayString(
             SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),post.userid,comment.userid,api)
     }
 
     override fun togglecomment(com: Comment) {
         if(com.userid==vmAuth.userid.value!!)
-            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid!!,com.commentliked,api)
         else
-            baseCommentViewModel.toggleComment(comment.commentid,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid,com.commentliked,api)
+            baseCommentViewModel.toggleComment(comment.commentid,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid!!,com.commentliked,api)
     }
     override fun onResume() {
         setHasOptionsMenu(true)
