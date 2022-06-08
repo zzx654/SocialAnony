@@ -55,9 +55,9 @@
                     android:scheme="kakao22b8fb238964b0aac0bf46d8bfd21a6b"/>
             </intent-filter>
         </activity>
-        <service android:name=".ui.main.services.recordService"
+        <service android:name=".ui.main.services.RecordService"
             android:foregroundServiceType="microphone"/>
-        <service android:name=".ui.main.services.uploadService" android:exported="true"></service>
+        <service android:name=".ui.main.services.UploadService" android:exported="true"></service>
         <service android:name=".ui.main.services.audioService" android:exported="true">
 
             <intent-filter>

@@ -1,7 +1,6 @@
 package com.example.appportfolio.ui.main.viewmodel
 
 import android.net.Uri
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,11 +12,14 @@ import com.example.appportfolio.api.responses.uploadImageResponse
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import okhttp3.MultipartBody
+import javax.inject.Inject
 
-class ProfileEditViewModel @ViewModelInject constructor(private val mainRepository: MainRepository,
-                                                        private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+@HiltViewModel
+class ProfileEditViewModel @Inject constructor(private val mainRepository: MainRepository,
+                                               private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
     private val _curImageUri= MutableLiveData<Uri>()
     val curImageUri: LiveData<Uri> = _curImageUri

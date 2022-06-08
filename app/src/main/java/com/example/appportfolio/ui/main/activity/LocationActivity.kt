@@ -10,7 +10,6 @@ import com.example.appportfolio.ui.main.viewmodel.LocViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-
 class LocationActivity: AppCompatActivity() {
     lateinit var binding: ActivityLocationBinding
     private lateinit var vmLoc:LocViewModel

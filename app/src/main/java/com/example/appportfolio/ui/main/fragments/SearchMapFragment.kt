@@ -43,7 +43,7 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
     private lateinit var searchResult: SearchResultEntity
     lateinit var gpsTracker: GpsTracker
 
-    private val requestPermissionLauncher = registerForActivityResult( ActivityResultContracts.RequestMultiplePermissions() ) { result: MutableMap<String, Boolean> ->
+    private val requestPermissionLauncher = registerForActivityResult( ActivityResultContracts.RequestMultiplePermissions() ) { result: Map<String, Boolean> ->
         val deniedList: List<String> = result.filter {
             !it.value
         }.map {

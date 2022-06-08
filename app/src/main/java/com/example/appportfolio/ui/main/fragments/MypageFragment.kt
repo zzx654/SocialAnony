@@ -52,7 +52,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         childFragmentManager.beginTransaction()
             .replace(R.id.fragment_container, settingpreFragment(), "setting_fragment")
             .commit()
-        prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
         subsribeToObserver()
         (activity as MainActivity).getmyprofile()
         return binding.root
@@ -74,10 +74,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
                                 .commit()
                             error=false
                         }
-
-
                     }
-
                 }
         }
 

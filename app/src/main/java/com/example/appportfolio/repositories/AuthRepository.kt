@@ -3,11 +3,11 @@ package com.example.appportfolio.repositories
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.safeCall
+import dagger.Provides
 import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@ActivityScoped
 class AuthRepository{
     suspend fun changepassword(
         curpw: String,

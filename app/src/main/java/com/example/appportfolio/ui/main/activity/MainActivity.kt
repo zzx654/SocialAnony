@@ -256,7 +256,7 @@ class MainActivity : AppCompatActivity() {
         ft.commitNow()
         currentTab=tag
     }
-    fun getgooglemail():String
+    fun getgooglemail():String?
     {
         return signManager.getGoogleMail()
     }

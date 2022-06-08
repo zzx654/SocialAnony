@@ -14,7 +14,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.databinding.DialogRecordBinding
 import com.example.appportfolio.other.Constants.ACTION_RECORD_PLAY
 import com.example.appportfolio.other.Constants.ACTION_STOP_SERVICE
-import com.example.appportfolio.ui.main.services.recordService
+import com.example.appportfolio.ui.main.services.RecordService
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -97,37 +97,37 @@ class RecordFragment(val save:(String)->Unit):BottomSheetDialogFragment() {
 
     private fun subscribeToObserver()
     {
-        recordService.path.observe(viewLifecycleOwner){
+        RecordService.path.observe(viewLifecycleOwner){
             path=it
         }
-        recordService.isRecording.observe(viewLifecycleOwner){
+        RecordService.isRecording.observe(viewLifecycleOwner){
 
             isRecording=it
         }
-        recordService.isRecorded.observe(viewLifecycleOwner){
+        RecordService.isRecorded.observe(viewLifecycleOwner){
 
             isRecorded=it
         }
-        recordService.isPlaying.observe(viewLifecycleOwner){
+        RecordService.isPlaying.observe(viewLifecycleOwner){
             isPlaying=it
-            if(!it && recordService.isRecorded.value!!)
+            if(!it && RecordService.isRecorded.value!!)
             {
                 binding.audioRecordImageBtn.setImageResource(R.drawable.ic_play)
             }
         }
-        recordService.elapsedStr.observe(viewLifecycleOwner){
+        RecordService.elapsedStr.observe(viewLifecycleOwner){
             binding.timetxt.text=it
         }
-        recordService.curpos.observe(viewLifecycleOwner){
+        RecordService.curpos.observe(viewLifecycleOwner){
             binding.progressRecord.progress=it
         }
-        recordService.mediamax.observe(viewLifecycleOwner){
+        RecordService.mediamax.observe(viewLifecycleOwner){
             binding.progressRecord.max=it
         }
     }
 
     private fun sendCommandToService(action:String)=
-        Intent(requireContext(),recordService::class.java).also{
+        Intent(requireContext(),RecordService::class.java).also{
             it.action=action
             requireContext().startService(it)
         }

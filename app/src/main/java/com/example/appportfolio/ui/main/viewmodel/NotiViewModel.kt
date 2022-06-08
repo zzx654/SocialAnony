@@ -1,6 +1,5 @@
 package com.example.appportfolio.ui.main.viewmodel
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -14,12 +13,15 @@ import com.example.appportfolio.data.entities.Noti
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class NotiViewModel @ViewModelInject constructor(private val mainRepository: MainRepository,
-                                                 private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+@HiltViewModel
+class NotiViewModel @Inject constructor(private val mainRepository: MainRepository,
+                                        private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
 
     private val _curnotis= MutableLiveData<List<Noti>>()

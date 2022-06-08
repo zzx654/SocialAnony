@@ -14,6 +14,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.appportfolio.data.entities.LocationLatLngEntity
 import com.example.appportfolio.other.AppLifecycleManager
@@ -37,6 +38,7 @@ class SocialApplication: Application() {
     init{
         instance = this
     }
+    val Context.dataStore by preferencesDataStore("my_data_store")
     companion object{
         lateinit var instance: SocialApplication
 

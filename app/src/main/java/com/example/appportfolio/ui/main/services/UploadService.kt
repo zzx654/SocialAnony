@@ -29,11 +29,10 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
-import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class uploadService: LifecycleService(){
+class UploadService: LifecycleService(){
     @Inject
     lateinit var uploadRepository: UploadRepository
 
@@ -56,8 +55,8 @@ class uploadService: LifecycleService(){
         val postResponse = MutableLiveData<Event<Resource<String>>>()
     }
     inner class mBinder: Binder(){
-        fun getService():uploadService{
-            return this@uploadService
+        fun getService():UploadService{
+            return this@UploadService
         }
     }
 

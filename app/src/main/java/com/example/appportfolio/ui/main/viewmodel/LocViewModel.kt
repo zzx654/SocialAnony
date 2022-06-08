@@ -1,6 +1,6 @@
 package com.example.appportfolio.ui.main.viewmodel
 
-import androidx.hilt.lifecycle.ViewModelInject
+
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -11,12 +11,15 @@ import com.example.appportfolio.data.entities.LocationLatLngEntity
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.LocRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import retrofit2.Response
+import javax.inject.Inject
 
-class LocViewModel@ViewModelInject constructor(val locRepository: LocRepository, private val dispatcher: CoroutineDispatcher = Dispatchers.Main): ViewModel(){
+@HiltViewModel
+class LocViewModel@Inject constructor(val locRepository: LocRepository, private val dispatcher: CoroutineDispatcher = Dispatchers.Main): ViewModel(){
 
     private val _curloc=MutableLiveData<LocationLatLngEntity>()
     val curloc: LiveData<LocationLatLngEntity> = _curloc

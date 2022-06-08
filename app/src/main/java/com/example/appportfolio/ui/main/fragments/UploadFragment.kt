@@ -50,7 +50,7 @@ import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.RecordFragment
 import com.example.appportfolio.ui.main.dialog.SetVoteoptionFragment
 import com.example.appportfolio.ui.main.dialog.UploadProgressDialog
-import com.example.appportfolio.ui.main.services.uploadService
+import com.example.appportfolio.ui.main.services.UploadService
 import com.example.appportfolio.ui.main.viewmodel.UploadViewModel
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,11 +66,11 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class UploadFragment : Fragment(R.layout.fragment_upload){
 
-    var postService: uploadService?=null
+    var postService: UploadService?=null
     lateinit var inputMethodManager: InputMethodManager
     var connection=object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as uploadService.mBinder
+            val binder = service as UploadService.mBinder
             postService=binder.getService()
         }
         override fun onServiceDisconnected(name: ComponentName?) {
@@ -275,7 +275,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     }
     fun serviceBind()
     {
-        var intent= Intent(requireContext(), uploadService::class.java)
+        var intent= Intent(requireContext(), UploadService::class.java)
         activity?.bindService(intent,connection, Context.BIND_AUTO_CREATE)
     }
     fun serviceUnbind()
@@ -503,7 +503,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     }
     private fun subsribeToObserver()
     {
-        uploadService.postResponse.observe(viewLifecycleOwner, Event.EventObserver(
+        UploadService.postResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading={
             },
             onError = {

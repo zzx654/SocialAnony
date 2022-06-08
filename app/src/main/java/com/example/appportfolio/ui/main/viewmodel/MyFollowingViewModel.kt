@@ -1,6 +1,5 @@
 package com.example.appportfolio.ui.main.viewmodel
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -10,12 +9,15 @@ import com.example.appportfolio.api.responses.getpersonResponse
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MyFollowingViewModel@ViewModelInject constructor(private val repository: MainRepository,
-                                                       private val dispatcher: CoroutineDispatcher = Dispatchers.Main
+@HiltViewModel
+class MyFollowingViewModel@Inject constructor(private val repository: MainRepository,
+                                              private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePersonViewModel(repository,dispatcher) {
     private val _getsearchedPersonResponse= MutableLiveData<Event<Resource<getpersonResponse>>>()
     override val getsearchedPersonResponse: LiveData<Event<Resource<getpersonResponse>>>

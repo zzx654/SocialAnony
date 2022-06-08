@@ -128,7 +128,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
             }
         }
     }
-    private val requestPermissionLauncher = registerForActivityResult( ActivityResultContracts.RequestMultiplePermissions() ) { result: MutableMap<String, Boolean> ->
+    private val requestPermissionLauncher = registerForActivityResult( ActivityResultContracts.RequestMultiplePermissions() ) { result:Map<String, Boolean> ->
         val deniedList: List<String> = result.filter {
             !it.value
         }.map {

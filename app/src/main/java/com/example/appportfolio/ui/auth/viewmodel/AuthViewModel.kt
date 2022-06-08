@@ -2,7 +2,6 @@ package com.example.appportfolio
 
 import android.content.Context
 import android.util.Patterns
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,12 +11,15 @@ import com.example.appportfolio.api.responses.*
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import javax.inject.Inject
 import kotlin.concurrent.timer
 
-class AuthViewModel @ViewModelInject constructor(private val authRepository: AuthRepository,
-                                                     private val dispatcher:CoroutineDispatcher= Dispatchers.Main,
-                                                     private val applicationContext: Context):
+@HiltViewModel
+class AuthViewModel @Inject constructor(private val authRepository: AuthRepository,
+                                        private val dispatcher:CoroutineDispatcher= Dispatchers.Main,
+                                        private val applicationContext: Context):
     ViewModel() {
     private lateinit var a: Job
     private val _withdrawalResponse = MutableLiveData<Event<Resource<intResponse>>>()

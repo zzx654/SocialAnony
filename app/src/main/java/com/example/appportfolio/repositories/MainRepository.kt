@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import retrofit2.http.*
 
-@ActivityScoped
 class MainRepository {
     suspend fun checkuser(
         userid:Int,

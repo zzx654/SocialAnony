@@ -26,7 +26,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @AndroidEntryPoint
-class audioService:LifecycleService() {
+class AudioService:LifecycleService() {
 
     @Inject
     @Named("mediaNoti")
@@ -60,8 +60,8 @@ class audioService:LifecycleService() {
         val mediamax = MutableLiveData<Int>()
     }
     inner class mBinder: Binder(){
-        fun getService():audioService{
-            return this@audioService
+        fun getService():AudioService{
+            return this@AudioService
         }
     }
 

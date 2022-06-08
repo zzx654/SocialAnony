@@ -113,7 +113,7 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
         try{
             val account=
                 completedTask.getResult(ApiException::class.java)
-        viewModel.signWithSocial("GOOGLE",account.id,fcmToken,api)
+            account.id?.let { viewModel.signWithSocial("GOOGLE", it,fcmToken,api) }
 
         }catch (e: ApiException){
             snackbar(e.message!!)

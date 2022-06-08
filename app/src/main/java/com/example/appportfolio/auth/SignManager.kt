@@ -43,7 +43,7 @@ class SignManager (private val context:Context){
             applyResult(Status.NOTFOUND,"google not found",null)
         }
     }
-    fun getGoogleMail():String
+    fun getGoogleMail():String?
     {
         return lastSignedGoogleAccount!!.email
     }

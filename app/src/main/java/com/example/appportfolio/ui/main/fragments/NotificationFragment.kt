@@ -89,7 +89,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 vmNoti.setSelectedNoti(it)
             }
             notiAdapter.apply {
-                stateRestorationPolicy= RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+                //stateRestorationPolicy= RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
            }
 
             vmNoti.getNotis(null,null,api)

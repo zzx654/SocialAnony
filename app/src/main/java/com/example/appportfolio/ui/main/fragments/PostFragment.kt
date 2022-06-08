@@ -43,7 +43,7 @@ import com.example.appportfolio.other.TimeValue
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
-import com.example.appportfolio.ui.main.services.audioService
+import com.example.appportfolio.ui.main.services.AudioService
 import com.example.appportfolio.ui.main.viewmodel.*
 import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
@@ -102,11 +102,11 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     lateinit var voteresultadapter:VoteResultAdapter
 
     lateinit var binding:FragmentPostBinding
-    var aService:audioService?=null
+    var aService:AudioService?=null
 
     var connection=object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val binder = service as audioService.mBinder
+            val binder = service as AudioService.mBinder
             aService=binder.getService()
             aService?.setMedia(post.audio, (activity as MainActivity).binding.title.text.toString())
         }
@@ -805,7 +805,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 }
             }
         })
-        audioService.isplaying.observe(viewLifecycleOwner){
+        AudioService.isplaying.observe(viewLifecycleOwner){
 
             if(it==false)
             {
@@ -817,10 +817,10 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             }
 
         }
-        audioService.mediamax.observe(viewLifecycleOwner){
+        AudioService.mediamax.observe(viewLifecycleOwner){
             binding.progressMedia.max=it
         }
-        audioService.curpos.observe(viewLifecycleOwner,Event.EventObserver(
+        AudioService.curpos.observe(viewLifecycleOwner,Event.EventObserver(
 
         ){
             binding.progressMedia.progress=it
@@ -828,7 +828,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     }
     private fun servicebind()
     {
-        var intent=Intent(requireContext(), audioService::class.java)
+        var intent=Intent(requireContext(), AudioService::class.java)
         activity?.bindService(intent,connection, Context.BIND_AUTO_CREATE)
     }
     fun serviceUnbind()

@@ -1,6 +1,5 @@
 package com.example.appportfolio.ui.main.viewmodel
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,11 +11,14 @@ import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class TagViewModel@ViewModelInject constructor(
+@HiltViewModel
+class TagViewModel@Inject constructor(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {

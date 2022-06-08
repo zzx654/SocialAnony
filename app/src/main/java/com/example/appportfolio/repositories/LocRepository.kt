@@ -7,7 +7,6 @@ import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@ActivityScoped
 class LocRepository {
     suspend fun getSearchLocation(keyword:String,page:Int,api:LocApi)= withContext(Dispatchers.IO){
         safeCall{

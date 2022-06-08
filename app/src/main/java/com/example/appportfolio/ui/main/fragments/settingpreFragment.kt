@@ -31,6 +31,10 @@ class settingpreFragment:PreferenceFragmentCompat() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listView.overScrollMode=View.OVER_SCROLL_NEVER
+        vmAuth.platform.observe(viewLifecycleOwner){
+            if(it.equals("GOOGLE"))
+                changepwPreference?.isVisible=false
+        }
     }
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.mysettingpreference,rootKey)
@@ -49,7 +53,7 @@ class settingpreFragment:PreferenceFragmentCompat() {
             changepwPreference=findPreference("changepw")
             following=findPreference("following")
 
-            prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+            prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
         }
         bookmarkPreference?.setOnPreferenceClickListener {
@@ -73,10 +77,11 @@ class settingpreFragment:PreferenceFragmentCompat() {
             true
         }
 
-        if(vmAuth.platform.value!!.equals("GOOGLE"))
-        {
-            changepwPreference?.isVisible=false
+        vmAuth.platform.value?.let {
+            if(it.equals("GOOGLE"))
+                changepwPreference?.isVisible=false
         }
+
 
         logoffPreference?.setOnPreferenceClickListener {
             val dialog= AlertDialog.Builder(requireContext()).create()

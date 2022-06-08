@@ -30,7 +30,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 @AndroidEntryPoint
-class recordService:LifecycleService() {
+class RecordService:LifecycleService() {
     @Inject
     @Named("recordNoti")
     lateinit var baseNotificationBuilder: NotificationCompat.Builder

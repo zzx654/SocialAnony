@@ -49,7 +49,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
                 vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
             }
             chatroomAdapter=ChatRoomAdapter().apply {
-                stateRestorationPolicy=RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+            //    stateRestorationPolicy=RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             }
             api= RemoteDataSource().buildApi(MainApi::class.java, runBlocking { preferences.authToken.first() })
             binding= DataBindingUtil.inflate<FragmentChatroomBinding>(inflater,

@@ -1,6 +1,5 @@
 package com.example.appportfolio.ui.main.viewmodel
 
-import androidx.hilt.lifecycle.ViewModelInject
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -10,11 +9,14 @@ import com.example.appportfolio.api.responses.intResponse
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ReplyViewModel@ViewModelInject constructor(
+@HiltViewModel
+class ReplyViewModel@Inject constructor(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): BaseCommentViewModel(repository, dispatcher) {
