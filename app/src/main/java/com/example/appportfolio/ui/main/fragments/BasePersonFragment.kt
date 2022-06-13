@@ -46,7 +46,6 @@ abstract class BasePersonFragment (layoutId:Int
     lateinit var api: MainApi
     @Inject
     lateinit var userPreferences: UserPreferences
-    protected var beforeitemSize=0
     protected abstract val searchedAdapter: PersonAdapter
     protected abstract val followingAdapter:PersonAdapter?
     protected abstract val rvSearched:RecyclerView
@@ -78,9 +77,8 @@ abstract class BasePersonFragment (layoutId:Int
                             firstloading=true
                             isLast=false
                             isLoading=false
-                            beforeitemSize=0
                             isScrolling=false
-                            searchedAdapter.differ.submitList(listOf())
+                            searchedAdapter.submitList(listOf())
                             searchingperson=it.toString()
                             basePersonViewModel.getsearchedPersons(null,it.toString(),api)
                         }
@@ -92,10 +90,9 @@ abstract class BasePersonFragment (layoutId:Int
                         showFollowedRv()
                     }
                     isScrolling=false
-                    beforeitemSize=0
                     isLast=false
                     isLoading=false
-                    searchedAdapter.differ.submitList(listOf())
+                    searchedAdapter.submitList(listOf())
                     searchingperson=null
                 }
             }
@@ -128,14 +125,18 @@ abstract class BasePersonFragment (layoutId:Int
     private val searchedscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            val layoutManager=recyclerView.layoutManager as LinearLayoutManager
-            if(!recyclerView.canScrollVertically(1)&&beforeitemSize!=searchedAdapter.differ.currentList.size&&isScrolling&&!isLoading&&!isLast){
-                isScrolling=false
-                beforeitemSize=searchedAdapter.differ.currentList.size
-                val lastuserid=searchedAdapter.differ.currentList[beforeitemSize-1].userid
-
-                basePersonViewModel.getsearchedPersons(lastuserid,edtSearch.text.toString(),api)
+            val lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val totalItemCount = recyclerView.adapter!!.itemCount - 1
+            if(searchedAdapter.currentList.isNotEmpty()){
+                searchedAdapter.currentList.last().userid?.let{
+                    if(!recyclerView.canScrollVertically(1)&&lastVisibleItemPosition == totalItemCount&&isScrolling&&!isLoading&&!isLast){
+                        isScrolling=false
+                        basePersonViewModel.getsearchedPersons(it,edtSearch.text.toString(),api)
+                    }
+                }
             }
+
+
         }
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
@@ -235,20 +236,20 @@ abstract class BasePersonFragment (layoutId:Int
                     var alerted=false
                     var message=""
                     var followingstate:Int=0
-                    for(i in searchedAdapter.persons.indices)
+                    for(i in searchedAdapter.currentList.indices)
                     {
-                        if(curTogglinguser==searchedAdapter.persons[i].userid)
+                        if(curTogglinguser==searchedAdapter.currentList[i].userid)
                         {
                             alerted=true
-                            searchedAdapter.persons[i].apply{
+                            searchedAdapter.currentList[i].apply{
                                 if(this.following==0)
                                 {
-                                    message=searchedAdapter.persons[i].nickname+"님을 팔로우했습니다"
+                                    message=searchedAdapter.currentList[i].nickname+"님을 팔로우했습니다"
                                     this.following=1
                                     followingstate=1
                                 }
                                 else{
-                                    message=searchedAdapter.persons[i].nickname+"님을 언팔로우했습니다"
+                                    message=searchedAdapter.currentList[i].nickname+"님을 언팔로우했습니다"
                                     this.following=0
                                     followingstate=0
                                 }
@@ -260,19 +261,19 @@ abstract class BasePersonFragment (layoutId:Int
                     }
                     rvFollowed?.let{
                         followingAdapter?.let{ followingAdapter->
-                            for(i in followingAdapter.persons.indices)
+                            for(i in followingAdapter.currentList.indices)
                             {
-                                if(curTogglinguser==followingAdapter.persons[i].userid)
+                                if(curTogglinguser==followingAdapter.currentList[i].userid)
                                 {
-                                    followingAdapter.persons[i].apply{
+                                    followingAdapter.currentList[i].apply{
                                         if(this.following==0)
                                         {
-                                            message=followingAdapter.persons[i].nickname+"님을 팔로우했습니다"
+                                            message=followingAdapter.currentList[i].nickname+"님을 팔로우했습니다"
                                             this.following=1
                                             followingstate=1
                                         }
                                         else{
-                                            message=followingAdapter.persons[i].nickname+"님을 언팔로우했습니다"
+                                            message=followingAdapter.currentList[i].nickname+"님을 언팔로우했습니다"
                                             this.following=0
                                             followingstate=0
                                         }
@@ -302,9 +303,9 @@ abstract class BasePersonFragment (layoutId:Int
                     loadfirstprogress.visibility=View.GONE
                 else
                 {
-                    var currentlist=searchedAdapter.differ.currentList.toMutableList()
+                    var currentlist=searchedAdapter.currentList.toMutableList()
                     currentlist.removeLast()
-                    searchedAdapter.differ.submitList(currentlist)
+                    searchedAdapter.submitList(currentlist)
                 }
 
                 firstloading=false
@@ -317,16 +318,16 @@ abstract class BasePersonFragment (layoutId:Int
                     loadfirstprogress.visibility=View.VISIBLE
                 else
                 {
-                    if(searchedAdapter.persons.size>0)
+                    if(searchedAdapter.currentList.size>0)
                     {
-                        searchedAdapter.persons+=listOf(Person(null,"","","",0))
+                        searchedAdapter.currentList+=listOf(Person(null,"","","",0))
                         searchedAdapter.notifyItemInserted(searchedAdapter.itemCount)
                     }
 
                 }
             }
         ){
-            var currentlist=searchedAdapter.differ.currentList.toMutableList()
+            var currentlist=searchedAdapter.currentList.toMutableList()
             if(firstloading)
                 loadfirstprogress.visibility=View.GONE
             else if(currentlist.size>0)
@@ -341,8 +342,8 @@ abstract class BasePersonFragment (layoutId:Int
                     }
                     300->{
                         isLast=true
-                        searchedAdapter.differ.submitList(persons)
-                        if(persons.size>0)
+                        searchedAdapter.submitList(persons)
+                        if(persons.isNotEmpty())
                         snackbar("더이상 표시할 목록이 없습니다")
                     }
                     200->{
@@ -351,7 +352,7 @@ abstract class BasePersonFragment (layoutId:Int
                             persons=listOf()
 
                         persons+=it.persons
-                        searchedAdapter.differ.submitList(persons)
+                        searchedAdapter.submitList(persons)
                     }
                     else-> null
                 }
@@ -361,11 +362,11 @@ abstract class BasePersonFragment (layoutId:Int
     }
     protected fun applyFollowingState(curTogglinguser:Int,followingstate:Int)
     {
-        for(i in searchedAdapter.persons.indices)
+        for(i in searchedAdapter.currentList.indices)
         {
-            if(curTogglinguser==searchedAdapter.persons[i].userid)
+            if(curTogglinguser==searchedAdapter.currentList[i].userid)
             {
-                searchedAdapter.persons[i].apply{
+                searchedAdapter.currentList[i].apply{
                     this.following=followingstate
                 }
                 searchedAdapter.notifyItemChanged(i)
@@ -374,11 +375,11 @@ abstract class BasePersonFragment (layoutId:Int
         }
         rvFollowed?.let{
             followingAdapter?.let{ followingAdapter->
-                for(i in followingAdapter.persons.indices)
+                for(i in followingAdapter.currentList.indices)
                 {
-                    if(curTogglinguser==followingAdapter.persons[i].userid)
+                    if(curTogglinguser==followingAdapter.currentList[i].userid)
                     {
-                        followingAdapter.persons[i].apply{
+                        followingAdapter.currentList[i].apply{
                             this.following=followingstate
                         }
                         followingAdapter.notifyItemChanged(i)

@@ -48,7 +48,6 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     private lateinit var vmNoti: NotiViewModel
     private var mRootView:View?=null
     lateinit var vmAuth:AuthViewModel
-    var beforeitemssize=0
     lateinit var api: MainApi
     lateinit var selectedNoti:Noti
     lateinit var selectedComment:Comment
@@ -104,18 +103,17 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if(!recyclerView.canScrollVertically(1)&&(beforeitemssize!=notiAdapter.differ.currentList.size)&&!isLoading&&isScrolling&&!isLast&&notiAdapter.differ.currentList.size>=PAGE_SIZE){
-                isScrolling=false
-                if(!isLoading&&beforeitemssize!=notiAdapter.notis.size) {
-                    val curNotis=notiAdapter.differ.currentList
-                    if(!curNotis.isEmpty())
-                    {
-                        val lastNoti=curNotis.last()
-                        vmNoti.getNotis(lastNoti.notiid,lastNoti.date,api)
+            val lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val totalItemCount = recyclerView.adapter!!.itemCount - 1
+            if(notiAdapter.currentList.isNotEmpty())
+            {
+                notiAdapter.currentList.last().notiid?.let{
+                    if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&!isLoading&&isScrolling&&!isLast&&notiAdapter.currentList.size>=PAGE_SIZE){
+                        isScrolling=false
+                            vmNoti.getNotis(it,notiAdapter.currentList.last().date,api)
                     }
                 }
             }
-
         }
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
@@ -149,7 +147,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             isLast=false
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    notiAdapter.differ.submitList(listOf())
+                    notiAdapter.submitList(listOf())
                     (activity as MainActivity).hidenotibadge()
                 }
             }
@@ -230,7 +228,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     val selectedindex=templist.indexOf(selectedNoti)
                     templist[selectedindex].isread=1
                     vmNoti.setNotis(templist)
-                    if(!notiAdapter.differ.currentList.toList().any{ noti->
+                    if(!notiAdapter.currentList.toList().any{ noti->
                         noti.isread==0
                     })
                         (activity as MainActivity).hidenotibadge()
@@ -241,12 +239,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             onLoading={
                 if(!binding.srLayout.isRefreshing)
                 {
-                    if(notiAdapter.differ.currentList.isEmpty())
+                    if(notiAdapter.currentList.isEmpty())
                         binding.loadProgressBar.visibility=View.VISIBLE
                     else{
-                        if(notiAdapter.notis.size>0)
+                        if(notiAdapter.currentList.size>0)
                         {
-                            notiAdapter.notis+=listOf(
+                            notiAdapter.currentList+=listOf(
                                 Noti(null,0,"","","",null,0)
                             )
                             notiAdapter.notifyItemInserted(notiAdapter.itemCount)
@@ -259,12 +257,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 snackbar(it)
                 if(!binding.srLayout.isRefreshing)
                 {
-                    if(notiAdapter.differ.currentList.isEmpty())
+                    if(notiAdapter.currentList.isEmpty())
                         binding.loadProgressBar.visibility=View.GONE
                     else{
-                        var currentllist=notiAdapter.differ.currentList.toMutableList()
+                        var currentllist=notiAdapter.currentList.toMutableList()
                         currentllist.removeLast()
-                        notiAdapter.differ.submitList(currentllist)
+                        notiAdapter.submitList(currentllist)
                     }
 
                 }
@@ -273,12 +271,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
         ){
             isLoading = false
-            var currentllist=notiAdapter.differ.currentList.toMutableList()
+            var currentllist=notiAdapter.currentList.toMutableList()
             if(!binding.srLayout.isRefreshing)
             {
-                if(notiAdapter.differ.currentList.isEmpty())
+                if(notiAdapter.currentList.isEmpty())
                     binding.loadProgressBar.visibility=View.GONE
-                else if(notiAdapter.differ.currentList.size>=20) {
+                else if(notiAdapter.currentList.size>=20) {
                     currentllist.removeLast()
                 }
             }
@@ -287,7 +285,6 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 if(it.resultCode==200) {
                     if(binding.srLayout.isRefreshing)
                     {
-                        beforeitemssize=0
                         vmNoti.setNotis(it.notis)
                         binding.srLayout.isRefreshing=false
                     }
@@ -295,7 +292,6 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     {
                         if(notis.isEmpty())
                             binding.rvNoti.scrollToPosition(0)
-                        beforeitemssize=notis.size
                         notis+=it.notis
                         vmNoti.setNotis(notis)
                     }
@@ -313,7 +309,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
         })
         vmNoti.curnotis.observe(viewLifecycleOwner){
-                  notiAdapter.differ.submitList(it)
+                  notiAdapter.submitList(it)
             notiAdapter.notifyDataSetChanged()
         }
     }

@@ -5,7 +5,7 @@ object Constants {
     const val TAG_CHAT="chatroom_fragment"
     const val TAG_NOTI="notification_fragment"
     const val TAG_MYPAGE="mypage_fragment"
-    const val TAG_POST="post_fragment"
+
 
     const val SEARCH_TIME_DELAY=500L
     const val  ACTION_STOP_SERVICE="ACTION_STOP_SERVICE"
@@ -20,9 +20,7 @@ object Constants {
 
     const val COMMENT_VIEW_TYPE=0
     const val REPLY_VIEW_TYPE=1
-    const val POST_VIEW_TYPE=2
     const val LOADING_VIEW_TYPE=3
-    const val NOCOMMENT_VIEW_TYPE=4
 
     const val COMMENTADDED=1
     const val POSTLIKED=2
@@ -47,5 +45,4 @@ object Constants {
     const val RG_HEADER=1
     const val PROFILE_HEADER=2
 
-    const val POST_HEADER=1
 }

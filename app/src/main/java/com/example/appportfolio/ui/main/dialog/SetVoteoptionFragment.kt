@@ -43,27 +43,27 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
         voteoptionadapter= VoteOptionAdapter()
         setupRecyclerView()
         binding.btnadd.setOnClickListener {
-            if(voteoptionadapter.differ.currentList.size==19)
+            if(voteoptionadapter.currentList.size==19)
                 binding.btnadd.visibility= View.GONE
             addoption()
         }
         if(voteoptions==null)
             initvoteoptions()
         else
-            voteoptionadapter.differ.submitList(voteoptions!!.options)
+            voteoptionadapter.submitList(voteoptions!!.options)
 
         return binding.root
     }
     private fun initvoteoptions()
     {
         val initiallists=listOf(Voteoption("","1"),Voteoption("","2"),Voteoption("","3"))
-        voteoptionadapter.differ.submitList(initiallists)
+        voteoptionadapter.submitList(initiallists)
     }
     private fun addoption()
     {
-        var templist=voteoptionadapter.differ.currentList.toList()
-        templist+=Voteoption("",(voteoptionadapter.differ.currentList.size+1).toString())
-        voteoptionadapter.differ.submitList(templist)
+        var templist=voteoptionadapter.currentList.toList()
+        templist+=Voteoption("",(voteoptionadapter.currentList.size+1).toString())
+        voteoptionadapter.submitList(templist)
         binding.scrollview.post(Runnable{
             binding.scrollview.fling(0);
             binding.scrollview.fullScroll(NestedScrollView.FOCUS_DOWN)
@@ -96,7 +96,7 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
             R.id.complete -> {
                 var options:List<Voteoption>?=null
                 var isempty=true
-                val templist:List<Voteoption> = voteoptionadapter.differ.currentList.toList()
+                val templist:List<Voteoption> = voteoptionadapter.currentList.toList()
                 for(i in templist)
                 {
                     if(i.option != "")
@@ -105,7 +105,7 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
                     }
                 }
                 if(!isempty)
-                    options=voteoptionadapter.differ.currentList.toList()
+                    options=voteoptionadapter.currentList.toList()
                 //findNavController().previousBackStackEntry?.savedStateHandle?.set("return",Voteoptions(options))
                 //findNavController().popBackStack()
                 vmUpload.setvoteoptions(options)

@@ -48,9 +48,6 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
             activity?.run{
                 vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
             }
-            chatroomAdapter=ChatRoomAdapter().apply {
-            //    stateRestorationPolicy=RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-            }
             api= RemoteDataSource().buildApi(MainApi::class.java, runBlocking { preferences.authToken.first() })
             binding= DataBindingUtil.inflate<FragmentChatroomBinding>(inflater,
                 R.layout.fragment_chatroom,container,false)
@@ -73,7 +70,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
                 (activity as MainActivity).replaceFragment("chatFragment",ChatFragment(),bundle)
             }
 
-            chatroomAdapter.differ.submitList(vmChat.mychats.value!!)
+            chatroomAdapter.submitList(vmChat.mychats.value!!)
             mRootView=binding.root
         }
 
@@ -90,7 +87,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
     private fun subsribeToObserver()
     {
         vmChat.mychats.observe(viewLifecycleOwner){
-           chatroomAdapter.differ.submitList(it)
+           chatroomAdapter.submitList(it)
        }
         vmChat.mychatRequests.observe(viewLifecycleOwner){
             if(it.size==0)

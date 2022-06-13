@@ -50,7 +50,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         chatimages=arguments?.getParcelable("chatimages")!!
         setupRecyclerView()
         chatimages?.chatimages?.let{
-            chatContentsAdpater.differ.submitList(it)
+            chatContentsAdpater.submitList(it)
         }
         chatContentsAdpater.setOnImageClickListener { position->
             val bundle=Bundle()
@@ -82,10 +82,10 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         if(!chatContentsAdpater.activecheck)
         {
             inflater.inflate(R.menu.chatcontent_checkoff, menu)
-            val images=chatContentsAdpater.chatimages.map{
+            val images=chatContentsAdpater.currentList.map{
                 ChatImage(it.date,it.imageUrl,false)
             }
-            chatContentsAdpater.differ.submitList(images)
+            chatContentsAdpater.submitList(images)
 
         }
         else
@@ -113,8 +113,8 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
             R.id.download->{
                 //다운로드하기
                 if(
-                chatContentsAdpater.chatimages.any{
-                    it.isChecked==true
+                chatContentsAdpater.currentList.any{
+                    it.isChecked
                 })
                     downloadimages()
                 else
@@ -138,7 +138,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         }
         else
         {
-            val downloadimgs=chatContentsAdpater.chatimages.filter {
+            val downloadimgs=chatContentsAdpater.currentList.filter {
                 it.isChecked==true
             }
             var bitmaps:List<Bitmap> = listOf()

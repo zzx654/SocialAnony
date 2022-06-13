@@ -219,7 +219,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     if(shouldScrollBottom)
                     {
                         activity?.runOnUiThread {
-                            binding.rvChat.scrollToPosition(chatAdapter.differ.currentList.size-1)
+                            binding.rvChat.scrollToPosition(chatAdapter.currentList.size-1)
                             shouldScrollBottom=false
                         }
                     }
@@ -227,12 +227,12 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     {
                         binding.rvChat.smoothScrollToPosition(unreadIndex)
 
-                        var templst=chatAdapter.differ.currentList.toList()
+                        var templst=chatAdapter.currentList.toList()
                         for(i in templst.indices)
                         {
                             templst[i].isread=1
                         }
-                        chatAdapter.differ.submitList(templst)
+                        chatAdapter.submitList(templst)
                     }
                 }
             }
@@ -431,8 +431,8 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     binding.toolbox.visibility=View.VISIBLE
                     showcontainer=true
                     binding.toolBtn.setImageResource(R.drawable.toolcancel)
-                    if(chatAdapter.differ.currentList.size>0)
-                        binding.rvChat.smoothScrollToPosition(chatAdapter.differ.currentList.size - 1)
+                    if(chatAdapter.currentList.size>0)
+                        binding.rvChat.smoothScrollToPosition(chatAdapter.currentList.size - 1)
                 }
                 else{
                     if(showcontainer)
@@ -511,8 +511,8 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
             opponentid=0
         }
         var dateChanged:Boolean=false
-        val chatlistSize=chatAdapter.differ.currentList.size
-        var templst=chatAdapter.differ.currentList.toList()
+        val chatlistSize=chatAdapter.currentList.size
+        var templst=chatAdapter.currentList.toList()
         var maxchatid=1
         if(chatlistSize!==0)
         {
@@ -576,8 +576,8 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
     }
     private fun sendContent(content:String,Type:String){
         var dateChanged:Boolean=false
-        val chatlistSize=chatAdapter.differ.currentList.size
-        var templst=chatAdapter.differ.currentList.toList()
+        val chatlistSize=chatAdapter.currentList.size
+        var templst=chatAdapter.currentList.toList()
         var maxchatid=1
         if(templst.isNotEmpty())
         {
@@ -715,16 +715,16 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
     }
     val layoutChangeListener=
         View.OnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
-            if(bottom<oldBottom&&prescrollbottom&&chatAdapter.differ.currentList.size>0) {
-                binding.rvChat.smoothScrollToPosition(chatAdapter.differ.currentList.size - 1)
+            if(bottom<oldBottom&&prescrollbottom&&chatAdapter.currentList.size>0) {
+                binding.rvChat.smoothScrollToPosition(chatAdapter.currentList.size - 1)
             }
         }
     val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if(!recyclerView.canScrollVertically(-1)&&(beforechatsSize!=chatAdapter.differ.currentList.size)){
-                beforechatsSize=chatAdapter.differ.currentList.size
-                val num=chatAdapter.differ.currentList[0].num
+            if(!recyclerView.canScrollVertically(-1)&&(beforechatsSize!=chatAdapter.currentList.size)){
+                beforechatsSize=chatAdapter.currentList.size
+                val num=chatAdapter.currentList[0].num
                 val loadbefore=vmChat.loadbeforechatContents(roomid,num!!)
                 loadbefore.observe(viewLifecycleOwner){
                     var chatlist:List<MessageData> = listOf()
@@ -734,7 +734,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
 
                     }
                     activity?.runOnUiThread{
-                        setchatcontents(chatlist.reversed()+chatAdapter.differ.currentList.toList(),false)
+                        setchatcontents(chatlist.reversed()+chatAdapter.currentList.toList(),false)
                     }
                     loadbefore.removeObservers(viewLifecycleOwner)
                 }
@@ -860,7 +860,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     shouldScrollBottom=true
             }
         }
-        chatAdapter.differ.submitList(contents)
+        chatAdapter.submitList(contents)
     }
     private fun subsribeToObserver()
     {
@@ -925,7 +925,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                         )
 
                     }
-                    val oldchats = chatAdapter.differ.currentList
+                    val oldchats = chatAdapter.currentList
 
                     activity?.runOnUiThread {
                         if (oldchats.isEmpty())
@@ -962,7 +962,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
     private fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             takePictureIntent.resolveActivity(activity?.packageManager!!)?.also {
-                createImageFile()?.let{
+                createImageFile().let{
                     val photoURI = FileProvider.getUriForFile(requireContext(),
                         "com.example.appportfolio.fileprovider", it)
                     m_imageFile=it

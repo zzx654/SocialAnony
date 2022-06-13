@@ -5,12 +5,14 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Block
+import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.databinding.ItemBlockBinding
 
-class BlockAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class BlockAdapter: ListAdapter<Block, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         return DataBindingUtil.inflate<ItemBlockBinding>(
@@ -33,27 +35,24 @@ class BlockAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val block=blocks[position]
+        val block=currentList[position]
         (holder as BlockAdapter.blockViewHolder).onbind(block)
     }
 
     override fun getItemCount(): Int {
-        return blocks.size
+        return currentList.size
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<Block>(){
-        override fun areContentsTheSame(oldItem: Block, newItem: Block): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
+    companion object {
+        val diffUtil = object : DiffUtil.ItemCallback<Block>() {
+            override fun areContentsTheSame(oldItem: Block, newItem: Block): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
 
-        override fun areItemsTheSame(oldItem: Block, newItem: Block): Boolean {
-            return oldItem==newItem
+            override fun areItemsTheSame(oldItem: Block, newItem: Block): Boolean {
+                return oldItem == newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var blocks:List<Block>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 
     var itemClickListener:((Block)->Unit)?=null
 

@@ -1,63 +1,67 @@
 package com.example.appportfolio.adapters
-
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.AsyncListDiffer
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.*
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Comment
-import com.example.appportfolio.databinding.ItemCommentBinding
-import com.example.appportfolio.databinding.ItemReplyBinding
+import com.example.appportfolio.databinding.*
 import com.example.appportfolio.other.Constants.COMMENT_VIEW_TYPE
+import com.example.appportfolio.other.Constants.LOADING_VIEW_TYPE
 import com.example.appportfolio.other.Constants.REPLY_VIEW_TYPE
 
-class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+
+class CommentAdapter: ListAdapter<Comment,RecyclerView.ViewHolder>(diffUtil) {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        if(viewType== COMMENT_VIEW_TYPE) {
-            return DataBindingUtil.inflate<ItemCommentBinding>(
-                layoutInflater,
-                R.layout.item_comment,
-                parent,
-                false
-            ).let {
-                commentViewHolder(it)
+        val viewholder=when(viewType){
+            LOADING_VIEW_TYPE->{
+                DataBindingUtil.inflate<NetworkStateItemBinding>(
+                    layoutInflater,
+                    R.layout.network_state_item,
+                    parent,
+                    false
+                ).let{
+                    NetworkStateItemViewHolder(it)
+                }
+            }
+            COMMENT_VIEW_TYPE->{
+                return DataBindingUtil.inflate<ItemCommentBinding>(
+                    layoutInflater,
+                    R.layout.item_comment,
+                    parent,
+                    false
+                ).let {
+                    commentViewHolder(it)
+                }
+            }
+            else->{
+                return DataBindingUtil.inflate<ItemReplyBinding>(
+                    layoutInflater,
+                    R.layout.item_reply,
+                    parent,
+                    false
+                ).let{
+                    replyViewHolder(it)
+                }
             }
         }
-        else{
-            return DataBindingUtil.inflate<ItemReplyBinding>(
-                layoutInflater,
-                R.layout.item_reply,
-                parent,
-                false
-            ).let{
-                replyViewHolder(it)
-            }
-        }
+        return viewholder
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val comment=comments[position]
-        if(getItemViewType(position)==COMMENT_VIEW_TYPE)
-            (holder as CommentAdapter.commentViewHolder).onbind(comment)
-        else
-            (holder as CommentAdapter.replyViewHolder).onbind(comment)
+        if(getItemViewType(position)== COMMENT_VIEW_TYPE)
+            (holder as CommentAdapter.commentViewHolder).onbind(currentList[position])
+        else if(getItemViewType(position)== REPLY_VIEW_TYPE)
+            (holder as CommentAdapter.replyViewHolder).onbind(currentList[position])
     }
 
     override fun getItemCount(): Int {
-        return comments.size
+        return currentList.size
     }
-
     override fun getItemViewType(position: Int): Int {
-        if(comments[position].depth==0)
-        {
-            return COMMENT_VIEW_TYPE
-        }
-        else{
-            return REPLY_VIEW_TYPE
-        }
+            return if(currentList[position].commentid==null) LOADING_VIEW_TYPE else if(currentList[position].depth==0) COMMENT_VIEW_TYPE else REPLY_VIEW_TYPE
     }
     inner class replyViewHolder(val binding:ItemReplyBinding):RecyclerView.ViewHolder(binding.root){
         fun onbind(comment: Comment)
@@ -112,20 +116,17 @@ class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     }
 
-    private val diffCallback=object: DiffUtil.ItemCallback<Comment>(){
-        override fun areContentsTheSame(oldItem: Comment, newItem: Comment): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
+    companion object {
+        val diffUtil = object : DiffUtil.ItemCallback<Comment>() {
+            override fun areContentsTheSame(oldItem: Comment, newItem: Comment): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
 
-        override fun areItemsTheSame(oldItem: Comment, newItem: Comment): Boolean {
-            return oldItem==newItem
+            override fun areItemsTheSame(oldItem: Comment, newItem: Comment): Boolean {
+                return oldItem.commentid == newItem.commentid
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var comments:List<Comment>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 
     var FavoriteClickListener:((Comment)->Unit)? = null
 
@@ -147,4 +148,5 @@ class CommentAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     fun setOnProfileClickListener(listener:(Comment)-> Unit){
         profileClickListener=listener
     }
+    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
 }

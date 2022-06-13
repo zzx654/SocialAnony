@@ -36,7 +36,6 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     private var mRootView:View?=null
     override val basePersonViewModel: BasePersonViewModel
         get() {
-        //val vm: MyFollowingViewModel by viewModels()
             val vm= ViewModelProvider(requireActivity()).get(MyFollowingViewModel::class.java)
         return vm
     }
@@ -121,12 +120,15 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     private val followingscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if(!recyclerView.canScrollVertically(1)&&(beforeitemSize!=followingAdapter!!.differ.currentList.size)&&isScrolling&&!followlast){
-                isScrolling=false
-                beforeitemSize=followingAdapter!!.differ.currentList.size
-                val lastuserid=followingAdapter!!.differ.currentList[beforeitemSize-1].userid
-                viewModel.getFollowingPersons(lastuserid,api)
+            val lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val totalItemCount = recyclerView.adapter!!.itemCount - 1
+            followingadapter.currentList.last().userid?.let{
+                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&isScrolling&&!followlast){
+                    isScrolling=false
+                    viewModel.getFollowingPersons(it,api)
+                }
             }
+
         }
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
@@ -144,9 +146,9 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
                     loadfirstprogress.visibility=View.GONE
                 else
                 {
-                    var currentlist=followingadapter!!.differ.currentList.toMutableList()
+                    var currentlist=followingadapter!!.currentList.toMutableList()
                     currentlist.removeLast()
-                    followingadapter!!.differ.submitList(currentlist)
+                    followingadapter!!.submitList(currentlist)
                 }
                 firstloading=false
                 snackbar(it)
@@ -157,16 +159,17 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
                     loadfirstprogress.visibility=View.VISIBLE
                 else
                 {
-                    if(followingadapter!!.persons.size>0)
+                    if(followingadapter!!.currentList.size>0)
                     {
-                        followingadapter!!.persons+=listOf(Person(null,"","","",0))
-                        followingadapter.notifyItemInserted(followingadapter.itemCount)
+                        var templist=followingadapter.currentList.toList()
+                        templist+=listOf(Person(null,"","","",0))
+                        followingadapter.submitList(templist)
                     }
 
                 }
             }
         ){
-            var currentlist=followingadapter.differ.currentList.toMutableList()
+            var currentlist=followingadapter.currentList.toMutableList()
             if(firstloading)
                 loadfirstprogress.visibility=View.GONE
             else if(currentlist.size>0)
@@ -180,8 +183,8 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
                     }
                     300 -> {
                         followlast=true
-                        followingadapter.differ.submitList(persons)
-                        if(persons.size>0)
+                        followingadapter.submitList(persons)
+                        if(persons.isNotEmpty())
                             snackbar("더이상 표시할 목록이 없습니다")
                     }
                     200 -> {
@@ -189,7 +192,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
                         if(firstloading)
                             persons=listOf()
                         persons+= it.persons
-                        followingadapter.differ.submitList(persons)
+                        followingadapter.submitList(persons)
                     }
                     else -> null
                 }

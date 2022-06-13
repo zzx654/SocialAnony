@@ -92,12 +92,12 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         {
                             binding.linearsearched.visibility=View.GONE
                             binding.rvsearchedtags.visibility=View.GONE
-                            if(!popularAdapter.tags.isEmpty())
+                            if(!popularAdapter.currentList.isEmpty())
                             {
                                 binding.linearpopular.visibility=View.VISIBLE
                                 binding.rvpoptags.visibility=View.VISIBLE
                             }
-                            if(!favoriteAdapter.tags.isEmpty())
+                            if(!favoriteAdapter.currentList.isEmpty())
                             {
                                 binding.linearlike.visibility=View.VISIBLE
 
@@ -146,9 +146,9 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                 mRootView=binding.root
 
                 setupRecyclerView()
-                if(popularAdapter.differ.currentList.size>0)
+                if(popularAdapter.currentList.size>0)
                     showpopular()
-                if(favoriteAdapter.differ.currentList.size>0)
+                if(favoriteAdapter.currentList.size>0)
                     showfavorite()
             }
 
@@ -215,25 +215,27 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
 
         ){
             handleResponse(requireContext(),it.resultCode!!) {
-                if (favoriteAdapter.tags.isEmpty()) {
+                if (favoriteAdapter.currentList.isEmpty()) {
                     binding.linearlike.visibility = View.VISIBLE
                     binding.rvfavtags.visibility = View.VISIBLE
                 }
-                if (favoriteAdapter.tags.size == 1) {
+                if (favoriteAdapter.currentList.size == 1) {
                     if (it.isLiked == 1) {
                         binding.linearlike.visibility = View.GONE
                         binding.rvfavtags.visibility = View.GONE
                     }
                 }
+                var templist=favoriteAdapter.currentList.toList()
                 if (it.isLiked == 0) {
-                    favoriteAdapter.tags += TagResult(null,it.tagname, null, null)//즐겨찾기목록에 추가
+                    templist += TagResult(null,it.tagname, null, null)//즐겨찾기목록에 추가
                 } else {
-                    favoriteAdapter.tags -= TagResult(null,it.tagname, null, null)
+                    templist -= TagResult(null,it.tagname, null, null)
                     //즐겨찾기에서 삭제
                 }
-                for (i in searchedAdapter.tags.indices) {
-                    if (it.tagname == searchedAdapter.tags[i].tagname) {
-                        searchedAdapter.tags[i].apply {
+                favoriteAdapter.submitList(templist)
+                for (i in searchedAdapter.currentList.indices) {
+                    if (it.tagname == searchedAdapter.currentList[i].tagname) {
+                        searchedAdapter.currentList[i].apply {
                             if (this.isLiked == 0) {
                                 this.isLiked = 1
                             } else {
@@ -244,9 +246,9 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         break
                     }
                 }
-                for (i in popularAdapter.tags.indices) {//인기태그목록 순회
-                    if (it.tagname == popularAdapter.tags[i].tagname) {//인기태그목록의 태그명과 응답받은 태그명이 같으면
-                        popularAdapter.tags[i].apply {
+                for (i in popularAdapter.currentList.indices) {//인기태그목록 순회
+                    if (it.tagname == popularAdapter.currentList[i].tagname) {//인기태그목록의 태그명과 응답받은 태그명이 같으면
+                        popularAdapter.currentList[i].apply {
                             //해당인덱스 의 즐겨찾기 표시 반대로 변경
                             if (this.isLiked == 0) {
                                 this.isLiked = 1
@@ -275,7 +277,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                 } else {
                     binding.linearlike.visibility = View.VISIBLE
                     binding.rvfavtags.visibility = View.VISIBLE
-                    favoriteAdapter.differ.submitList(it.tags)
+                    favoriteAdapter.submitList(it.tags)
                 }
             }
         })
@@ -291,7 +293,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                 } else {
                     binding.linearpopular.visibility = View.VISIBLE
                     binding.rvpoptags.visibility = View.VISIBLE
-                    popularAdapter.differ.submitList(it.tags)
+                    popularAdapter.submitList(it.tags)
                 }
             }
         })
@@ -308,9 +310,9 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                     binding.rvpoptags.visibility = View.GONE
                     binding.linearsearched.visibility = View.VISIBLE
                     binding.rvsearchedtags.visibility = View.VISIBLE
-                    searchedAdapter.differ.submitList(it.tags)
+                    searchedAdapter.submitList(it.tags)
                 } else {
-                    searchedAdapter.differ.submitList(it.tags)
+                    searchedAdapter.submitList(it.tags)
                     binding.linearsearched.visibility = View.GONE
                     binding.rvsearchedtags.visibility = View.GONE
                 }

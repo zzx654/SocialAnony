@@ -75,7 +75,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
     //라디오버튼선택변했을때는 일단 리스트비우고시작하기
 
     override fun loadNewPosts() {
-        getPosts()
+
     }
 
     override fun refreshPosts() {
@@ -89,7 +89,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
             val distance=postAdapter.checkedDistance
             var lastpostnum:Int?=null
             var lastpostdate:String?=null
-            val curPosts=postAdapter.differ.currentList
+            val curPosts=postAdapter.currentList
             if(!refresh)
             {
                 if(!curPosts.isNullOrEmpty())

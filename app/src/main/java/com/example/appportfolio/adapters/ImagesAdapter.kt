@@ -5,11 +5,12 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.databinding.ItemContentimgBinding
 
-class ImagesAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ImagesAdapter: ListAdapter<String,RecyclerView.ViewHolder>(diffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
@@ -25,7 +26,7 @@ class ImagesAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
-        val image=imgUris[position]
+        val image=currentList[position]
 
 
         (holder as ContentViewHolder).onbind(image)
@@ -39,22 +40,19 @@ class ImagesAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemCount(): Int {
-        return imgUris.size
+        return currentList.size
     }
 
-    private val diffCallback=object: DiffUtil.ItemCallback<String>(){
-        override fun areContentsTheSame(oldItem: String, newItem: String): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
 
-        override fun areItemsTheSame(oldItem: String, newItem: String): Boolean {
-            return oldItem==newItem
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<String>(){
+            override fun areContentsTheSame(oldItem: String, newItem: String): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: String, newItem: String): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var imgUris:List<String>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
-
 }

@@ -57,7 +57,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
                 if(binding.edtText.text.toString().length>1)
                     vmLoc.getSearchLocation(binding.edtText.text.toString(),1, RetrofitLoc.apiService)
                 else
-                    searchadapter.differ.submitList(listOf())
+                    searchadapter.submitList(listOf())
 
             }
         }
@@ -163,21 +163,22 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
               isLoading=true
                 if(!firstLoading)
                 {
-                    searchadapter.results+=listOf(SearchResultEntity(null,"",null))
-                    searchadapter.notifyItemInserted(searchadapter.itemCount)
+                    var templist=searchadapter.currentList.toList()
+                    templist+=listOf(SearchResultEntity(null,"",null))
+                    searchadapter.submitList(templist)
                 }
 
             },
             onError={
                 isLoading=false
                 Toast.makeText(requireContext(),it, Toast.LENGTH_SHORT).show()
-                var currentlist=searchadapter.differ.currentList.toMutableList()
+                var currentlist=searchadapter.currentList.toMutableList()
                 currentlist.removeLast()
-                searchadapter.differ.submitList(currentlist)
+                searchadapter.submitList(currentlist)
             }
         ){
             isLoading=false
-            var currentlist=searchadapter.differ.currentList.toMutableList()
+            var currentlist=searchadapter.currentList.toMutableList()
             if(!firstLoading)
             {
                 currentlist.removeLast()
@@ -185,11 +186,11 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             if(it.body()==null)
             {
                 isLast=true
-                searchadapter.differ.submitList(currentlist)
+                searchadapter.submitList(currentlist)
                 if(searchadapter.currentPage>1)
                     snackbar("더 이상 표시할 목록이 없습니다")
                 else
-                    searchadapter.differ.submitList(listOf())
+                    searchadapter.submitList(listOf())
             }
 
             it.body()?.let{ searchResponse ->
@@ -219,9 +220,9 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             )
         }
         if(searchInfo.page.toInt()==1)
-            searchadapter.differ.submitList(dataList)
+            searchadapter.submitList(dataList)
         else
-            searchadapter.differ.submitList(oldlist+dataList)
+            searchadapter.submitList(oldlist+dataList)
         searchadapter.currentPage = searchInfo.page.toInt()
 
 

@@ -1,7 +1,6 @@
 package com.example.appportfolio.adapters
 
 import android.os.Build
-import android.os.Bundle
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -11,11 +10,13 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
+import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.ContainerProfileBinding
 import com.example.appportfolio.databinding.ItemPostBinding
@@ -23,12 +24,9 @@ import com.example.appportfolio.databinding.NearpostsRgBinding
 import com.example.appportfolio.databinding.NetworkStateItemBinding
 import com.example.appportfolio.other.Constants.NONE_HEADER
 import com.example.appportfolio.other.Constants.RG_HEADER
-import com.example.appportfolio.other.Resource
-import com.example.appportfolio.ui.main.activity.MainActivity
-import com.example.appportfolio.ui.main.fragments.ImageFragment
 import com.google.android.material.chip.Chip
 
-class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
     private var HEADER_TYPE=NONE_HEADER
     private val POST_VIEW_TYPE=0
     private val PROFILE_VIEW_TYPE=1
@@ -90,17 +88,17 @@ class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             (holder as profileViewHolder).onbind()
         else if(getItemViewType(position)!=LOADING_VIEW_TYPE){
             if(HEADER_TYPE== NONE_HEADER)
-                (holder as postViewHolder).onbind(posts[position])
+                (holder as postViewHolder).onbind(currentList[position])
             else
-                (holder as postViewHolder).onbind(posts[position-1])
+                (holder as postViewHolder).onbind(currentList[position-1])
         }
     }
 
     override fun getItemCount(): Int {
         return if(HEADER_TYPE== NONE_HEADER)
-            posts.size
+            currentList.size
         else
-            posts.size+1
+            currentList.size+1
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -116,7 +114,7 @@ class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
         else
         {
-            return if(posts[position-minusoffset].postid==null) LOADING_VIEW_TYPE else POST_VIEW_TYPE
+            return if(currentList[position-minusoffset].postid==null) LOADING_VIEW_TYPE else POST_VIEW_TYPE
         }
 
 
@@ -239,20 +237,18 @@ class PostAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-    private val diffCallback=object: DiffUtil.ItemCallback<Post>(){
-        override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
+    companion object {
+        val diffUtil = object : DiffUtil.ItemCallback<Post>(){
+            override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
 
-        override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
-            return oldItem==newItem
+            override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
 
-    var posts:List<Post>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 
     var tagClickListener:((String)->Unit)?=null
 

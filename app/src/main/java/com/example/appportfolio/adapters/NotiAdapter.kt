@@ -5,13 +5,14 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Noti
 import com.example.appportfolio.databinding.ItemNotiBinding
 import com.example.appportfolio.databinding.NetworkStateItemBinding
 
-class NotiAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class NotiAdapter: ListAdapter<Noti, RecyclerView.ViewHolder>(diffUtil) {
 
     private val NOTI_VIEW_TYPE=1
     private val LOADING_VIEW_TYPE=2
@@ -51,32 +52,30 @@ class NotiAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if(getItemViewType(position)!=LOADING_VIEW_TYPE)
-            (holder as NotiAdapter.notiViewHolder).onbind(notis[position])
+            (holder as NotiAdapter.notiViewHolder).onbind(currentList[position])
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if(notis[position].notiid==null)
+        return if(currentList[position].notiid==null)
             LOADING_VIEW_TYPE
         else
             NOTI_VIEW_TYPE
     }
     override fun getItemCount(): Int {
-        return notis.size
+        return currentList.size
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<Noti>(){
-        override fun areContentsTheSame(oldItem: Noti, newItem: Noti): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
 
-        override fun areItemsTheSame(oldItem: Noti, newItem: Noti): Boolean {
-            return oldItem==newItem
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<Noti>(){
+            override fun areContentsTheSame(oldItem: Noti, newItem: Noti): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: Noti, newItem: Noti): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var notis:List<Noti>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 
     var NotiClickListener:((Noti)->Unit)?=null
 

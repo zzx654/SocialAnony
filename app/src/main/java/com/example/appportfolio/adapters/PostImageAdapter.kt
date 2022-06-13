@@ -6,12 +6,13 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.databinding.ItemPostimageBinding
 
 
-class PostImageAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PostImageAdapter: ListAdapter<Uri, RecyclerView.ViewHolder>(diffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater=LayoutInflater.from(parent.context)
@@ -27,7 +28,7 @@ class PostImageAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
-        val imageUri=imgUris[position]
+        val imageUri=currentList[position]
 
         (holder as PostImageViewHolder).onbind(imageUri)
         (holder as PostImageViewHolder).binding.btnDel.setOnClickListener {
@@ -40,21 +41,6 @@ class PostImageAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     }
 
-    private val diffCallback=object: DiffUtil.ItemCallback<Uri>(){
-        override fun areContentsTheSame(oldItem: Uri, newItem:Uri): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
-
-        override fun areItemsTheSame(oldItem: Uri, newItem: Uri): Boolean {
-            return oldItem==newItem
-        }
-    }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var imgUris:List<Uri>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
-
     inner class PostImageViewHolder( val binding:ItemPostimageBinding):RecyclerView.ViewHolder(binding.root){
         fun onbind(imageUri:Uri)
         {
@@ -62,8 +48,19 @@ class PostImageAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
         }
     }
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<Uri>(){
+            override fun areContentsTheSame(oldItem: Uri, newItem:Uri): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: Uri, newItem: Uri): Boolean {
+                return oldItem==newItem
+            }
+        }
+    }
     override fun getItemCount(): Int {
-        return imgUris.size
+        return currentList.size
     }
 
     var deleteClickListener:((Uri)->Unit)?=null

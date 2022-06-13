@@ -11,11 +11,13 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
+import com.example.appportfolio.adapters.PostDetailsAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.data.entities.Comment
@@ -24,12 +26,14 @@ import com.example.appportfolio.databinding.FragmentReplyBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.ReplyViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
@@ -43,10 +47,10 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         get() = baseCommentViewModel as ReplyViewModel
     override val commentAdapter: CommentAdapter
         get() = commentadapter
+    override val postAdapter: PostDetailsAdapter?
+        get() = null
     override val srLayout: SwipeRefreshLayout
         get() = binding.srLayout
-    override val scrollView: NestedScrollView
-        get() = binding.scrollView
     override val rvComments: RecyclerView
         get() = binding.rvComment
     override val cbAnony: CheckBox
@@ -59,14 +63,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         get() = binding.sendcomment
     override val postcommentprogress: ProgressBar
         get() = binding.postcommentprogress
-    override val commentprogress: ProgressBar
-        get() = binding.commentprogress
-    override val noComment: ConstraintLayout?
-        get() = null
-    override val rgComment: RadioGroup?
-        get() = null
     lateinit var commentadapter: CommentAdapter
-
     lateinit var comment: Comment
 
     private var mRootView:View?=null
@@ -91,7 +88,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
             commentadapter= CommentAdapter()
             init()
-            commentadapter.differ.submitList(listOf(comment))
+            commentadapter.submitList(listOf(comment))
             addtolast=false
             refreshComments()
             mRootView=binding.root
@@ -102,15 +99,15 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
 
     override fun blockcommentuser(selectedComment: Comment) {
-        super.blockcommentuser(selectedComment)
-        var nickname:String?=null
-        var anonymous:Boolean=false
-        anonymous= selectedComment.anonymous!=null
+        var anonymous=selectedComment.anonymous!=null
         vmInteract.blockcommentuser(anonymous,selectedComment.userid,comment.platform==selectedComment.platform&&comment.account==selectedComment.account,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
     }
+
+    override fun blockpostuser() {
+    }
+
     override fun loadNewComments() {
-        super.loadNewComments()
-        val curComments=commentAdapter.differ.currentList
+        val curComments=commentAdapter.currentList
         if(!curComments.isEmpty())
         {
             val lastComment=curComments.last()
@@ -125,15 +122,11 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     }
 
     override fun scrollRefresh() {
-        super.scrollRefresh()
         addtolast=false
         vmReply.checkSelectedComment(comment.userid,post.userid,comment.commentid!!,comment.postid,api)
     }
 
     override fun refreshComments() {
-        super.refreshComments()
-        lastcomment=0
-        isLast=false
         vmReply.getReply(comment.ref,null,null,api)
     }
     override fun postComment(anony: String) {
@@ -168,20 +161,25 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         }
         return super.onOptionsItemSelected(item)
     }
-    override fun shownotexist() {
-        super.shownotexist()
-        snackbar("해당 댓글이 삭제되었습니다")
-    }
+    override fun shownotexist()= snackbar("해당 댓글이 삭제되었습니다")
+
     override fun applyList(comments: List<Comment>) {
-        super.applyList(comments)
         var newComments:List<Comment> = listOf()
         newComments+=comment
         newComments+=comments
-        commentAdapter.differ.submitList(newComments)
+        commentAdapter.submitList(newComments)
     }
-
+    override fun setupRecyclerView(){
+        binding.rvComment.apply{
+            adapter=commentAdapter
+            layoutManager= LinearLayoutManager(requireContext())
+            itemAnimator=null
+            addOnScrollListener(scrollListener)
+            setHasFixedSize(true)
+        }
+    }
     override fun fixtotop(postedcomment: Comment) {
-        var oldcomments=commentAdapter.differ.currentList.toList()
+        var oldcomments=commentAdapter.currentList.toList()
         oldcomments-=comment//최상단 댓글제거
         var newcomments = listOf(postedcomment)+oldcomments
         applyList(newcomments)
@@ -190,10 +188,15 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         super.subscribeToObserver()
         vmReply.deletecommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
+            onLoading={
+              loadingDialog.show()
+            },
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     parentFragmentManager.popBackStack()
@@ -203,16 +206,21 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             }
         })
         vmReply.deletereplyResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+                loadingDialog.show()
+            },
             onError = {
                 snackbar(it)
+                loadingDialog.dismiss()
             }
 
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    var templist=commentAdapter.differ.currentList.toList()
+                    var templist=commentAdapter.currentList.toList()
                     templist-=curdeletingcomm
-                    commentAdapter.differ.submitList(templist)
+                    commentAdapter.submitList(templist)
                 } else {
                     Toast.makeText(requireContext(), "서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                 }
@@ -241,8 +249,8 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
                     ).show()
                     else -> {
                         comment = it.comments[0]
-                        comment.commentliked = commentAdapter.comments[0].commentliked
-                        comment.likecount = commentAdapter.comments[0].likecount
+                        comment.commentliked = commentAdapter.currentList[0].commentliked
+                        comment.likecount = commentAdapter.currentList[0].likecount
                         refreshComments()
                     }
                 }

@@ -54,7 +54,6 @@ abstract class BasePostFragment(
     var isScrolling=false
     var isLast=false
     var isScrollTop=true
-    var beforeitemssize=0
     lateinit var api: MainApi
 
     lateinit var gpsTracker: GpsTracker
@@ -98,13 +97,20 @@ abstract class BasePostFragment(
             setupRecyclerView()
         }
     }
-    val scrollListener= object: RecyclerView.OnScrollListener(){
+    private val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
-            if(!recyclerView.canScrollVertically(1)&&(beforeitemssize!=postAdapter.differ.currentList.size)&&!isLoading&&isScrolling&&!isLast&&postAdapter.differ.currentList.size>=PAGE_SIZE){
+            val lastVisibleItemPosition =
+                (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val totalItemCount = recyclerView.adapter!!.itemCount - 1
+            if(postAdapter.currentList.isNotEmpty())
+            {
+                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&postAdapter.currentList.last().postid!=null&&!isLoading&&isScrolling&&!isLast&&postAdapter.currentList.size>=PAGE_SIZE){
                 isScrolling=false
                 loadNewPosts()
+                }
             }
+
             if(!recyclerView.canScrollVertically(-1))
             {
                 isScrollTop=true
@@ -187,24 +193,22 @@ abstract class BasePostFragment(
                     else->navigateToPostFragment(it.posts[0])
                 }
             }
-
         })
         basePostViewModel.getPostsResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading={
                 isLoading=true
                 if(!srLayout.isRefreshing)
                 {
-                    if(postAdapter.differ.currentList.isEmpty()) {
+                    if(postAdapter.currentList.isEmpty()) {
                         loadProgressBar.visibility = View.VISIBLE
                     }
                     else {
-                        if(postAdapter.posts.size>0)
+                        if(postAdapter.currentList.isNotEmpty())
                         {
-                            postAdapter.posts+=listOf(Post(0,null,0,null,null,"",null,
+                            var templist=postAdapter.currentList.toList()
+                            templist+=listOf(Post(0,null,0,null,null,"",null,
                                 null,null,",null,",",","","","",0,0,null,null,null,"",0))
-
-
-                            postAdapter.notifyItemInserted(postAdapter.itemCount)
+                            postAdapter.submitList(templist)
                         }
 
                     }
@@ -214,12 +218,11 @@ abstract class BasePostFragment(
                 snackbar(it)
                 if(!srLayout.isRefreshing)
                 {
-                    if(postAdapter.differ.currentList.isEmpty())
+                    if(postAdapter.currentList.isEmpty())
                         loadProgressBar.visibility=View.GONE
                     else{
-                        var currentllist=postAdapter.differ.currentList.toMutableList()
-                        currentllist.removeLast()
-                        postAdapter.differ.submitList(currentllist)
+                        var currentllist=postAdapter.currentList.toList()
+                        postAdapter.submitList(currentllist.filter { post-> post.postid!=null })
                     }
 
                 }
@@ -227,39 +230,30 @@ abstract class BasePostFragment(
                     srLayout.isRefreshing=false
             }
         ){
-            var currentllist=postAdapter.differ.currentList.toMutableList()
-            if(!srLayout.isRefreshing)
-            {
-                if(postAdapter.differ.currentList.isEmpty())
+            var currentllist=postAdapter.currentList.toMutableList()
+            if(!srLayout.isRefreshing&&postAdapter.currentList.isEmpty())
                     loadProgressBar.visibility=View.GONE
-                else if(postAdapter.differ.currentList.size>0) {
-                    currentllist.removeLast()
-                }
-            }
+
             handleResponse(requireContext(),it.resultCode){
                 var posts=currentllist.toList()
                 if(it.resultCode==200) {
                     if(srLayout.isRefreshing)
                     {
-                        beforeitemssize=0
-                        postAdapter.differ.submitList(it.posts)
+                        postAdapter.submitList(it.posts)
                         srLayout.isRefreshing=false
                     }
                     else
                     {
                         if(posts.isEmpty())
                             rvPosts.scrollToPosition(0)
-                        beforeitemssize=posts.size
                         posts+=it.posts
-
-                        postAdapter.differ.submitList(posts)
-
+                        postAdapter.submitList(posts.filter { post->  post.postid!=null })
                     }
                     isLoading=false
                 }
                 else{
-                    postAdapter.differ.submitList(posts)
-                    if(posts.size>0)
+                    postAdapter.submitList(posts.filter { post->post.postid!=null })
+                    if(posts.isNotEmpty())
                         snackbar("더이상 표시할 게시물이 없습니다")
                     isLast=true
                     isLoading=false
@@ -269,7 +263,7 @@ abstract class BasePostFragment(
             }
         })
     }
-    fun scrollTopOrRefresh(){
+    private fun scrollTopOrRefresh(){
         if(isScrollTop) {
             isLast=false
             srLayout.isRefreshing=true

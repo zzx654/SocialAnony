@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -12,7 +13,7 @@ import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.ItemUserBinding
 import com.example.appportfolio.databinding.NetworkStateItemBinding
 
-class PersonAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class PersonAdapter: ListAdapter<Person, RecyclerView.ViewHolder>(diffUtil) {
 
     private val PERSON_VIEW_TYPE=1
     private val LOADING_VIEW_TYPE=2
@@ -42,14 +43,14 @@ class PersonAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if(getItemViewType(position)!=LOADING_VIEW_TYPE)
-            (holder as PersonAdapter.personViewHolder).onbind(persons[position])
+            (holder as PersonAdapter.personViewHolder).onbind(currentList[position])
     }
     override fun getItemCount(): Int {
-        return persons.size
+        return currentList.size
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if(persons[position].userid==null)
+        return if(currentList[position].userid==null)
             LOADING_VIEW_TYPE
         else
             PERSON_VIEW_TYPE
@@ -72,21 +73,18 @@ class PersonAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
 
-    private val diffCallback=object: DiffUtil.ItemCallback<Person>(){
-        override fun areContentsTheSame(oldItem: Person, newItem: Person): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
 
-        override fun areItemsTheSame(oldItem: Person, newItem: Person): Boolean {
-            return oldItem==newItem
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<Person>(){
+            override fun areContentsTheSame(oldItem: Person, newItem: Person): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: Person, newItem: Person): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var persons:List<Person>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
-
     var PersonClickListener:((Person)->Unit)?=null
 
     var FollowClickListener:((Person)->Unit)?=null

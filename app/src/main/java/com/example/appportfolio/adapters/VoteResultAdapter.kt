@@ -5,12 +5,13 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Voteresult
 import com.example.appportfolio.databinding.ItemVoteresultBinding
 
-class VoteResultAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class VoteResultAdapter: ListAdapter<Voteresult,RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         return DataBindingUtil.inflate<ItemVoteresultBinding>(
@@ -23,10 +24,10 @@ class VoteResultAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun getItemCount(): Int {
-        return voteresults.size
+        return currentList.size
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val result = voteresults[position]
+        val result = currentList[position]
         (holder as VoteResultAdapter.voteresultViewHolder).onbind(result, position)
     }
 
@@ -36,18 +37,15 @@ class VoteResultAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.voteresult = result
         }
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<Voteresult>(){
-        override fun areContentsTheSame(oldItem: Voteresult, newItem:Voteresult): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<Voteresult>(){
+            override fun areContentsTheSame(oldItem: Voteresult, newItem:Voteresult): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
 
-        override fun areItemsTheSame(oldItem:Voteresult, newItem:Voteresult): Boolean {
-            return oldItem==newItem
+            override fun areItemsTheSame(oldItem:Voteresult, newItem:Voteresult): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var voteresults:List<Voteresult>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 }

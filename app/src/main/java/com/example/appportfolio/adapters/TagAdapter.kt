@@ -5,13 +5,14 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.ItemTagBinding
 
 
-class TagAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class TagAdapter: ListAdapter<TagResult,RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         return DataBindingUtil.inflate<ItemTagBinding>(
@@ -25,12 +26,12 @@ class TagAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val tag=tags[position]
+        val tag=currentList[position]
         (holder as TagAdapter.postViewHolder).onbind(tag)
     }
 
     override fun getItemCount(): Int {
-        return tags.size
+        return currentList.size
     }
 
     inner class postViewHolder(val binding: ItemTagBinding):RecyclerView.ViewHolder(binding.root){
@@ -50,21 +51,17 @@ class TagAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
 
-    private val diffCallback=object: DiffUtil.ItemCallback<TagResult>(){
-        override fun areContentsTheSame(oldItem: TagResult, newItem:TagResult): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<TagResult>(){
+            override fun areContentsTheSame(oldItem: TagResult, newItem:TagResult): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
 
-        override fun areItemsTheSame(oldItem:TagResult, newItem:TagResult): Boolean {
-            return oldItem==newItem
+            override fun areItemsTheSame(oldItem:TagResult, newItem:TagResult): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var tags:List<TagResult>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
-
     var FavoriteClickListener:((TagResult)->Unit)? = null
 
     var TagClickListener:((TagResult)->Unit)? = null

@@ -9,6 +9,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.addTextChangedListener
@@ -25,6 +26,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
+import com.example.appportfolio.adapters.PostDetailsAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
@@ -38,6 +40,7 @@ import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.InteractionDialog
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.interactViewModel
 import kotlinx.coroutines.flow.first
@@ -54,40 +57,52 @@ abstract class BaseCommentFragment (layoutId:Int
     protected var addtolast=true
     protected abstract val baseCommentViewModel: BaseCommentViewModel
     protected abstract val commentAdapter: CommentAdapter
+    protected abstract val postAdapter:PostDetailsAdapter?
     protected abstract val srLayout: SwipeRefreshLayout
-    protected abstract val scrollView: NestedScrollView
     protected abstract val rvComments: RecyclerView
     protected abstract val cbAnony: CheckBox
     protected abstract val edtComment:EditText
     protected abstract val post: Post
     protected abstract val sendcomment:ImageButton
     protected abstract val postcommentprogress:ProgressBar
-    protected abstract val commentprogress:ProgressBar
-    protected abstract val noComment:ConstraintLayout?
-    protected abstract val rgComment:RadioGroup?
+
+    var isScrolling=false
     var anonymousnick:String?=null
     var curdeletingcomm:Comment?=null
     var isLoading=false
-    var isLast=false
-    var beforeitemssize=0
-    var lastcomment=0
     var selecteduserid=0
     lateinit var api: MainApi
     lateinit var inputMethodManager: InputMethodManager
     @Inject
     lateinit var userPreferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
+    val scrollListener= object: RecyclerView.OnScrollListener(){
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+            val lastVisibleItemPosition =
+                (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+            val totalItemCount = recyclerView.adapter!!.itemCount - 1
+            if(commentAdapter.currentList.isNotEmpty())
+            {
+                if(!recyclerView.canScrollVertically(1)&&( lastVisibleItemPosition == totalItemCount)&&commentAdapter.currentList.last().commentid!=null&&!isLoading&&isScrolling){
+                    isScrolling=false
+                    loadNewComments()
+                }
+            }
+
+        }
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            if(newState== AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
+                isScrolling=true
+        }
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         //init()
-        scrollView.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
-            if(!v.canScrollVertically(1)){
-                if(!isLoading&&lastcomment!=commentAdapter.comments.last().commentid) {
-                    lastcomment=commentAdapter.comments.last().commentid!!
-                    loadNewComments()
-                }
-            }
-        }
+
         commentAdapter.setOnFavoriteClickListener { comment->
             togglecomment(comment)
         }
@@ -216,14 +231,11 @@ abstract class BaseCommentFragment (layoutId:Int
         dialog.setView(mView)
         dialog.create()
         dialog.show()
+    }
+    abstract fun blockcommentuser(selectedComment: Comment)
 
-    }
-    open fun blockcommentuser(selectedComment: Comment)
-    {
-    }
-    open fun blockpostuser()
-    {
-    }
+    abstract fun blockpostuser()
+
     open fun togglecomment(com:Comment)
     {
         if(com.userid==vmAuth.userid.value!!)
@@ -243,20 +255,10 @@ abstract class BaseCommentFragment (layoutId:Int
         postComment(anony)
         edtComment.setText(null)
     }
-    open fun scrollRefresh()
-    {
-    }
-    open fun loadNewComments()
-    {
-
-    }
-    open fun refreshComments()
-    {
-    }
-    open fun postComment(anony:String)
-    {
-
-    }
+    abstract fun scrollRefresh()
+    abstract fun loadNewComments()
+    abstract fun refreshComments()
+    abstract fun postComment(anony:String)
     protected fun init()
     {
         activity?.run{
@@ -278,23 +280,10 @@ abstract class BaseCommentFragment (layoutId:Int
             baseCommentViewModel.getAnonymous(post.postid!!,api)
         }
     }
-
-    private fun setupRecyclerView()=rvComments.apply{
-        adapter=commentAdapter
-        layoutManager= LinearLayoutManager(requireContext())
-        itemAnimator=null
-    }
-    open fun applyList(comments:List<Comment>)
-    {
-
-    }
-    open fun shownotexist()
-    {
-    }
-    open fun fixtotop(postedcomment:Comment)
-    {
-
-    }
+    abstract fun setupRecyclerView()
+    abstract fun applyList(comments:List<Comment>)
+    abstract fun shownotexist()
+    abstract fun fixtotop(postedcomment:Comment)
     fun showprofile(profileimage:String?,gender:String,age:Int?,nickname:String,anonymous:Boolean)
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
@@ -431,11 +420,11 @@ abstract class BaseCommentFragment (layoutId:Int
                 }
                 else
                 {
-                    for(i in commentAdapter.comments.indices)
+                    for(i in commentAdapter.currentList.indices)
                     {
-                        if(it.value==commentAdapter.comments[i].commentid)
+                        if(it.value==commentAdapter.currentList[i].commentid)
                         {
-                            commentAdapter.comments[i].apply {
+                            commentAdapter.currentList[i].apply {
                                 if(this.commentliked==0)
                                 {
                                     this.commentliked=1
@@ -456,7 +445,7 @@ abstract class BaseCommentFragment (layoutId:Int
         })
         baseCommentViewModel.postCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-                if(!commentAdapter.differ.currentList.isEmpty())
+                if(!commentAdapter.currentList.isEmpty())
                     postcommentprogress.visibility=View.VISIBLE
                 sendcomment.visibility=View.GONE
             },
@@ -488,13 +477,16 @@ abstract class BaseCommentFragment (layoutId:Int
         baseCommentViewModel.getCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading={
                 isLoading=true
-                commentprogress.visibility=View.VISIBLE
-
+                var templist=commentAdapter.currentList.toMutableList()
+                templist+=listOf(Comment(false,null,"",0,"",0,"",
+                    0,"","","","","",0,"",0,0,0))
+                commentAdapter.submitList(templist.toList())
             },
             onError = {
                 addtolast=true
                 isLoading=false
-                commentprogress.visibility = View.GONE
+                val templist=commentAdapter.currentList
+                commentAdapter.submitList(templist.filter { comment -> comment.commentid!=null  })
                 snackbar(it)
             }
         ){
@@ -504,40 +496,56 @@ abstract class BaseCommentFragment (layoutId:Int
             handleResponse(requireContext(),it.resultCode){
 
                 if(it.resultCode==200) {
-                    if(commentAdapter.differ.currentList.isEmpty())
+                    if(commentAdapter.currentList.size==0)
                     {
-                        noComment?.let{it.visibility=View.GONE}
+                        rvComments.scrollToPosition(0)
                     }
-                    var templist=commentAdapter.differ.currentList.toList()
-                    if(addtolast)
-                        beforeitemssize=templist.size
-                    else
-                        beforeitemssize=0
-                    if(beforeitemssize==0)
-                        rgComment?.let{it.visibility=View.VISIBLE}
+                    if(commentAdapter.currentList.none { comment -> comment.commentid != null }) {
+                        postAdapter?.let{ adapter->
+                                adapter.noCommentVis=false
+                        }
+
+                    }
+                    var templist=commentAdapter.currentList.toList()
+                    postAdapter?.let{ adapter->
+                            adapter.rgCommentVis=true
+                    }
                     if(!addtolast)
                         templist=it.comments
                     else
                         templist+=it.comments
-                        commentprogress.visibility=View.GONE
-
-                    applyList(templist.filter{ comment-> !comment.topfixed})
+                    applyList(templist.filter{ comment-> !comment.topfixed&&comment.commentid!=null})
 
                     isLoading=false
                 }
                 else{
-                    lastcomment=0
                     //=true
                     isLoading=false
-                    commentprogress.visibility=View.GONE
-                    if(commentAdapter.differ.currentList.isEmpty()) {
-                        noComment?.let{it.visibility = View.VISIBLE}
-                        rgComment?.let{it.visibility=View.GONE}
+                    val templist=commentAdapter.currentList
+                    commentAdapter.submitList(templist.filter { comment -> comment.commentid!=null  })
+                    if(commentAdapter.currentList.none { comment -> comment.commentid != null }) {
+                        postAdapter?.let{ adapter->
+                            adapter.noCommentVis=true
+                            adapter.rgCommentVis=false
+                        }
+                    }
+                }
+                postAdapter?.let{ adapter->
+                    rvComments.findViewHolderForAdapterPosition(0)?.let{ holder->
+                        if(adapter.noCommentVis)
+                            (holder as PostDetailsAdapter.postViewHolder).binding.noComment.visibility=View.VISIBLE
+                        else
+                            (holder as PostDetailsAdapter.postViewHolder).binding.noComment.visibility=View.GONE
+                        if(adapter.rgCommentVis)
+                            holder.binding.rgcomment.visibility=View.VISIBLE
+                        else
+                            holder.binding.rgcomment.visibility=View.GONE
+
+
                     }
                 }
                 addtolast=true
             }
-
         })
         baseCommentViewModel.anonymousnick.observe(viewLifecycleOwner){
             anonymousnick=it
@@ -556,11 +564,8 @@ abstract class BaseCommentFragment (layoutId:Int
                     baseCommentViewModel.setAnony(it.message)
                 }
             }
-
         })
-
     }
-
     fun showReport(postid:String?,commentid:Int?)
     {
         val dialog = AlertDialog.Builder(requireContext()).create()

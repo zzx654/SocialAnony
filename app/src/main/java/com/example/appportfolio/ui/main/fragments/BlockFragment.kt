@@ -130,7 +130,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                 }
                 else
                 {
-                    blockAdapter.differ.submitList(it.blocks)
+                    blockAdapter.submitList(it.blocks)
                 }
             }
 
@@ -148,7 +148,9 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                     snackbar("서버 오류 발생")
                 }
                 else{
-                    blockAdapter.blocks-=curBlock!!
+                    var templist=blockAdapter.currentList.toList()
+                    templist-=curBlock
+                    blockAdapter.submitList(templist)
                 }
             }
         })

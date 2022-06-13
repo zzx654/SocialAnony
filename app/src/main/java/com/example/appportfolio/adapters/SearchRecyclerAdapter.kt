@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.SearchResultEntity
@@ -12,7 +13,7 @@ import com.example.appportfolio.databinding.ItemLocBinding
 import com.example.appportfolio.databinding.NetworkStateItemBinding
 
 
-class SearchRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class SearchRecyclerAdapter : ListAdapter<SearchResultEntity,RecyclerView.ViewHolder>(diffUtil) {
     var currentPage = 1
     var currentSearchString = ""
     private val LOADING_VIEW_TYPE=2
@@ -53,34 +54,33 @@ class SearchRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if(getItemViewType(position)!=LOADING_VIEW_TYPE)
-            (holder as SearchRecyclerAdapter.searchViewHolder).onbind(results[position])
+            (holder as SearchRecyclerAdapter.searchViewHolder).onbind(currentList[position])
     }
     override fun getItemCount(): Int {
-        return results.size
+        return currentList.size
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if(results[position].fullAddress==null)
+        return if(currentList[position].fullAddress==null)
             LOADING_VIEW_TYPE
         else
             LOCATION_VIEW_TYPE
 
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<SearchResultEntity>(){
-        override fun areContentsTheSame(oldItem: SearchResultEntity, newItem: SearchResultEntity): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
 
-        override fun areItemsTheSame(oldItem: SearchResultEntity, newItem: SearchResultEntity): Boolean {
-            return oldItem==newItem
+    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<SearchResultEntity>(){
+            override fun areContentsTheSame(oldItem: SearchResultEntity, newItem: SearchResultEntity): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: SearchResultEntity, newItem: SearchResultEntity): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    inner class NetworkStateItemViewHolder(val binding: NetworkStateItemBinding):RecyclerView.ViewHolder(binding.root)
-    val differ= AsyncListDiffer(this,diffCallback)
 
-    var results:List<SearchResultEntity>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
     var itemClickListener:((SearchResultEntity)->Unit)?=null
 
     fun setOnItemClickListener(listener: (SearchResultEntity) -> Unit){

@@ -61,7 +61,7 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         }
         subscribeToObserver()
         setupRecyclerView()
-        chatrequestsAdapter.differ.submitList(viewModel.mychatRequests.value)
+        chatrequestsAdapter.submitList(viewModel.mychatRequests.value)
         return binding.root
     }
     private fun subscribeToObserver()
@@ -72,7 +72,7 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
-                chatrequestsAdapter.differ.submitList(it.requests)
+                chatrequestsAdapter.submitList(it.requests)
                 viewModel.setChatRequests(it.requests)
                 setnewChats(selectedRequest)
             }
@@ -85,12 +85,12 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
-                chatrequestsAdapter.differ.submitList(it.requests)
+                chatrequestsAdapter.submitList(it.requests)
             }
 
         })
         viewModel.mychatRequests.observe(viewLifecycleOwner){
-            chatrequestsAdapter.differ.submitList(it)
+            chatrequestsAdapter.submitList(it)
         }
     }
     private fun setnewChats(selectedRequest: ChatRequests){

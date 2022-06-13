@@ -247,7 +247,7 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
     {
         var lastpostnum:Int?=null
         var lastpostdate:String?=null
-        val curPosts=postAdapter.differ.currentList
+        val curPosts=postAdapter.currentList
         if(!refresh)
         {
             if(!curPosts.isNullOrEmpty())

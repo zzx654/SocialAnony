@@ -5,11 +5,12 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.ChatRequests
 import com.example.appportfolio.databinding.ItemChatrequestBinding
-class ChatRequestsAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatRequestsAdapter: ListAdapter<ChatRequests,RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         return DataBindingUtil.inflate<ItemChatrequestBinding>(
@@ -39,27 +40,26 @@ class ChatRequestsAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val chatrequest=chatrequests[position]
+        val chatrequest=currentList[position]
         (holder as ChatRequestsAdapter.ChatRequestsViewHolder).onbind(chatrequest)
     }
 
     override fun getItemCount(): Int {
-        return chatrequests.size
+        return currentList.size
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<ChatRequests>(){
-        override fun areContentsTheSame(oldItem: ChatRequests, newItem:ChatRequests): Boolean {
-            return oldItem.hashCode() == newItem.hashCode()
-        }
 
-        override fun areItemsTheSame(oldItem: ChatRequests, newItem: ChatRequests): Boolean {
-            return oldItem==newItem
+
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<ChatRequests>(){
+            override fun areContentsTheSame(oldItem: ChatRequests, newItem:ChatRequests): Boolean {
+                return oldItem.hashCode() == newItem.hashCode()
+            }
+
+            override fun areItemsTheSame(oldItem: ChatRequests, newItem: ChatRequests): Boolean {
+                return oldItem==newItem
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var chatrequests:List<ChatRequests>
-        get() = differ.currentList
-        set(value) = differ.submitList(value)
 
     var AcceptClickListener:((ChatRequests)->Unit)?=null
 

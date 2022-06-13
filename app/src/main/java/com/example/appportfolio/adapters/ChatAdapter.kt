@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.appportfolio.R
@@ -13,7 +14,7 @@ import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.databinding.*
 import com.example.appportfolio.other.ChatType
 
-class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         if(viewType==ChatType.LEFT_MESSAGE){
@@ -87,7 +88,7 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
 
-        val chat=chatlist[position]
+        val chat=currentList[position]
         if(getItemViewType(position)==ChatType.LEFT_MESSAGE)
         {
             (holder as LeftTextViewHolder).onbind(chat)
@@ -112,16 +113,16 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
         }
     }
     override fun getItemCount(): Int {
-        return chatlist.size
+        return currentList.size
     }
     override fun getItemViewType(position: Int): Int {
-        if(chatlist[position].type.equals("DATE")||chatlist[position].type.equals("EXIT"))
+        if(currentList[position].type.equals("DATE")||currentList[position].type.equals("EXIT"))
         {
             return ChatType.CENTER
         }
-        else if(chatlist[position].type.equals("IMAGE"))
+        else if(currentList[position].type.equals("IMAGE"))
         {
-            if(chatlist[position].senderid!!.equals(myId))
+            if(currentList[position].senderid!!.equals(myId))
             {
                 return ChatType.RIGHT_IMAGE
             }
@@ -129,9 +130,9 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 return ChatType.LEFT_IMAGE
             }
         }
-        else if(chatlist[position].type.equals("LOCATION"))
+        else if(currentList[position].type.equals("LOCATION"))
         {
-            if(chatlist[position].senderid!!.equals(myId))
+            if(currentList[position].senderid!!.equals(myId))
             {
                 return ChatType.RIGHT_LOCATION
             }
@@ -140,7 +141,7 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             }
         }
         else {
-            if(chatlist[position].senderid!!.equals(myId))
+            if(currentList[position].senderid!!.equals(myId))
             {
                 return ChatType.RIGHT_MESSAGE
             }
@@ -229,19 +230,16 @@ class ChatAdapter:RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.content=chat
         }
     }
-    private val diffCallback=object: DiffUtil.ItemCallback<MessageData>(){
-        override fun areContentsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
-            return oldItem.hashCode()==newItem.hashCode()
-        }
-        override fun areItemsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
-            return (oldItem.num==newItem.num)&&(oldItem.nickname==newItem.nickname)
+    companion object{
+        val diffUtil=object: DiffUtil.ItemCallback<MessageData>(){
+            override fun areContentsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
+                return oldItem.hashCode()==newItem.hashCode()
+            }
+            override fun areItemsTheSame(oldItem: MessageData, newItem: MessageData): Boolean {
+                return (oldItem.num==newItem.num)&&(oldItem.nickname==newItem.nickname)
+            }
         }
     }
-    val differ= AsyncListDiffer(this,diffCallback)
-
-    var chatlist:List<MessageData>
-        get()=differ.currentList
-        set(value)=differ.submitList(value)
     private var myId:Int?=null
     fun setMyId(myid:Int)
     {

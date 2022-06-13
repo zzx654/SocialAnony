@@ -7,7 +7,9 @@ import com.example.appportfolio.data.entities.ToggleState
 
 class applyFollowViewModel: ViewModel() {
     private val _curtoggling = MutableLiveData<ToggleState>()
+
     val curtoggling: LiveData<ToggleState> = _curtoggling
+
 
     fun setcurtoggle(curtoggleuser:Int,toggle:Int)
     {

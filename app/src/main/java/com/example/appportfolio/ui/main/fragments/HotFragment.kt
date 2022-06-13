@@ -60,13 +60,12 @@ class HotFragment: BasePostFragment(R.layout.fragment_posts) {
             setView()
             mRootView=binding.root
             refreshPosts()
-
         }
 
         return mRootView
     }
     override fun loadNewPosts() {
-        getPosts()
+            getPosts()
     }
 
     override fun refreshPosts() {
@@ -80,7 +79,7 @@ class HotFragment: BasePostFragment(R.layout.fragment_posts) {
     {
         var lastpostnum:Int?=null
         var lastposthot:Int?=null
-        val curPosts=postAdapter.differ.currentList
+        val curPosts=postAdapter.currentList
         if(!refresh)
         {
             if(!curPosts.isNullOrEmpty())

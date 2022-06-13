@@ -43,7 +43,6 @@ class AudioService:LifecycleService() {
         val isplaying = MutableLiveData<Boolean>()
         val nicknameText = MutableLiveData<String>()
         val curpos = MutableLiveData<Event<Resource<Int>>>()
-        val elapsedStr = MutableLiveData<String>()
         val mediamax = MutableLiveData<Int>()
     }
     fun initialvalues()
@@ -57,7 +56,6 @@ class AudioService:LifecycleService() {
         isplaying.value=false
 
         curpos.postValue(Event(Resource.Success(0)))
-        val mediamax = MutableLiveData<Int>()
     }
     inner class mBinder: Binder(){
         fun getService():AudioService{

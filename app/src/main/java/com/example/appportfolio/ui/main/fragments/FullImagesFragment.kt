@@ -53,7 +53,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
         chatimages=arguments?.getParcelable("chatimages")!!
         curpage=arguments?.getInt("position",0)!!
         chatimages?.chatimages?.let{
-            imagesAdapter.differ.submitList(it)
+            imagesAdapter.submitList(it)
         }
         binding.btnsave.setOnClickListener {
             if(!SocialApplication.checkIOstoragePermission(requireContext()))
@@ -72,7 +72,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
             CoroutineScope(Dispatchers.Main).launch{
                 progressDialog.show()
                 val bitmap = withContext(Dispatchers.IO){
-                    ImageLoader.loadImage(imagesAdapter.chatimages[curpage].imageUrl)
+                    ImageLoader.loadImage(imagesAdapter.currentList[curpage].imageUrl)
                 }
                 bitmap?.let{
 
@@ -91,7 +91,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
                 progressDialog.dismiss()
             }
         }
-        setTime(imagesAdapter.chatimages[curpage].date)
+        setTime(imagesAdapter.currentList[curpage].date)
 
 
         binding.close.setOnClickListener {
@@ -110,7 +110,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 curpage=position
-                setTime(imagesAdapter.chatimages[curpage].date)
+                setTime(imagesAdapter.currentList[curpage].date)
 
             }
         })

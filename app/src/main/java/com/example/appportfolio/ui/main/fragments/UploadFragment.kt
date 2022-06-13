@@ -121,7 +121,9 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                     selectedImages.add(it)
                 }
             }
-            postimageAdapter.imgUris+=selectedImages.toList()
+            var templist=postimageAdapter.currentList.toList()
+            templist+=selectedImages.toList()
+            postimageAdapter.submitList(templist)
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -182,7 +184,9 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             getImages()
         }
         postimageAdapter.setOnDeleteClickListener {
-            postimageAdapter.imgUris-=it
+            var templist=postimageAdapter.currentList.toList()
+            templist-=it
+            postimageAdapter.submitList(templist)
         }
 
         binding.fragment=this@UploadFragment
@@ -400,7 +404,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                 dialog.cancel()
                 progressDialog.show()
                 postService?.startPosting(
-                    postimageAdapter.imgUris,
+                    postimageAdapter.currentList,
                     recordedPath,
                     UUID.randomUUID().toString(),
                     genAnonymous(),
