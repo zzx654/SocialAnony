@@ -242,12 +242,13 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     if(notiAdapter.currentList.isEmpty())
                         binding.loadProgressBar.visibility=View.VISIBLE
                     else{
-                        if(notiAdapter.currentList.size>0)
+                        if(notiAdapter.currentList.isNotEmpty())
                         {
-                            notiAdapter.currentList+=listOf(
+                            var templist=notiAdapter.currentList.toList()
+                            templist+=listOf(
                                 Noti(null,0,"","","",null,0)
                             )
-                            notiAdapter.notifyItemInserted(notiAdapter.itemCount)
+                            notiAdapter.submitList(templist)
                         }
                     }
                 }

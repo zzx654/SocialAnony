@@ -320,8 +320,9 @@ abstract class BasePersonFragment (layoutId:Int
                 {
                     if(searchedAdapter.currentList.size>0)
                     {
-                        searchedAdapter.currentList+=listOf(Person(null,"","","",0))
-                        searchedAdapter.notifyItemInserted(searchedAdapter.itemCount)
+                        var templist=searchedAdapter.currentList.toList()
+                        templist+=listOf(Person(null,"","","",0))
+                        searchedAdapter.submitList(templist)
                     }
 
                 }

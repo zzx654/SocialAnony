@@ -45,7 +45,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         binding= DataBindingUtil.inflate<FragmentSearchlocBinding>(inflater,
             R.layout.fragment_searchloc,container,false)
         activity?.run{
-            vmLoc= ViewModelProvider(this).get(LocViewModel::class.java)
+            vmLoc= ViewModelProvider(this)[LocViewModel::class.java]
         }
         binding.edtText.addTextChangedListener {editable->
 
