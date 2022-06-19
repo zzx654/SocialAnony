@@ -160,7 +160,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                             (activity as MainActivity).replaceFragment("hotPostsFragment",HotPostsFragment(),null)
                         }
                         hotPostsHeaderAdapter.notifyDataSetChanged()
-                        println("또뭐가 문제 ${it.posts}")
                         hotPostsAdapter.submitList(it.posts)
                     }
                     else->Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
