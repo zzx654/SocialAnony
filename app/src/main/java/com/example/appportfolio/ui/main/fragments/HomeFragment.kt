@@ -33,7 +33,7 @@ class HomeFragment: Fragment(R.layout.fragment_posts) {
                 adapter=HomePagerAdapter(childFragmentManager,lifecycle)
                 offscreenPageLimit=6
                 getChildAt(0).overScrollMode=View.OVER_SCROLL_NEVER
-
+                isUserInputEnabled=false
             }
             TabLayoutMediator(binding.tab,binding.vp){ tab,position->
                 tab.text=getTabTitle(position)

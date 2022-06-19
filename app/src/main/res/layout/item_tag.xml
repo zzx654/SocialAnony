@@ -9,9 +9,8 @@
 
 
 <androidx.constraintlayout.widget.ConstraintLayout
-android:paddingTop="5dp"
-    android:paddingBottom="5dp"
-    android:layout_marginBottom="8dp"
+
+    android:paddingTop="4dp"
     android:background="@color/skin"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -62,7 +61,6 @@ android:paddingTop="5dp"
     </TextView>
 
     <ImageButton
-
         android:background="@color/transparent"
         app:tagLiked="@{tag.isLiked}"
         android:id="@+id/ibFav"
@@ -84,6 +82,22 @@ android:paddingTop="5dp"
         android:id="@+id/guidline2"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.98"/>
+    <androidx.constraintlayout.widget.Guideline
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/guidline3"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95"/>
+    <View
+        android:id="@+id/line"
+
+        app:layout_constraintStart_toStartOf="@id/guidline1"
+        app:layout_constraintEnd_toEndOf="@id/guidline3"
+        app:layout_constraintBottom_toBottomOf="@id/tvsharp"
+        android:layout_width="0dp"
+        android:layout_height="0.05dp"
+
+        android:background="#CDD1D5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

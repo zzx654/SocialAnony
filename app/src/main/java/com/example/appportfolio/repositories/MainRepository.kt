@@ -16,6 +16,15 @@ import okhttp3.MultipartBody
 import retrofit2.http.*
 
 class MainRepository {
+    suspend fun getHotUsers(
+        lastuserid:Int?,
+        lastuserfollow:Int?,
+        api:MainApi
+    )=withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.getHotUsers(lastuserid, lastuserfollow))
+        }
+    }
     suspend fun checkuser(
         userid:Int,
         api:MainApi
@@ -556,10 +565,23 @@ class MainRepository {
         lastposthot: Int?,
         latitude: Double?,
         longitude: Double?,
+        limit:Int,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall {
-            Resource.Success(api.getHotPosts(lastpostnum, lastposthot, latitude, longitude))
+            Resource.Success(api.getHotPosts(lastpostnum, lastposthot, latitude, longitude,limit))
+        }
+    }
+    suspend fun getHotImages(
+        lastpostnum: Int?,
+        lastposthot: Int?,
+        latitude: Double?,
+        longitude: Double?,
+        limit:Int,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall {
+            Resource.Success(api.getHotImages(lastpostnum, lastposthot, latitude, longitude,limit))
         }
     }
 }

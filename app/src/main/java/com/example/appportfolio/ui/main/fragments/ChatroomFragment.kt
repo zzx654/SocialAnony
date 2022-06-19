@@ -28,7 +28,6 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
     lateinit var vmAuth: AuthViewModel
     lateinit var vmChat: ChatViewModel
     private var mRootView:View?=null
-    var check=0
     lateinit var api: MainApi
     @Inject
     lateinit var preferences: UserPreferences
@@ -41,7 +40,6 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
     ): View? {
         if(mRootView==null)
         {
-            check=1
             activity?.run{
                 vmChat= ViewModelProvider(this).get(ChatViewModel::class.java)
             }
@@ -51,7 +49,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
             api= RemoteDataSource().buildApi(MainApi::class.java, runBlocking { preferences.authToken.first() })
             binding= DataBindingUtil.inflate<FragmentChatroomBinding>(inflater,
                 R.layout.fragment_chatroom,container,false)
-            if(vmChat.mychatRequests.value!!.size==0)
+            if(vmChat.mychatRequests.value!!.isEmpty())
             {
                 binding.chatrequests.visibility=View.GONE
             }
@@ -62,6 +60,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
             binding.chatrequests.setOnClickListener {
                 (activity as MainActivity).replaceFragment("chatRequestsFragment",ChatRequestsFragment(),null)
             }
+            chatroomAdapter= ChatRoomAdapter()
 
             chatroomAdapter.setroomClickListener {
                 val bundle=Bundle()
@@ -90,7 +89,7 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
            chatroomAdapter.submitList(it)
        }
         vmChat.mychatRequests.observe(viewLifecycleOwner){
-            if(it.size==0)
+            if(it.isEmpty())
             {
                 binding.chatrequests.visibility=View.GONE
             }

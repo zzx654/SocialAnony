@@ -99,7 +99,7 @@ object BindingAdapter {
         if(read==1)
             view.setColorFilter(ContextCompat.getColor(view.context,R.color.gray))
         else
-            view.setColorFilter(ContextCompat.getColor(view.context,R.color.black))
+            view.setColorFilter(ContextCompat.getColor(view.context,R.color.notitext))
     }
     @BindingAdapter("type","nickname","content")
     @JvmStatic
@@ -117,7 +117,7 @@ object BindingAdapter {
         if(isread==1)
             view.setTextColor(ContextCompat.getColor(view.context,R.color.gray))
         else
-            view.setTextColor(ContextCompat.getColor(view.context,R.color.black))
+            view.setTextColor(ContextCompat.getColor(view.context,R.color.notitext))
     }
     @BindingAdapter("location")
     @JvmStatic
@@ -346,6 +346,14 @@ object BindingAdapter {
         }
         else
             view.visibility=View.GONE
+    }
+    @BindingAdapter("followernum")
+    @JvmStatic
+    fun bindFollowerNum(view: TextView, follow:Int?)
+    {
+        var str="팔로워 ${follow}명"
+        view.text=str
+
     }
     @BindingAdapter("imageNum")
     @JvmStatic

@@ -528,24 +528,25 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             }
         })
         vmInteract.toggleLikeResponse.observe(viewLifecycleOwner,Event.EventObserver(
-            onError={
+            onError= {
                 snackbar(it)
+                loadingDialog.dismiss()
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
                     Toast.makeText(requireContext(), "삭제된 글입니다", Toast.LENGTH_SHORT).show()
                 } else {
                     if (it.toggle == 1) {
                         post.likecount = post.likecount - 1
-                        //binding.likecount.text = "좋아요 ${post.likecount}개"
                         post.isLiked = 0
-                        //binding.imgLike.setImageResource(R.drawable.favorite_off)
                     } else {
                         post.likecount = post.likecount + 1
-                        //binding.likecount.text = "좋아요 ${post.likecount}개"
                         post.isLiked = 1
-                        //binding.imgLike.setImageResource(R.drawable.favorite_on)
                     }
                     postadapter.post=post
                     rvComments.findViewHolderForAdapterPosition(0)?.let{
@@ -561,8 +562,13 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         vmInteract.toggleBookmarkResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
                     Toast.makeText(requireContext(), "삭제된 글입니다", Toast.LENGTH_SHORT).show()

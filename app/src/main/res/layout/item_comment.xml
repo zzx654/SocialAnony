@@ -22,7 +22,7 @@
         app:gender="@{comment.gender}"
         profileimage="@{comment.profileimage}"
         app:civ_border_width="0.1dp"
-        app:civ_border_color="#8C7878"
+        app:civ_border_color="#CCC6C6"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="@id/guidline1"
         android:layout_width="38dp"
@@ -63,7 +63,7 @@
     <TextView
 
         android:textSize="16dp"
-        android:textColor="@color/black"
+        android:textColor="@color/posttext"
         android:layout_marginLeft="10dp"
         android:text="@{comment.text}"
         android:id="@+id/text"
@@ -119,7 +119,7 @@
     <View
         app:layout_constraintTop_toBottomOf="@id/replycount"
         android:layout_marginTop="10dp"
-        android:background="@color/toolbarlinecolor"
+        android:background="#CDD1D5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="match_parent"

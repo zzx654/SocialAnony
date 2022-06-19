@@ -24,6 +24,12 @@ interface MainApi {
         @Field("nickname")nickname:String
     ):getpersonResponse
     @FormUrlEncoded
+    @POST("/getHotUsers")
+    suspend fun getHotUsers(
+        @Field("lastuserid")lastuserid : Int?,
+        @Field("lastuserfollow")lastuserfollow:Int?
+    ):getpersonResponse
+    @FormUrlEncoded
     @POST("/getFollowingPerson")
     suspend fun getFollowingPerson(
         @Field("lastuserid")lastuserid : Int?
@@ -399,8 +405,18 @@ interface MainApi {
         @Field("lastpostnum")lastpostnum:Int?,
         @Field("lastposthot")lastposthot:Int?,
         @Field("latitude")latitude:Double?,
-        @Field("longitude")longitude:Double?
+        @Field("longitude")longitude:Double?,
+        @Field("limit")limit:Int
+    ): getPostResponse
 
+    @FormUrlEncoded
+    @POST("/getHotImages")
+    suspend fun getHotImages(
+        @Field("lastpostnum")lastpostnum:Int?,
+        @Field("lastposthot")lastposthot:Int?,
+        @Field("latitude")latitude:Double?,
+        @Field("longitude")longitude:Double?,
+        @Field("limit")limit:Int
     ): getPostResponse
 
     @FormUrlEncoded

@@ -48,7 +48,7 @@
     <View
         app:layout_constraintTop_toBottomOf="@+id/tvtime"
         android:layout_marginTop="10dp"
-        android:background="@color/toolbarlinecolor"
+        android:background="#CDD1D5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_width="match_parent"

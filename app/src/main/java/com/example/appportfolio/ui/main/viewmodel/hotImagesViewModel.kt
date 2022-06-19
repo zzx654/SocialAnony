@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class hotPostViewModel@Inject constructor(
+class hotImagesViewModel@Inject constructor(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
@@ -25,21 +25,14 @@ class hotPostViewModel@Inject constructor(
     override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
         get() = _getPostsResponse
 
-    fun getHotPosts(lastpostnum:Int?,lastposthot: Int?,latitude: Double?,longitude: Double?,limit: Int,api: MainApi)
+    fun getHotImages(lastpostnum:Int?,lastposthot: Int?,latitude: Double?,longitude: Double?,limit:Int,api: MainApi)
     {
         _getPostsResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.getHotPosts(lastpostnum,lastposthot,latitude,longitude,limit,api)
+            val result=repository.getHotImages(lastpostnum,lastposthot,latitude,longitude,limit,api)
             _getPostsResponse.postValue(Event(result))
         }
     }
-    fun getTagHotPosts(tagname:String,lastpostnum:Int?,lastposthot: Int?,latitude: Double?,longitude: Double?,api: MainApi)
-    {
-        _getPostsResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch(dispatcher) {
-            val result=repository.getTagHotPosts(tagname,lastpostnum,lastposthot,latitude,longitude,api)
-            _getPostsResponse.postValue(Event(result))
-        }
-    }
+
 
 }

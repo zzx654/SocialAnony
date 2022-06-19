@@ -1,91 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:tools="http://schemas.android.com/tools">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:background="@color/skin"
-    android:layout_marginBottom="8dp"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-        <RadioGroup
-            android:layout_marginLeft="15dp"
-            android:layout_marginRight="15dp"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="20dp"
-            android:id="@+id/rgDistance"
+
+        <HorizontalScrollView
+            android:layout_marginBottom="1dp"
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:background="@color/skin"
+            android:overScrollMode="never"
+            android:id="@+id/scrollChips"
+            android:scrollbars="none"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            >
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:layout_marginBottom="1dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <RadioButton
-                android:checked="true"
-                android:paddingLeft="15dp" android:paddingRight="15dp"
-                android:layout_marginRight="10dp"
-                android:id="@+id/rb5"
-                android:textColor="@drawable/selector_postrt"
-                android:button="@null"
-                android:background="@drawable/selector_postrb"
-                android:textAlignment="center"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="5km"
-                />
-            <RadioButton
-                android:layout_marginRight="10dp"
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
-                android:id="@+id/rb10"
-                android:text="10km"
-                android:background= "@drawable/selector_postrb"
-                android:textColor="@drawable/selector_postrt"
-                android:button="@null"
-                android:textAlignment="center"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"/>
-            <RadioButton
-                android:layout_marginRight="10dp"
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
-                android:id="@+id/rb15"
-                android:text="15km"
-                android:background="@drawable/selector_postrb"
-                android:textColor="@drawable/selector_postrt"
-                android:button="@null"
-                android:textAlignment="center"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"/>
-            <RadioButton
-                android:paddingLeft="15dp"
-                android:paddingRight="15dp"
-                android:id="@+id/rb20"
-                android:text="20km"
-                android:background="@drawable/selector_postrb"
-                android:textColor="@drawable/selector_postrt"
-                android:button="@null"
-                android:textAlignment="center"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"/>
-            <RadioButton
-                android:paddingLeft="15dp"
-                android:layout_marginLeft="10dp"
-                android:paddingRight="15dp"
-                android:id="@+id/rb25"
-                android:text="25km"
-                android:background="@drawable/selector_postrb"
-                android:textColor="@drawable/selector_postrt"
-                android:button="@null"
-                android:textAlignment="center"
-                android:layout_weight="1"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"/>
+     <com.google.android.material.chip.ChipGroup
+         app:selectionRequired="true"
+         android:layout_marginLeft="15dp"
+         android:layout_marginRight="15dp"
+         android:id="@+id/cgDistance"
+         app:singleLine="true"
+         app:singleSelection="true"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content">
 
-        </RadioGroup>
 
-</LinearLayout>
+         <com.google.android.material.chip.Chip
+             android:checked="true"
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="5km"
+             android:id="@+id/chip5"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+              />
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="10km"
+             android:id="@+id/chip10"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="15km"
+             android:id="@+id/chip15"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="20km"
+             android:id="@+id/chip20"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="25km"
+             android:id="@+id/chip25"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="50km"
+             android:id="@+id/chip50"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="75km"
+             android:id="@+id/chip75"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+         <com.google.android.material.chip.Chip
+             style="@style/Colors_Widget.MaterialComponents.Chip.Choice"
+             android:text="100km"
+             android:id="@+id/chip100"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"/>
+
+     </com.google.android.material.chip.ChipGroup>
+            </LinearLayout>
+        </HorizontalScrollView>
+
+
 
 </layout>

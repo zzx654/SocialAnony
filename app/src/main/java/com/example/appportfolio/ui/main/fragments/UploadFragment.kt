@@ -93,7 +93,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     lateinit var api: MainApi
     private lateinit var vmUpload: UploadViewModel
     private lateinit var vmAuth: AuthViewModel
-    private var imgUris:List<Uri> = listOf()
     private var voteoptions:List<Voteoption>?=null
     private var mRootView:View?=null
     private var mIsFirstLoad=false

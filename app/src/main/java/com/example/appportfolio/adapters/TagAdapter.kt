@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.ItemTagBinding
+import com.example.appportfolio.other.Constants.NONE_HEADER
 
 
 class TagAdapter: ListAdapter<TagResult,RecyclerView.ViewHolder>(diffUtil) {
@@ -21,20 +22,22 @@ class TagAdapter: ListAdapter<TagResult,RecyclerView.ViewHolder>(diffUtil) {
             parent,
             false
         ).let{
-            postViewHolder(it)
+            TagViewHolder(it)
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val tag=currentList[position]
-        (holder as TagAdapter.postViewHolder).onbind(tag)
+        (holder as TagAdapter.TagViewHolder).onbind(tag)
     }
+
+
 
     override fun getItemCount(): Int {
         return currentList.size
     }
 
-    inner class postViewHolder(val binding: ItemTagBinding):RecyclerView.ViewHolder(binding.root){
+    inner class TagViewHolder(val binding: ItemTagBinding):RecyclerView.ViewHolder(binding.root){
         fun onbind(tag: TagResult)
         {
             binding.tag=tag

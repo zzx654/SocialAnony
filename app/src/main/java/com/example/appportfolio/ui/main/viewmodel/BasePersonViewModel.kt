@@ -27,9 +27,6 @@ abstract class BasePersonViewModel(private val repository: MainRepository,
     private val _checkuserResponse= MutableLiveData<Event<Resource<intResponse>>>()
     val checkuserResponse: LiveData<Event<Resource<intResponse>>> = _checkuserResponse
 
-    private val _curtoggle = MutableLiveData<Int>()
-    val curtoggle:LiveData<Int> = _curtoggle
-
     fun toggleFollow(userid:Int,following:Int,api:MainApi){
 
         _togglefollowResponse.postValue(Event(Resource.Loading()))
@@ -37,10 +34,6 @@ abstract class BasePersonViewModel(private val repository: MainRepository,
             val result=repository.toggleFollow(userid,following,api)
             _togglefollowResponse.postValue(Event(result))
         }
-    }
-    fun setcurtoggle(curtoggleuser:Int)
-    {
-        _curtoggle.postValue(curtoggleuser)
     }
 
     fun checkuser(userid: Int,api: MainApi){

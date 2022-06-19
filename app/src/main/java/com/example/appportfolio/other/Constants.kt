@@ -45,4 +45,9 @@ object Constants {
     const val RG_HEADER=1
     const val PROFILE_HEADER=2
 
+    const val FAVORITE_TAG=1
+    const val SEARCHED_TAG=3
+    const val POPULAR_TAG=2
+
+    const val USER=1
 }

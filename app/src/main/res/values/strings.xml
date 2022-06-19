@@ -5,7 +5,7 @@
     <string name="nickname_guide">중복체크를 눌러주세요</string>
     <string name="nickname_using">이미 사용중인 닉네임입니다</string>
     <string name="nickname_success">사용가능한 닉네임입니다</string>
-    <string name="tag_hint">원하시는 태그(#)를 검색해 보세요.</string>
+    <string name="tag_hint">원하는 태그를 검색해 보세요.</string>
     <string name="searchperson_hint">사람검색</string>
     <string name="content_hint">자유롭게 자신의 생각을 말해보세요!</string>
     <string name="warn_cancelpost">글쓰기를 종료하시겠습니까?</string>
@@ -28,4 +28,5 @@
     <string name="tag">태그</string>
     <string name="person">사람</string>
     <string name="follow">팔로우</string>
+    <string name="_10km">10km</string>
 </resources>

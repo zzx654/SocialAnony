@@ -1,6 +1,6 @@
 package com.example.appportfolio.data.entities
 
 data class ToggleState(
-    val curtoggleuser:Int,
+    val toggleuser:Int,
     val following:Int
 )

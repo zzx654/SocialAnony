@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -41,15 +42,9 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     }
     override val searchedAdapter: PersonAdapter
         get() = searchedadapter
-    override val followingAdapter: PersonAdapter?
-        get() =followingadapter
-    override val rvSearched: RecyclerView
-        get() = binding.rvSearchedPerson
 
     override val edtSearch: EditText
         get() = binding.edtNick
-    override val rvFollowed: RecyclerView?
-        get() = binding.rvFollowedPerson
     override val loadfirstprogress: ProgressBar
         get() = binding.firstloadprogress
 
@@ -71,8 +66,16 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
             curfrag = "myFollowingFragment"
             searchedadapter = PersonAdapter()
             followingadapter = PersonAdapter()
-            setupFollowingRcv()
-            showFollowedRv()
+            followingadapter.setOnPersonClickListener { person->
+                clickperson(person)
+
+            }
+            followingadapter.setOnFollowClickListener { person->
+                clickfollow(person)
+            }
+            setupPersonRv(binding.rvSearchedPerson,searchedadapter,searchedscrollListener)
+            setupPersonRv(binding.rvFollowedPerson,followingadapter,followingscrollListener)
+            hideSearchedRv()
 
 
 
@@ -103,6 +106,73 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
         super.onResume()
 
     }
+
+    override fun hideSearchedRv() {
+        super.hideSearchedRv()
+        binding.rvFollowedPerson.visibility=View.VISIBLE
+        binding.rvSearchedPerson.visibility=View.GONE
+    }
+
+    override fun showSearchedRv() {
+        super.showSearchedRv()
+        binding.rvFollowedPerson.visibility=View.GONE
+        binding.rvSearchedPerson.visibility=View.VISIBLE
+    }
+
+    override fun applyFollowingState() {
+        var alerted=false
+        var togglingindex:Int
+        var followingstate:Int?=null
+        searchedadapter.currentList.find{ person-> person.userid==curTogglinguser }?.let {
+            togglingindex=searchedadapter.currentList.lastIndexOf(it)
+            followingstate=0
+            searchedadapter.currentList[togglingindex].apply {
+                if (this.following == 1) {
+                    this.following = 0
+                    followingstate = 0
+                } else {
+                    this.following = 1
+                    followingstate = 1
+                }
+                searchedAdapter.notifyItemChanged(togglingindex)
+                if(followingstate==1)
+                    Toast.makeText(requireContext(), this.nickname + "님을 팔로우했습니다", Toast.LENGTH_SHORT)
+                        .show()
+                else
+                    Toast.makeText(requireContext(), this.nickname + "님 팔로우를 해제했습니다", Toast.LENGTH_SHORT)
+                        .show()
+                alerted=true
+            }
+        }
+        followingadapter.currentList.find{ person-> person.userid==curTogglinguser }?.let {
+            togglingindex=followingadapter.currentList.lastIndexOf(it)
+            followingadapter.currentList[togglingindex].apply {
+                if (this.following == 1) {
+                    this.following = 0
+                    followingstate = 0
+                } else {
+                    this.following = 1
+                    followingstate = 1
+                }
+                followingadapter.notifyItemChanged(togglingindex)
+                if(!alerted)
+                {
+                    if(followingstate==1)
+                        Toast.makeText(requireContext(), this.nickname + "님을 팔로우했습니다", Toast.LENGTH_SHORT)
+                            .show()
+                    else
+                        Toast.makeText(requireContext(), this.nickname + "님 팔로우를 해제했습니다", Toast.LENGTH_SHORT)
+                            .show()
+                }
+
+            }
+        }
+        followingstate?.let{
+            vmToggle.setcurtoggle(curTogglinguser,it)
+        }
+
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
             android.R.id.home->{
@@ -110,12 +180,6 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-    private fun setupFollowingRcv()=rvFollowed?.apply {
-        adapter=followingAdapter
-        layoutManager= LinearLayoutManager(requireContext())
-        itemAnimator=null
-        addOnScrollListener(this@MyFollowingFragment.followingscrollListener)
     }
     private val followingscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -141,64 +205,28 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
         super.subscribeToObserver()
         viewModel.getfollowingPersonResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
-                isLoading=false
-                if(firstloading)
-                    loadfirstprogress.visibility=View.GONE
-                else
-                {
-                    var currentlist=followingadapter!!.currentList.toMutableList()
-                    currentlist.removeLast()
-                    followingadapter!!.submitList(currentlist)
-                }
-                firstloading=false
-                snackbar(it)
+                getPersonError(followingadapter,it)
             },
             onLoading={
-                isLoading=true
-                if(firstloading)
-                    loadfirstprogress.visibility=View.VISIBLE
-                else
-                {
-                    if(followingadapter!!.currentList.size>0)
-                    {
-                        var templist=followingadapter.currentList.toList()
-                        templist+=listOf(Person(null,"","","",0))
-                        followingadapter.submitList(templist)
-                    }
-
-                }
+                getPersonLoading(followingadapter)
             }
         ){
-            var currentlist=followingadapter.currentList.toMutableList()
-            if(firstloading)
-                loadfirstprogress.visibility=View.GONE
-            else if(currentlist.size>0)
-                currentlist.removeLast()
-            firstloading=false
-            handleResponse(requireContext(),it.resultCode) {
-                var persons=currentlist.toList()
-                when (it.resultCode) {
-                    400 -> {
-                        snackbar("서버 에러 발생")
-                    }
-                    300 -> {
-                        followlast=true
-                        followingadapter.submitList(persons)
-                        if(persons.isNotEmpty())
-                            snackbar("더이상 표시할 목록이 없습니다")
-                    }
-                    200 -> {
-                        showFollowedRv()
-                        if(firstloading)
-                            persons=listOf()
-                        persons+= it.persons
-                        followingadapter.submitList(persons)
-                    }
-                    else -> null
+            getPersonSuccess(followingadapter,it)
+        })
+        vmToggle.curtoggling.observe(viewLifecycleOwner){togglestates->
+            togglestates.map { togglestate ->
+                searchedadapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
+                    val togglingindex=searchedadapter.currentList.lastIndexOf(it)
+                    searchedadapter.currentList[togglingindex].following=togglestate.following
+                    searchedadapter.notifyItemChanged(togglingindex)
+                }
+                followingadapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
+                    val togglingindex=followingadapter.currentList.lastIndexOf(it)
+                    followingadapter.currentList[togglingindex].following=togglestate.following
+                    followingadapter.notifyItemChanged(togglingindex)
                 }
             }
-        })
-
+        }
     }
     override fun onDestroy() {
         super.onDestroy()

@@ -6,46 +6,60 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.adapters.HorizontalAdapter
 import com.example.appportfolio.adapters.PostAdapter
+import com.example.appportfolio.adapters.PostPreviewAdapter
+import com.example.appportfolio.adapters.TextHeaderAdapter
+import com.example.appportfolio.api.build.MainApi
+import com.example.appportfolio.api.build.RemoteDataSource
+import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.Post
+import com.example.appportfolio.databinding.FragmentHotBinding
 import com.example.appportfolio.databinding.FragmentPostsBinding
+import com.example.appportfolio.other.Event
+import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
+import com.example.appportfolio.ui.main.viewmodel.HotPersonViewModel
+import com.example.appportfolio.ui.main.viewmodel.hotImagesViewModel
 import com.example.appportfolio.ui.main.viewmodel.hotPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
-class HotFragment: BasePostFragment(R.layout.fragment_posts) {
-    lateinit var binding: FragmentPostsBinding
-    lateinit var hotpostAdapter: PostAdapter
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
-    override val basePostViewModel: BasePostViewModel
-        get() {
-            val vm: hotPostViewModel by viewModels()
-            return vm
-        }
-    override val postAdapter: PostAdapter
-        get() = hotpostAdapter
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
-    protected val viewModel: hotPostViewModel
-        get() = basePostViewModel as hotPostViewModel
+class HotFragment: Fragment(R.layout.fragment_hot) {
+    lateinit var binding: FragmentHotBinding
+    lateinit var concatAdapter: ConcatAdapter
+    lateinit var hotpersonAdapter:HorizontalAdapter
+    lateinit var hotpersonHeaderAdapter: TextHeaderAdapter
+    lateinit var hotImagesAdapter:PostPreviewAdapter
+    lateinit var hotPostsAdapter:PostPreviewAdapter
+    lateinit var hotImagesHeaderAdapter:TextHeaderAdapter
+    lateinit var hotPostsHeaderAdapter:TextHeaderAdapter
+    private val hotPersonViewModel: HotPersonViewModel by viewModels()
+    private val vmHotImages: hotImagesViewModel by viewModels()
+    private val vmHotPosts:hotPostViewModel by viewModels()
+    lateinit var gpsTracker: GpsTracker
     private var mRootView:View?=null
+    lateinit var api: MainApi
+    @Inject
+    lateinit var userPreferences: UserPreferences
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,47 +68,108 @@ class HotFragment: BasePostFragment(R.layout.fragment_posts) {
     ): View? {
         if(mRootView==null)
         {
-            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
-            R.layout.fragment_posts,container,false)
-            hotpostAdapter= PostAdapter()
-            setView()
+            binding= DataBindingUtil.inflate<FragmentHotBinding>(inflater,
+            R.layout.fragment_hot,container,false)
+            api= RemoteDataSource().buildApi(
+                MainApi::class.java,
+                runBlocking { userPreferences.authToken.first() })
+            gpsTracker= GpsTracker(requireContext())
+            hotpersonAdapter= HorizontalAdapter(requireContext())
+            hotpersonHeaderAdapter=TextHeaderAdapter()
+            hotImagesHeaderAdapter=TextHeaderAdapter()
+            hotPostsHeaderAdapter= TextHeaderAdapter()
+            hotImagesAdapter=PostPreviewAdapter()
+            hotPostsAdapter= PostPreviewAdapter()
+            hotpersonHeaderAdapter.title="인기유저"
+            hotImagesHeaderAdapter.title="인기사진"
+            hotPostsHeaderAdapter.title="인기게시물"
+            concatAdapter=ConcatAdapter(hotpersonHeaderAdapter,hotpersonAdapter,hotImagesHeaderAdapter,hotImagesAdapter,hotPostsHeaderAdapter,hotPostsAdapter)
+            setupRecyclerView()
+            subscribeToObserver()
             mRootView=binding.root
-            refreshPosts()
         }
+
+        hotPersonViewModel.getHotUsers(null,null,api)
+        vmHotImages.getHotImages(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+        vmHotPosts.getHotPosts(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
 
         return mRootView
     }
-    override fun loadNewPosts() {
-            getPosts()
+    private fun setupRecyclerView(){
+        binding.rvHot.apply {
+            adapter=concatAdapter
+            layoutManager= LinearLayoutManager(requireContext())
+            itemAnimator=null
+        }
     }
-
-    override fun refreshPosts() {
-        getPosts(true)
-    }
-
-
-
-
-    fun getPosts(refresh:Boolean=false)
+    private fun subscribeToObserver()
     {
-        var lastpostnum:Int?=null
-        var lastposthot:Int?=null
-        val curPosts=postAdapter.currentList
-        if(!refresh)
-        {
-            if(!curPosts.isNullOrEmpty())
-            {
-                val lastPost=curPosts.last()
-                lastpostnum=lastPost.postnum
-                lastposthot=lastPost.commentcount+lastPost.likecount
+        hotPersonViewModel.gethotUsersResponse.observe(viewLifecycleOwner, Event.EventObserver(
+            onLoading={
+
+            },
+            onError = {
+
             }
-        }
-        if(SocialApplication.checkGeoPermission(requireContext()))
-        {
-            viewModel.getHotPosts(lastpostnum,lastposthot,gpsTracker.latitude,gpsTracker.longitude,api)
-        }
-        else{
-            viewModel.getHotPosts(lastpostnum,lastposthot,null,null,api)
-        }
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode){
+                    200->{
+                        hotpersonAdapter.hotpersonlist=it.persons
+                        hotpersonHeaderAdapter.loadmoreVis=true
+                        hotpersonHeaderAdapter.setloadmoreClickListener {
+                            (activity as MainActivity).replaceFragment("hotUsersFragment",HotUsersFragment(),null)
+                        }
+                        hotpersonHeaderAdapter.notifyDataSetChanged()
+                        hotpersonAdapter.notifyDataSetChanged()
+
+                    }
+                    else-> Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        vmHotImages.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
+
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode)
+                {
+                    200->{
+                        hotImagesHeaderAdapter.loadmoreVis=true
+                        hotImagesHeaderAdapter.setloadmoreClickListener {
+
+                        }
+                        hotImagesHeaderAdapter.notifyDataSetChanged()
+                        hotImagesAdapter.submitList(it.posts)
+                    }
+                    else->Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+
+        })
+        vmHotPosts.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
+
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode)
+                {
+                    200->{
+                        hotPostsHeaderAdapter.loadmoreVis=true
+                        hotPostsHeaderAdapter.setloadmoreClickListener {
+                            (activity as MainActivity).replaceFragment("hotPostsFragment",HotPostsFragment(),null)
+                        }
+                        hotPostsHeaderAdapter.notifyDataSetChanged()
+                        println("또뭐가 문제 ${it.posts}")
+                        hotPostsAdapter.submitList(it.posts)
+                    }
+                    else->Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+        })
     }
+
+
+
 }

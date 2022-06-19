@@ -103,6 +103,7 @@ abstract class BasePostFragment(
             val lastVisibleItemPosition =
                 (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
             val totalItemCount = recyclerView.adapter!!.itemCount - 1
+
             if(postAdapter.currentList.isNotEmpty())
             {
                 if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&postAdapter.currentList.last().postid!=null&&!isLoading&&isScrolling&&!isLast&&postAdapter.currentList.size>=PAGE_SIZE){

@@ -17,6 +17,7 @@
     <color name="baccolor">#E3D9D1</color>
     <color name="positive">#E8E0CA</color>
     <color name="posttext">#454343</color>
+    <color name="notitext">#3E3D3D</color>
     <color name="postinfo">#7E7777</color>
     <color name="toolbarlinecolor">#AAA3A3</color>
     <color name="gray">#8A8484</color>

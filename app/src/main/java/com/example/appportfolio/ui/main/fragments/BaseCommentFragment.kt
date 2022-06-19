@@ -83,6 +83,7 @@ abstract class BaseCommentFragment (layoutId:Int
             val lastVisibleItemPosition =
                 (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
             val totalItemCount = recyclerView.adapter!!.itemCount - 1
+
             if(commentAdapter.currentList.isNotEmpty())
             {
                 if(!recyclerView.canScrollVertically(1)&&( lastVisibleItemPosition == totalItemCount)&&commentAdapter.currentList.last().commentid!=null&&!isLoading&&isScrolling){

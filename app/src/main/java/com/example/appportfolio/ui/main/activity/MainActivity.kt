@@ -253,7 +253,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        ft.commitNow()
+         ft.commitNow()
         currentTab=tag
     }
     fun getgooglemail():String?

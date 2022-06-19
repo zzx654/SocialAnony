@@ -1,10 +1,13 @@
 package com.example.appportfolio.adapters
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.HorizontalScrollView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -111,11 +114,11 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
                 RG_HEADER->return RADIOGROUP_VIEW_TYPE
                 else->return PROFILE_VIEW_TYPE
             }
+
         }
         else
-        {
             return if(currentList[position-minusoffset].postid==null) LOADING_VIEW_TYPE else POST_VIEW_TYPE
-        }
+
 
 
     }
@@ -174,19 +177,34 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
         }
     }
     inner class rgViewHolder(val binding:NearpostsRgBinding):RecyclerView.ViewHolder(binding.root){
+        @SuppressLint("ClickableViewAccessibility")
         fun onbind()
         {
-            binding.rgDistance.setOnCheckedChangeListener { group, checkedId ->
-                checkedDistance=when(checkedId){
-                    R.id.rb5->5
-                    R.id.rb10->10
-                    R.id.rb15->15
-                    R.id.rb20->20
-                    R.id.rb25->25
+            checkedChip?.let{
+                binding.cgDistance.check(it)
+            }
+
+            binding.cgDistance.setOnCheckedStateChangeListener { group, checkedIds ->
+
+
+                var idstr=checkedIds.toString().replace("[","")
+                idstr=idstr.replace("]","")
+
+                val curcheckedDistance=when(idstr){
+                    R.id.chip5.toString()->5
+                    R.id.chip10.toString()->10
+                    R.id.chip15.toString()->15
+                    R.id.chip20.toString()->20
+                    R.id.chip25.toString()->25
+                    R.id.chip50.toString()->50
+                    R.id.chip75.toString()->75
+                    R.id.chip100.toString()->100
                     else->null
                 }
                 DistanceChangedListener?.let{ checked->
-                    checked()
+                    curcheckedDistance?.let{
+                        checked(curcheckedDistance,idstr.toInt())
+                    }
                 }
 
             }
@@ -250,6 +268,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
     }
 
 
+
     var tagClickListener:((String)->Unit)?=null
 
     fun setOntagClickListener(listener: (String) -> Unit){
@@ -292,8 +311,10 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
     fun setOnPostClickListener(listener: (Post) -> Unit){
         PostClickListener=listener
     }
-    var DistanceChangedListener:(()->Unit)?=null
-    fun setOnDistanceChangedListener(listener:()->Unit){
+    var DistanceChangedListener:((Int,Int)->Unit)?=null
+
+    var checkedChip:Int?=R.id.chip5
+    fun setOnDistanceChangedListener(listener:(Int,Int)->Unit){
         DistanceChangedListener=listener
     }
 

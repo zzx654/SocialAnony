@@ -13,11 +13,13 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.TagAdapter
+import com.example.appportfolio.adapters.TextHeaderAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.SignManager
@@ -25,9 +27,13 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.FragmentTagBinding
 import com.example.appportfolio.other.Constants
+import com.example.appportfolio.other.Constants.FAVORITE_TAG
+import com.example.appportfolio.other.Constants.POPULAR_TAG
+import com.example.appportfolio.other.Constants.SEARCHED_TAG
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.TagViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
@@ -42,6 +48,8 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
 
     @Inject
     lateinit var signManager: SignManager
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     private lateinit var vmAuth: AuthViewModel
     private val vmTag:TagViewModel by viewModels()
     lateinit var binding:FragmentTagBinding
@@ -49,12 +57,27 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
     lateinit var popularAdapter:TagAdapter
     lateinit var favoriteAdapter:TagAdapter
     lateinit var searchedAdapter:TagAdapter
+    lateinit var FavoritePopularAdapter: ConcatAdapter
+    lateinit var SearchedAdapter:ConcatAdapter
+    lateinit var popularTextAdapter:TextHeaderAdapter
+    lateinit var searchedTextAdapter:TextHeaderAdapter
+    lateinit var favoriteTextAdapter:TextHeaderAdapter
     private var mRootView:View?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        popularTextAdapter= TextHeaderAdapter()
+        favoriteTextAdapter=TextHeaderAdapter()
+        searchedTextAdapter=TextHeaderAdapter()
+        popularTextAdapter.title="인기태그"
+        favoriteTextAdapter.title="즐겨찾기 태그"
+        searchedTextAdapter.title="검색된 태그"
         popularAdapter= TagAdapter()
         favoriteAdapter= TagAdapter()
         searchedAdapter= TagAdapter()
+        FavoritePopularAdapter= ConcatAdapter(favoriteTextAdapter,favoriteAdapter,popularTextAdapter,popularAdapter)
+        SearchedAdapter= ConcatAdapter(searchedTextAdapter,searchedAdapter)
+
     }
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -90,19 +113,19 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         }
                         if(editable!!.isEmpty())
                         {
-                            binding.linearsearched.visibility=View.GONE
-                            binding.rvsearchedtags.visibility=View.GONE
-                            if(!popularAdapter.currentList.isEmpty())
-                            {
-                                binding.linearpopular.visibility=View.VISIBLE
-                                binding.rvpoptags.visibility=View.VISIBLE
-                            }
-                            if(!favoriteAdapter.currentList.isEmpty())
-                            {
-                                binding.linearlike.visibility=View.VISIBLE
+                            binding.rvSearchedTag.visibility=View.GONE
+                            binding.containeralert.visibility=View.GONE
 
-                                binding.rvfavtags.visibility=View.VISIBLE
-                            }
+                            //binding.linearsearched.visibility=View.GONE//검색된거 지우기
+                            //binding.rvsearchedtags.visibility=View.GONE
+                                binding.rvFavoritepopular.visibility=View.VISIBLE
+                               // binding.linearpopular.visibility=View.VISIBLE//인기 보이기
+                                //binding.rvpoptags.visibility=View.VISIBLE
+                            //{
+                               // binding.linearlike.visibility=View.VISIBLE//즐겨찾기 보이기
+
+                              //  binding.rvfavtags.visibility=View.VISIBLE
+                           // }
                         }
                     }
                 }
@@ -141,15 +164,8 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                     bundle.putString("tag",tagResult.tagname)
                     (activity as MainActivity).replaceFragment("tagPostsFragment",TagPostsFragment(),bundle)
                 }
-
-
                 mRootView=binding.root
-
                 setupRecyclerView()
-                if(popularAdapter.currentList.size>0)
-                    showpopular()
-                if(favoriteAdapter.currentList.size>0)
-                    showfavorite()
             }
 
         subscribeToObserver()
@@ -182,29 +198,14 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         dialog.create()
         dialog.show()
     }
-    private fun showfavorite()
-    {
-        binding.linearlike.visibility = View.VISIBLE
-        binding.rvfavtags.visibility = View.VISIBLE
-    }
-    private fun showpopular()
-    {
-        binding.linearpopular.visibility = View.VISIBLE
-        binding.rvpoptags.visibility = View.VISIBLE
-    }
     private fun setupRecyclerView(){
-        binding.rvfavtags.apply{
-                adapter=favoriteAdapter
-                layoutManager= LinearLayoutManager(requireContext())
-                itemAnimator=null
+        binding.rvSearchedTag.apply {
+            adapter = SearchedAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+            itemAnimator = null
         }
-        binding.rvpoptags.apply {
-            adapter=popularAdapter
-            layoutManager= LinearLayoutManager(requireContext())
-            itemAnimator=null
-        }
-        binding.rvsearchedtags.apply{
-            adapter=searchedAdapter
+        binding.rvFavoritepopular.apply {
+            adapter=FavoritePopularAdapter
             layoutManager= LinearLayoutManager(requireContext())
             itemAnimator=null
         }
@@ -213,16 +214,35 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
     {
         vmTag.toggleTagResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
+            onLoading={
+                loadingDialog.show()
+            },
+            onError = {
+                loadingDialog.dismiss()
+            }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode!!) {
                 if (favoriteAdapter.currentList.isEmpty()) {
-                    binding.linearlike.visibility = View.VISIBLE
-                    binding.rvfavtags.visibility = View.VISIBLE
+                    //binding.linearlike.visibility = View.VISIBLE
+                    //binding.rvfavtags.visibility = View.VISIBLE
+                    //favoriteTextAdapter.guideText="태그를 추가해주세요"
+                    favoriteTextAdapter.tvContainerVis=false
+                    binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
+                        //(it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
+                        (it as TextHeaderAdapter.TextViewHolder).binding.guideContainer.visibility=View.GONE
+                    }
                 }
                 if (favoriteAdapter.currentList.size == 1) {
                     if (it.isLiked == 1) {
-                        binding.linearlike.visibility = View.GONE
-                        binding.rvfavtags.visibility = View.GONE
+                        //binding.linearlike.visibility = View.GONE
+                        //binding.rvfavtags.visibility = View.GONE
+                        favoriteTextAdapter.guideText="태그를 추가해주세요"
+                        favoriteTextAdapter.tvContainerVis=true
+                        binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
+                            (it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
+                            it.binding.guideContainer.visibility=View.VISIBLE
+                        }
                     }
                 }
                 var templist=favoriteAdapter.currentList.toList()
@@ -272,13 +292,21 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
-                    binding.linearlike.visibility = View.GONE
-                    binding.rvfavtags.visibility = View.GONE
+                   // binding.linearlike.visibility = View.GONE
+                   // binding.rvfavtags.visibility = View.GONE
+                    favoriteTextAdapter.guideText="태그를 추가해주세요"
+                    binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
+                        (it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
+                        it.binding.guideContainer.visibility=View.VISIBLE
+                    }
                 } else {
-                    binding.linearlike.visibility = View.VISIBLE
-                    binding.rvfavtags.visibility = View.VISIBLE
+                    binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let {
+                        (it as TextHeaderAdapter.TextViewHolder).binding.guideContainer.visibility =
+                            View.GONE
+                    }
                     favoriteAdapter.submitList(it.tags)
                 }
+
             }
         })
         vmTag.populartagResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -288,11 +316,20 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
-                    binding.linearpopular.visibility = View.GONE
-                    binding.rvpoptags.visibility = View.GONE
+                    //binding.linearpopular.visibility = View.GONE
+                    //binding.rvpoptags.visibility = View.GONE
+                    popularTextAdapter.apply {
+                        guideText="인기태그가 없습니다"
+                        tvContainerVis=true
+                    }
+                    popularTextAdapter.notifyDataSetChanged()
                 } else {
-                    binding.linearpopular.visibility = View.VISIBLE
-                    binding.rvpoptags.visibility = View.VISIBLE
+                    popularTextAdapter.apply {
+                        tvContainerVis=false
+                    }
+                    popularTextAdapter.notifyDataSetChanged()
+                    //binding.linearpopular.visibility = View.VISIBLE
+                    //binding.rvpoptags.visibility = View.VISIBLE
                     popularAdapter.submitList(it.tags)
                 }
             }
@@ -303,18 +340,14 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
+                binding.rvSearchedTag.visibility=View.VISIBLE
+                binding.rvFavoritepopular.visibility=View.GONE
                 if (it.resultCode == 200) {
-                    binding.linearlike.visibility = View.GONE
-                    binding.rvfavtags.visibility = View.GONE
-                    binding.linearpopular.visibility = View.GONE
-                    binding.rvpoptags.visibility = View.GONE
-                    binding.linearsearched.visibility = View.VISIBLE
-                    binding.rvsearchedtags.visibility = View.VISIBLE
+                    binding.containeralert.visibility=View.GONE
                     searchedAdapter.submitList(it.tags)
                 } else {
                     searchedAdapter.submitList(it.tags)
-                    binding.linearsearched.visibility = View.GONE
-                    binding.rvsearchedtags.visibility = View.GONE
+                    binding.containeralert.visibility=View.VISIBLE
                 }
             }
         })

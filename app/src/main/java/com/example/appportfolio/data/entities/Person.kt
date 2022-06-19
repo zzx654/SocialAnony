@@ -5,5 +5,6 @@ data class Person (
     val nickname:String,
     val gender:String,
     val profileimage:String,
-    var following:Int
+    var following:Int,
+    val followingcount:Int?
         )

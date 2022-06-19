@@ -54,15 +54,21 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
     ): View? {
         if(mRootView==null)
         {
+            (parentFragment as HomeFragment).binding.vp
             binding = DataBindingUtil.inflate<FragmentPostsBinding>(
                 inflater,
                 R.layout.fragment_posts, container, false
             )
             nearpostAdapter = PostAdapter()
-            nearpostAdapter.setOnDistanceChangedListener {
+            nearpostAdapter.setOnDistanceChangedListener { checkedDistance,checkedId->
                 isLast=false
                 srLayout.isRefreshing=true
-                refreshPosts()
+                if(checkedDistance!=nearpostAdapter.checkedDistance){
+                    nearpostAdapter.checkedDistance=checkedDistance
+                    nearpostAdapter.checkedChip=checkedId
+                    refreshPosts()
+                }
+
             }
             nearpostAdapter.setheadertype(RG_HEADER)
             setView()
@@ -75,7 +81,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
     //라디오버튼선택변했을때는 일단 리스트비우고시작하기
 
     override fun loadNewPosts() {
-
+        getPosts()
     }
 
     override fun refreshPosts() {
