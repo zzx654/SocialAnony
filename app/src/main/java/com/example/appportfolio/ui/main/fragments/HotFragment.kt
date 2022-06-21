@@ -10,8 +10,10 @@ import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.HorizontalAdapter
@@ -37,6 +39,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class HotFragment: Fragment(R.layout.fragment_hot) {
     lateinit var binding: FragmentHotBinding
+    lateinit var vmAuth: AuthViewModel
     lateinit var concatAdapter: ConcatAdapter
     lateinit var hotpersonAdapter:HorizontalAdapter
     lateinit var hotpersonHeaderAdapter: TextHeaderAdapter
@@ -69,6 +72,9 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             api= RemoteDataSource().buildApi(
                 MainApi::class.java,
                 runBlocking { userPreferences.authToken.first() })
+            activity?.run{
+                vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            }
             gpsTracker= GpsTracker(requireContext())
             hotpersonAdapter= HorizontalAdapter(requireContext())
             hotpersonHeaderAdapter=TextHeaderAdapter()
@@ -83,9 +89,12 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                 vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotpersonAdapter.hotpersonAdapter.setOnPersonClickListener { person->
-                curTogglinguser=person.userid!!
-                curselectedfollowing=person.following
-                hotPersonViewModel.checkuser(person.userid!!,api)
+                if(person.userid!=vmAuth.userid.value!!)
+                {
+                    curTogglinguser=person.userid!!
+                    curselectedfollowing=person.following
+                    hotPersonViewModel.checkuser(person.userid!!,api)
+                }
             }
             hotpersonHeaderAdapter.title="인기유저"
             hotImagesHeaderAdapter.title="인기사진"
@@ -209,11 +218,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                         hotpersonHeaderAdapter.setloadmoreClickListener {
                             (activity as MainActivity).replaceFragment("hotUsersFragment",HotUsersFragment(),null)
                         }
-                        //hotpersonHeaderAdapter.notifyDataSetChanged()
-                        //hotpersonAdapter.notifyDataSetChanged()
                         hotpersonAdapter.hotpersonAdapter.submitList(it.persons)
-
-
                     }
                     else-> {
                         binding.srLayout.isRefreshing=false
@@ -266,7 +271,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                         hotPostsHeaderAdapter.setloadmoreClickListener {
                             (activity as MainActivity).replaceFragment("hotPostsFragment",HotPostsFragment(),null)
                         }
-                        //hotPostsHeaderAdapter.notifyDataSetChanged()
                         concatAdapter.notifyDataSetChanged()
                         hotPostsAdapter.submitList(it.posts)
                     }

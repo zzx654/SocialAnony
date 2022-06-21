@@ -35,10 +35,10 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
     lateinit var vmAuth: AuthViewModel
     lateinit var prefs: SharedPreferences
     lateinit var binding: FragmentMypageBinding
+    private var mRootView:View?=null
     lateinit var profileContainerAdapter: ProfileContainerAdapter
     lateinit var api: MainApi
     lateinit var authapi: AuthApi
-    var profileimgurl:String?=null
     lateinit var gender:String
     var curtoggle:Boolean?=null
     var error=false
@@ -49,21 +49,30 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+        if(mRootView==null)
+        {
+            activity?.run{
+                vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            }
+            binding= DataBindingUtil.inflate<FragmentMypageBinding>(inflater,
+                R.layout.fragment_mypage,container,false)
+            api= RemoteDataSource().buildApi(MainApi::class.java)
+            binding.srLayout.setOnRefreshListener {
+                (activity as MainActivity).getmyprofile()
+            }
+            childFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, settingpreFragment(), "setting_fragment")
+                .commit()
+            prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+            profileContainerAdapter=ProfileContainerAdapter()
+            setupRecyclerView()
+            mRootView=binding.root
         }
-        binding= DataBindingUtil.inflate<FragmentMypageBinding>(inflater,
-            R.layout.fragment_mypage,container,false)
-        api= RemoteDataSource().buildApi(MainApi::class.java)
-        childFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, settingpreFragment(), "setting_fragment")
-            .commit()
-        prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        profileContainerAdapter=ProfileContainerAdapter()
-        setupRecyclerView()
+
         subsribeToObserver()
+
         (activity as MainActivity).getmyprofile()
-        return binding.root
+        return mRootView
     }
     val prefListener =
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences: SharedPreferences?, key: String? ->
@@ -123,6 +132,8 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
                 snackbar(it)
             }
         ){
+            if(binding.srLayout.isRefreshing)
+                binding.srLayout.isRefreshing=false
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 400)
                     snackbar("서버 오류 발생")
@@ -151,8 +162,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
                         }
 
                         profileContainerAdapter.notifyDataSetChanged()
-                        binding.scrollview.isSmoothScrollingEnabled=false
-                        binding.scrollview.fullScroll(ScrollView.FOCUS_UP)
+
                 }
             }
         })

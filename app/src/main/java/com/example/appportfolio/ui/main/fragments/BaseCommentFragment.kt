@@ -346,11 +346,15 @@ abstract class BaseCommentFragment (layoutId:Int
     open fun subscribeToObserver()
     {
         vmInteract.requestchatResponse.observe(viewLifecycleOwner,Event.EventObserver(
-
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 when(it.resultCode)
                 {
@@ -363,10 +367,15 @@ abstract class BaseCommentFragment (layoutId:Int
 
         })
         vmInteract.getprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==200)
                 {
@@ -394,10 +403,15 @@ abstract class BaseCommentFragment (layoutId:Int
 
         })
         vmInteract.blockuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+                loadingDialog.show()
+            },
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
                 if(it.resultCode==300)
@@ -410,10 +424,15 @@ abstract class BaseCommentFragment (layoutId:Int
 
         })
         baseCommentViewModel.toggleCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==100)
                 {

@@ -101,10 +101,12 @@ abstract class BasePersonFragment (layoutId:Int
         }
 
         searchedAdapter?.setOnPersonClickListener { person->
-            clickperson(person)
+            if(person.userid!=vmAuth.userid.value!!)
+                clickperson(person)
         }
         searchedAdapter?.setOnFollowClickListener { person->
-            clickfollow(person)
+            if(person.userid!=vmAuth.userid.value!!)
+                clickfollow(person)
         }
     }
     protected fun clickperson(person:Person)

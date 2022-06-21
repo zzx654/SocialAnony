@@ -113,17 +113,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         {
                             binding.rvSearchedTag.visibility=View.GONE
                             binding.containeralert.visibility=View.GONE
-
-                            //binding.linearsearched.visibility=View.GONE//검색된거 지우기
-                            //binding.rvsearchedtags.visibility=View.GONE
                                 binding.rvFavoritepopular.visibility=View.VISIBLE
-                               // binding.linearpopular.visibility=View.VISIBLE//인기 보이기
-                                //binding.rvpoptags.visibility=View.VISIBLE
-                            //{
-                               // binding.linearlike.visibility=View.VISIBLE//즐겨찾기 보이기
-
-                              //  binding.rvfavtags.visibility=View.VISIBLE
-                           // }
                         }
                     }
                 }
@@ -222,19 +212,13 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
             loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode!!) {
                 if (favoriteAdapter.currentList.isEmpty()) {
-                    //binding.linearlike.visibility = View.VISIBLE
-                    //binding.rvfavtags.visibility = View.VISIBLE
-                    //favoriteTextAdapter.guideText="태그를 추가해주세요"
                     favoriteTextAdapter.tvContainerVis=false
                     binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
-                        //(it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
                         (it as TextHeaderAdapter.TextViewHolder).binding.guideContainer.visibility=View.GONE
                     }
                 }
                 if (favoriteAdapter.currentList.size == 1) {
                     if (it.isLiked == 1) {
-                        //binding.linearlike.visibility = View.GONE
-                        //binding.rvfavtags.visibility = View.GONE
                         favoriteTextAdapter.guideText="태그를 추가해주세요"
                         favoriteTextAdapter.tvContainerVis=true
                         binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
@@ -290,14 +274,14 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
-                   // binding.linearlike.visibility = View.GONE
-                   // binding.rvfavtags.visibility = View.GONE
+                    favoriteTextAdapter.tvContainerVis=true
                     favoriteTextAdapter.guideText="태그를 추가해주세요"
                     binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
                         (it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
                         it.binding.guideContainer.visibility=View.VISIBLE
                     }
                 } else {
+                    favoriteTextAdapter.tvContainerVis=false
                     binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let {
                         (it as TextHeaderAdapter.TextViewHolder).binding.guideContainer.visibility =
                             View.GONE

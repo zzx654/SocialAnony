@@ -30,16 +30,17 @@ import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.adapters.ProfileContainerAdapter
 
-import com.example.appportfolio.databinding.FragmentOthersprofileBinding
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.*
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
@@ -127,12 +128,18 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
         vmPerson.togglefollowResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    if (following == 1) {
+                    if (profileAdapter.followingperson == 1) {
                             profileAdapter.setfollowing(0)
+                        profileAdapter.followercount-=1
                         profileAdapter.notifyDataSetChanged()
                         Toast.makeText(
                             requireContext(),
@@ -141,6 +148,7 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
                         ).show()
                     } else {
                         profileAdapter.setfollowing(1)
+                        profileAdapter.followercount+=1
                         profileAdapter.notifyDataSetChanged()
                         Toast.makeText(
                             requireContext(),
@@ -160,9 +168,14 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
         viewModel.requestchatResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
+                loadingDialog.dismiss()
                 when (it.resultCode) {
                     200 -> Toast.makeText(requireContext(), "대화 요청이 완료되었습니다", Toast.LENGTH_SHORT)
                         .show()
