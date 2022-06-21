@@ -19,7 +19,7 @@ abstract class BasePersonViewModel(private val repository: MainRepository,
                           private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
     abstract val getsearchedPersonResponse: LiveData<Event<Resource<getpersonResponse>>>
-    abstract fun getsearchedPersons(lastuserid:Int?,nickname:String,api: MainApi)
+    open fun getsearchedPersons(lastuserid:Int?,nickname:String,api: MainApi)=Unit
 
     private val _togglefollowResponse= MutableLiveData<Event<Resource<intResponse>>>()
     val togglefollowResponse: LiveData<Event<Resource<intResponse>>> = _togglefollowResponse

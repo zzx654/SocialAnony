@@ -25,7 +25,6 @@ object Constants {
     const val COMMENTADDED=1
     const val POSTLIKED=2
     const val COMMENTLIKED=3
-    const val REPLYLIKED=4
     const val REPLYADDED=5
     //신고,차단,대화요청,삭제
 
@@ -43,11 +42,8 @@ object Constants {
 
     const val NONE_HEADER=0
     const val RG_HEADER=1
-    const val PROFILE_HEADER=2
 
-    const val FAVORITE_TAG=1
-    const val SEARCHED_TAG=3
-    const val POPULAR_TAG=2
 
-    const val USER=1
+    const val FOLLOWING=0
+    const val FOLLOWER=1
 }

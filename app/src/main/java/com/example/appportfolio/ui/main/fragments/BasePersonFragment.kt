@@ -51,10 +51,9 @@ abstract class BasePersonFragment (layoutId:Int
     @Inject
     lateinit var loadingDialog:LoadingDialog
     protected abstract val searchedAdapter: PersonAdapter?
-    //protected abstract val followingAdapter:PersonAdapter?
-    //protected abstract val rvSearched:RecyclerView
+
     protected abstract val edtSearch: EditText?
-    //protected abstract val rvFollowed:RecyclerView?
+
     protected abstract val loadfirstprogress:ProgressBar
     protected var curTogglinguser=0
     var isLoading=false
@@ -186,15 +185,9 @@ abstract class BasePersonFragment (layoutId:Int
 
     }
     open fun hideSearchedRv()=Unit
-    //{
-     //   rvFollowed?.visibility=View.VISIBLE
-      //  rvSearched.visibility=View.GONE
-    //}
+
     open fun showSearchedRv()=Unit
-    //{
-      //  rvFollowed?.visibility=View.GONE
-       // rvSearched.visibility=View.VISIBLE
-    //}
+
     open fun subscribeToObserver()
     {
         basePersonViewModel.checkuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -257,40 +250,6 @@ abstract class BasePersonFragment (layoutId:Int
             showSearchedRv()
 
         })
-        /**basePersonViewModel.getsearchedPersonResponse.observe(viewLifecycleOwner, Event.EventObserver(
-            onError={
-                isLoading=false
-                if(firstloading)
-                    loadfirstprogress.visibility=View.GONE
-                else
-                {
-                    var currentlist=searchedAdapter?.currentList!!.toMutableList()
-                    currentlist.removeLast()
-                    searchedAdapter?.submitList(currentlist)
-                }
-
-                firstloading=false
-
-                snackbar(it)
-            },
-            onLoading={
-                isLoading=true
-                if(firstloading)
-                    loadfirstprogress.visibility=View.VISIBLE
-                else
-                {
-                    if(searchedAdapter?.currentList!!.size>0)
-                    {
-                        var templist=searchedAdapter?.currentList!!.toList()
-                        templist+=listOf(Person(null,"","","",0,null))
-                        searchedAdapter?.submitList(templist)
-                    }
-                }
-            }
-        ){
-
-
-        })**/
     }
     protected fun getPersonSuccess(adapter: PersonAdapter,getpersonResponse: getpersonResponse){
         if(firstloading)
@@ -360,33 +319,4 @@ abstract class BasePersonFragment (layoutId:Int
     }
     abstract fun applyFollowingState()
 
-    /**protected fun applyFollowingState(curTogglinguser:Int,followingstate:Int)
-    { abstract로바꾸고 아래것들 각각프래그먼트에서 다시작성하기
-        for(i in searchedAdapter.currentList.indices)
-        {
-            if(curTogglinguser==searchedAdapter.currentList[i].userid)
-            {
-                searchedAdapter.currentList[i].apply{
-                    this.following=followingstate
-                }
-                searchedAdapter.notifyItemChanged(i)
-                break
-            }
-        }
-        rvFollowed?.let{
-            followingAdapter?.let{ followingAdapter->
-                for(i in followingAdapter.currentList.indices)
-                {
-                    if(curTogglinguser==followingAdapter.currentList[i].userid)
-                    {
-                        followingAdapter.currentList[i].apply{
-                            this.following=followingstate
-                        }
-                        followingAdapter.notifyItemChanged(i)
-                        break
-                    }
-                }
-            }
-        }
-    }**/
 }

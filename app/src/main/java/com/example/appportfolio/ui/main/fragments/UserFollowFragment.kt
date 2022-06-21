@@ -17,24 +17,28 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.databinding.FragmentUsersBinding
+import com.example.appportfolio.other.Constants.FOLLOWING
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
-import com.example.appportfolio.ui.main.viewmodel.HotPersonViewModel
+import com.example.appportfolio.ui.main.viewmodel.UserFollowPersonViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
+class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
     lateinit var binding:FragmentUsersBinding
     private var mRootView: View?=null
-    private lateinit var hotusersAdapter: PersonAdapter
+    private lateinit var usersAdapter: PersonAdapter
+    private var userid:Int?=null
+    private val getInfoType
+    get() = arguments?.getInt("getInfoType")
     override val basePersonViewModel: BasePersonViewModel
         get(){
-            val vm= ViewModelProvider(requireActivity()).get(HotPersonViewModel::class.java)
+            val vm= ViewModelProvider(requireActivity()).get(UserFollowPersonViewModel::class.java)
             return vm
         }
-    protected val viewModel: HotPersonViewModel
-        get() = basePersonViewModel as HotPersonViewModel
+    protected val viewModel: UserFollowPersonViewModel
+        get() = basePersonViewModel as UserFollowPersonViewModel
     override val searchedAdapter: PersonAdapter?
         get() = null
     override val edtSearch: EditText?
@@ -45,10 +49,10 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
     override fun applyFollowingState() {
         var togglingindex:Int
         var followingstate:Int?=null
-        hotusersAdapter.currentList.find{ person-> person.userid==curTogglinguser }?.let {
-            togglingindex=hotusersAdapter.currentList.lastIndexOf(it)
+        usersAdapter.currentList.find{ person-> person.userid==curTogglinguser }?.let {
+            togglingindex=usersAdapter.currentList.lastIndexOf(it)
             followingstate=0
-            hotusersAdapter.currentList[togglingindex].apply {
+            usersAdapter.currentList[togglingindex].apply {
                 if (this.following == 1) {
                     this.following = 0
                     followingstate = 0
@@ -56,7 +60,7 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
                     this.following = 1
                     followingstate = 1
                 }
-                hotusersAdapter.notifyItemChanged(togglingindex)
+                usersAdapter.notifyItemChanged(togglingindex)
                 if(followingstate==1)
                     Toast.makeText(requireContext(), this.nickname + "님을 팔로우했습니다", Toast.LENGTH_SHORT)
                         .show()
@@ -70,7 +74,6 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
             vmToggle.setcurtoggle(curTogglinguser,it)
         }
     }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -78,35 +81,45 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
     ): View? {
         if(mRootView==null)
         {
-            binding=DataBindingUtil.inflate(inflater,R.layout.fragment_users,container,false)
-            (activity as MainActivity).setToolBarVisible("hotUsersFragment")
-            hotusersAdapter= PersonAdapter()
-            hotusersAdapter.setOnPersonClickListener { person->
+            binding= DataBindingUtil.inflate(inflater,R.layout.fragment_users,container,false)
+            (activity as MainActivity).setToolBarVisible("userFollowFragment")
+            userid=arguments?.getInt("userid")
+            usersAdapter= PersonAdapter()
+            usersAdapter.setOnPersonClickListener { person->
                 clickperson(person)
 
             }
-            hotusersAdapter.setOnFollowClickListener { person->
+            usersAdapter.setOnFollowClickListener { person->
                 clickfollow(person)
             }
-            setupPersonRv(binding.rvHotUsers,hotusersAdapter,hotusersscrollListener)
+            setupPersonRv(binding.rvHotUsers,usersAdapter,usersscrollListener)
             firstloading=true
             init()
-            viewModel.getHotUsers(null,null,api)
+            if(userid==0)
+                userid=null
+            if(getInfoType==FOLLOWING)
+                viewModel.getFollowingPersons(null,userid,api)
+            else
+                viewModel.getFollowerPersons(null,userid,api)
             mRootView=binding.root
         }
         subscribeToObserver()
 
         return mRootView
     }
-    private val hotusersscrollListener= object: RecyclerView.OnScrollListener(){
+    private val usersscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
             val totalItemCount = recyclerView.adapter!!.itemCount - 1
-            hotusersAdapter.currentList.last().userid?.let{
-                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&isScrolling&&hotusersAdapter.currentList.size<100){
+            usersAdapter.currentList.last().userid?.let{
+                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&isScrolling){
                     isScrolling=false
-                    viewModel.getHotUsers(it,hotusersAdapter.currentList.last().followingcount,api)
+
+                    if(getInfoType==FOLLOWING)
+                        viewModel.getFollowingPersons(it,userid,api)
+                    else
+                        viewModel.getFollowerPersons(it,userid,api)
                 }
             }
 
@@ -124,7 +137,10 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
             setHomeAsUpIndicator(R.drawable.goback)
             setDisplayShowTitleEnabled(false)
         }
-        (activity as MainActivity).binding.title.text="인기유저"
+        if(getInfoType== FOLLOWING)
+            (activity as MainActivity).binding.title.text="팔로잉"
+        else
+            (activity as MainActivity).binding.title.text="팔로워"
         super.onResume()
 
     }
@@ -140,30 +156,29 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
         }
         return super.onOptionsItemSelected(item)
     }
-
     override fun subscribeToObserver() {
         super.subscribeToObserver()
-        viewModel.gethotUsersResponse.observe(viewLifecycleOwner, Event.EventObserver(
+        viewModel.getfollowPersonResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
-                getPersonError(hotusersAdapter,it)
+                getPersonError(usersAdapter,it)
             },
             onLoading={
-                getPersonLoading(hotusersAdapter)
+                getPersonLoading(usersAdapter)
             }
         ){
-            getPersonSuccess(hotusersAdapter,it)
+            getPersonSuccess(usersAdapter,it)
         })
         vmToggle.curtoggling.observe(viewLifecycleOwner){togglestates->
             togglestates.map { togglestate ->
-                hotusersAdapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
-                    val togglingindex=hotusersAdapter.currentList.lastIndexOf(it)
-                    hotusersAdapter.currentList[togglingindex].following=togglestate.following
-                    hotusersAdapter.notifyItemChanged(togglingindex)
+                usersAdapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
+                    val togglingindex=usersAdapter.currentList.lastIndexOf(it)
+                    usersAdapter.currentList[togglingindex].following=togglestate.following
+                    usersAdapter.notifyItemChanged(togglingindex)
                 }
-                hotusersAdapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
-                    val togglingindex=hotusersAdapter.currentList.lastIndexOf(it)
-                    hotusersAdapter.currentList[togglingindex].following=togglestate.following
-                    hotusersAdapter.notifyItemChanged(togglingindex)
+                usersAdapter.currentList.find{person -> person.userid==togglestate.toggleuser  }?.let{
+                    val togglingindex=usersAdapter.currentList.lastIndexOf(it)
+                    usersAdapter.currentList[togglingindex].following=togglestate.following
+                    usersAdapter.notifyItemChanged(togglingindex)
                 }
             }
         }

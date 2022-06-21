@@ -34,6 +34,7 @@
 
 
         <EditText
+            android:paddingLeft="40dp"
             android:theme="@style/editText"
             android:paddingRight="80dp"
             android:layout_marginLeft="10dp"
@@ -45,6 +46,15 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+        <ImageView
+            android:layout_marginLeft="10dp"
+            app:tint="#BAB0B0"
+            android:src="@drawable/ic_baseline_search_24"
+            app:layout_constraintStart_toStartOf="@id/edtText"
+            app:layout_constraintTop_toTopOf="@id/edtText"
+            app:layout_constraintBottom_toBottomOf="@id/edtText"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

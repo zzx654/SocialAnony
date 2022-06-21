@@ -17,6 +17,8 @@ import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.ConcatAdapter
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
@@ -26,10 +28,11 @@ import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
+import com.example.appportfolio.adapters.ProfileContainerAdapter
 
 import com.example.appportfolio.databinding.FragmentOthersprofileBinding
 import com.example.appportfolio.databinding.FragmentPostsBinding
-import com.example.appportfolio.other.Constants.PROFILE_HEADER
+import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -69,6 +72,8 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
 
     private lateinit var vmPerson:BasePersonViewModel
     private lateinit var vmToggle:applyFollowViewModel
+    private lateinit var concatAdapter: ConcatAdapter
+    private lateinit var profileAdapter:ProfileContainerAdapter
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -85,29 +90,38 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
             binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
                 R.layout.fragment_posts,container,false)
             userpostAdapter=PostAdapter()
-
-            setView()
+            profileAdapter= ProfileContainerAdapter()
+            concatAdapter= ConcatAdapter(profileAdapter,userpostAdapter)
             (activity as MainActivity).setToolBarVisible("othersProfileFragment")
             following=arguments?.getInt("follow")!!
-            userpostAdapter.setfollowing(following)
+            profileAdapter.setfollowing(following)
             refreshPosts()
             mRootView=binding.root
         }
 
         return mRootView
     }
+
+    override fun setupRecyclerView()=binding.rvPosts.apply{
+        adapter=concatAdapter
+        layoutManager= LinearLayoutManager(requireContext())
+        addOnScrollListener(scrollListener)
+        setHasFixedSize(true)
+        setItemViewCacheSize(20)
+        itemAnimator=null
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getuserProfile(userid,api)
-        userpostAdapter.setOnFollowClickListener { following->
+        profileAdapter.setOnFollowClickListener { following->
             if(following==1)
                 showunfollowalert()
             else
                 vmPerson.toggleFollow(userid,following,api)
 
         }
-        userpostAdapter.setOnChatClickListener {
+        profileAdapter.setOnChatClickListener {
             showchatalert()
         }
         vmPerson.togglefollowResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -118,28 +132,28 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     if (following == 1) {
-                        //binding.imgfollow.setImageResource(R.drawable.favorite_off)
-                        //following = 0
-                            userpostAdapter.setfollowing(0)
-                        userpostAdapter.notifyItemChanged(0)
+                            profileAdapter.setfollowing(0)
+                        profileAdapter.notifyDataSetChanged()
                         Toast.makeText(
                             requireContext(),
-                            "${userpostAdapter.usernickname}님 팔로우를 해제했습니다",
+                            "${profileAdapter.usernickname}님 팔로우를 해제했습니다",
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
-                        //binding.imgfollow.setImageResource(R.drawable.favorite_on)
-                        //following = 1
-                        userpostAdapter.setfollowing(1)
-                        userpostAdapter.notifyItemChanged(0)
+                        profileAdapter.setfollowing(1)
+                        profileAdapter.notifyDataSetChanged()
                         Toast.makeText(
                             requireContext(),
-                            "${userpostAdapter.usernickname}님을 팔로우 했습니다",
+                            "${profileAdapter.usernickname}님을 팔로우 했습니다",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
 
-                    vmToggle.setcurtoggle(userid,userpostAdapter.followingperson)
+                    profileAdapter.followingperson?.let { it ->
+                        vmToggle.setcurtoggle(userid,
+                            it
+                        )
+                    }
                 }
             }
         })
@@ -178,16 +192,37 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    userpostAdapter.setuserinfo(it.profileimage,it.nickname,it.gender,it.age)
-                    userpostAdapter.setheadertype(PROFILE_HEADER)
-                    userpostAdapter.notifyDataSetChanged()
+                    profileAdapter.setuserinfo(it.profileimage,it.nickname,it.gender,it.age!!,it.followingcount!!,it.followercount!!,it.postscount!!)
                     (activity as MainActivity).binding.title.text = it.nickname
-                    userpostAdapter.setOnProfileClickListener { profileimg->
-                        val bundle= Bundle()
-                        bundle.putString("image",profileimg)
-                        (activity as MainActivity).replaceFragment("imageFragment",
-                            ImageFragment(),bundle)
+                    profileAdapter.toolsVis=true
+                    it.profileimage?.let{
+                        profileAdapter.setOnProfileClickListener {
+                            val bundle= Bundle()
+                            bundle.putString("image",it)
+                            (activity as MainActivity).replaceFragment("imageFragment",
+                                ImageFragment(),bundle)
+                        }
                     }
+                    profileAdapter.setOnFollowingClickListener {
+                        it.followingcount.let{
+                            val bundle=Bundle()
+                            bundle.putInt("userid",userid)
+                            bundle.putInt("getInfoType", Constants.FOLLOWING)
+                            (activity as MainActivity).replaceFragment("userFollowFragment",UserFollowFragment(),bundle)
+                        }
+
+                    }
+                    profileAdapter.setOnFollowerClickListener {
+                        it.followercount.let{
+                            val bundle=Bundle()
+                            bundle.putInt("userid",userid)
+                            bundle.putInt("getInfoType", Constants.FOLLOWER)
+                            (activity as MainActivity).replaceFragment("userFollowFragment",UserFollowFragment(),bundle)
+                        }
+                    }
+
+                    profileAdapter.notifyDataSetChanged()
+                    setView()
 
                 }
             }

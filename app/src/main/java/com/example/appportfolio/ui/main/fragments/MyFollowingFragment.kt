@@ -83,7 +83,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
 
             firstloading=true
             init()
-            viewModel.getFollowingPersons(null,api)
+            viewModel.getFollowingPersons(null,null,api)
             mRootView=binding.root
         }
         subscribeToObserver()
@@ -189,7 +189,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
             followingadapter.currentList.last().userid?.let{
                 if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&isScrolling&&!followlast){
                     isScrolling=false
-                    viewModel.getFollowingPersons(it,api)
+                    viewModel.getFollowingPersons(it,null,api)
                 }
             }
 

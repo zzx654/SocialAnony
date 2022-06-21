@@ -27,9 +27,7 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.FragmentTagBinding
 import com.example.appportfolio.other.Constants
-import com.example.appportfolio.other.Constants.FAVORITE_TAG
-import com.example.appportfolio.other.Constants.POPULAR_TAG
-import com.example.appportfolio.other.Constants.SEARCHED_TAG
+
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity

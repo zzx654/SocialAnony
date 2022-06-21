@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.ItemPostBinding
 import com.example.appportfolio.databinding.ItemPostpreviewBinding
@@ -38,6 +39,11 @@ class PostPreviewAdapter: ListAdapter<Post, RecyclerView.ViewHolder>(diffUtil) {
             binding.post=post
             binding.commentimg.visibility= View.VISIBLE
             binding.favoriteimg.visibility= View.VISIBLE
+            binding.postitem.onSingleClick {
+                postClickListener?.let{ click->
+                    click(post)
+                }
+            }
         }
     }
     companion object {

@@ -32,7 +32,14 @@ interface MainApi {
     @FormUrlEncoded
     @POST("/getFollowingPerson")
     suspend fun getFollowingPerson(
-        @Field("lastuserid")lastuserid : Int?
+        @Field("lastuserid")lastuserid : Int?,
+        @Field("userid")userid : Int?
+    ):getpersonResponse
+    @FormUrlEncoded
+    @POST("/getFollowerPerson")
+    suspend fun getFollowerPerson(
+        @Field("lastuserid")lastuserid : Int?,
+        @Field("userid")userid : Int?
     ):getpersonResponse
     @FormUrlEncoded
     @POST("/getSearchedPerson")

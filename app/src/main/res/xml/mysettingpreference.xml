@@ -7,11 +7,6 @@
         android:title="북마크"
         />
     <Preference
-        android:icon="@drawable/favorite_off"
-        android:key="following"
-        android:title="팔로잉"
-        />
-    <Preference
         android:icon="@drawable/ic_mylibrary"
         android:key="mypost"
         android:title="내가쓴글"

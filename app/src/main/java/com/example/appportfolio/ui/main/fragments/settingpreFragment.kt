@@ -27,7 +27,6 @@ class settingpreFragment:PreferenceFragmentCompat() {
     var logoffPreference:Preference?=null
     var outPreference:Preference?=null
     var changepwPreference:Preference?=null
-    var following:Preference?=null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listView.overScrollMode=View.OVER_SCROLL_NEVER
@@ -51,7 +50,6 @@ class settingpreFragment:PreferenceFragmentCompat() {
             logoffPreference=findPreference("logoff")
             outPreference=findPreference("out")
             changepwPreference=findPreference("changepw")
-            following=findPreference("following")
 
             prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
@@ -70,10 +68,6 @@ class settingpreFragment:PreferenceFragmentCompat() {
         }
         changepwPreference?.setOnPreferenceClickListener {
             (activity as MainActivity).replaceFragment("setPasswordFragment",SetPasswordFragment(),null)
-            true
-        }
-        following?.setOnPreferenceClickListener {
-            (activity as MainActivity).replaceFragment("myFollowingFragment",MyFollowingFragment(),null)
             true
         }
 

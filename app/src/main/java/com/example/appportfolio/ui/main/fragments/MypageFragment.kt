@@ -5,18 +5,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.adapters.ProfileContainerAdapter
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.databinding.FragmentMypageBinding
+import com.example.appportfolio.other.Constants.FOLLOWER
+import com.example.appportfolio.other.Constants.FOLLOWING
 
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -30,6 +35,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
     lateinit var vmAuth: AuthViewModel
     lateinit var prefs: SharedPreferences
     lateinit var binding: FragmentMypageBinding
+    lateinit var profileContainerAdapter: ProfileContainerAdapter
     lateinit var api: MainApi
     lateinit var authapi: AuthApi
     var profileimgurl:String?=null
@@ -53,6 +59,8 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
             .replace(R.id.fragment_container, settingpreFragment(), "setting_fragment")
             .commit()
         prefs = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        profileContainerAdapter=ProfileContainerAdapter()
+        setupRecyclerView()
         subsribeToObserver()
         (activity as MainActivity).getmyprofile()
         return binding.root
@@ -78,6 +86,11 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
                 }
         }
 
+    private fun setupRecyclerView()=binding.profilecontainer.apply {
+        adapter=profileContainerAdapter
+        layoutManager= LinearLayoutManager(requireContext())
+        itemAnimator=null
+    }
     private fun subsribeToObserver()
     {
         vmAuth.logoutResponse.observe(viewLifecycleOwner,Event.EventObserver(
@@ -114,33 +127,32 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
                 if (it.resultCode == 400)
                     snackbar("서버 오류 발생")
                 else {
-                    if (it.platform.equals("NONE"))
-                        binding.tvAccount.text = it.account
-                    else {
-                        binding.tvAccount.text = (activity as MainActivity).getgooglemail()
-                    }
-                    binding.tvNick.text = it.nickname
-                    gender = it.gender
-                    if (it.profileimage == null) {
-                        when (it.gender) {
-                            "남자" -> binding.imgProfile.setImageResource(R.drawable.icon_male)
-                            "여자" -> binding.imgProfile.setImageResource(R.drawable.icon_female)
-                            else -> binding.imgProfile.setImageResource(R.drawable.icon_none)
+                        profileContainerAdapter.setuserinfo(it.profileimage,it.nickname,it.gender,it.age!!,it.followingcount!!,it.followercount!!,it.postscount!!)
+                        profileContainerAdapter.editprofileVis=true
+                        profileContainerAdapter.setOnProfileClickListener {
+                            val bundle=Bundle()
+                            bundle.putString("profileurl",it.profileimage)
+                            bundle.putString("nickname",it.nickname)
+                            bundle.putString("gender",it.gender)
+                            (activity as MainActivity).replaceFragment("profileEditFragment",ProfileEditFragment(),bundle)
                         }
-                    } else {
-                        profileimgurl = it.profileimage!!
-                        Glide.with(requireContext())
-                            .load(it.profileimage!!)
-                            .into(binding.imgProfile)
-                    }
-                    binding.imgProfile.setOnClickListener {
-                        val bundle=Bundle()
-                        bundle.putString("profileurl",profileimgurl)
-                        bundle.putString("nickname",binding.tvNick.text.toString())
-                        bundle.putString("gender",gender)
-                        (activity as MainActivity).replaceFragment("profileEditFragment",ProfileEditFragment(),bundle)
+                        profileContainerAdapter.setOnFollowingClickListener {
+                            it.followingcount.let{
+                                (activity as MainActivity).replaceFragment("myFollowingFragment",MyFollowingFragment(),null)
+                            }
 
-                    }
+                        }
+                        profileContainerAdapter.setOnFollowerClickListener {
+                            it.followercount.let{
+                                val bundle=Bundle()
+                                bundle.putInt("getInfoType",FOLLOWER)
+                                (activity as MainActivity).replaceFragment("userFollowFragment",UserFollowFragment(),bundle)
+                            }
+                        }
+
+                        profileContainerAdapter.notifyDataSetChanged()
+                        binding.scrollview.isSmoothScrollingEnabled=false
+                        binding.scrollview.fullScroll(ScrollView.FOCUS_UP)
                 }
             }
         })

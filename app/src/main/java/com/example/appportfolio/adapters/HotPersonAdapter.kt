@@ -47,6 +47,17 @@ class HotPersonAdapter: ListAdapter<Person, RecyclerView.ViewHolder>(PersonAdapt
     inner class personViewHolder(val binding: ItemPersonsquareBinding):RecyclerView.ViewHolder(binding.root) {
         fun onbind(person: Person) {
             binding.person=person
+            binding.root.onSingleClick {
+                PersonClickListener?.let{ click->
+                    click(person)
+
+                }
+            }
         }
+    }
+    var PersonClickListener:((Person)->Unit)?=null
+
+    fun setOnPersonClickListener(listener: (Person) -> Unit){
+        PersonClickListener=listener
     }
 }

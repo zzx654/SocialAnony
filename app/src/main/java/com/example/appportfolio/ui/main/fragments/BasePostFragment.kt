@@ -97,7 +97,7 @@ abstract class BasePostFragment(
             setupRecyclerView()
         }
     }
-    private val scrollListener= object: RecyclerView.OnScrollListener(){
+    protected val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val lastVisibleItemPosition =
@@ -139,7 +139,7 @@ abstract class BasePostFragment(
                 isScrolling=true
         }
     }
-    protected fun setupRecyclerView()=rvPosts.apply{
+    protected open fun setupRecyclerView()=rvPosts.apply{
         adapter=postAdapter
         layoutManager= LinearLayoutManager(requireContext())
         addOnScrollListener(this@BasePostFragment.scrollListener)

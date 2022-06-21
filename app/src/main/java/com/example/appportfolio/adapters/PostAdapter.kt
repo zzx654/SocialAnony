@@ -2,6 +2,7 @@ package com.example.appportfolio.adapters
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -59,16 +60,6 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
                     NetworkStateItemViewHolder(it)
                 }
             }
-            PROFILE_VIEW_TYPE->{
-                DataBindingUtil.inflate<ContainerProfileBinding>(
-                    layoutInflater,
-                    R.layout.container_profile,
-                    parent,
-                    false
-                ).let{
-                    profileViewHolder(it)
-                }
-            }
             else->{
                 DataBindingUtil.inflate<ItemPostBinding>(
                     layoutInflater,
@@ -87,8 +78,6 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         if(getItemViewType(position)==RADIOGROUP_VIEW_TYPE)
             (holder as rgViewHolder).onbind()
-        else if(getItemViewType(position)==PROFILE_VIEW_TYPE)
-            (holder as profileViewHolder).onbind()
         else if(getItemViewType(position)!=LOADING_VIEW_TYPE){
             if(HEADER_TYPE== NONE_HEADER)
                 (holder as postViewHolder).onbind(currentList[position])
@@ -111,8 +100,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
             when(HEADER_TYPE)
             {
                 NONE_HEADER->return POST_VIEW_TYPE
-                RG_HEADER->return RADIOGROUP_VIEW_TYPE
-                else->return PROFILE_VIEW_TYPE
+                else->return RADIOGROUP_VIEW_TYPE
             }
 
         }
@@ -132,6 +120,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
             binding.post=post
 
             binding.postitem.setOnClickListener {
+                Log.d("ClickPost","clicked")
                 PostClickListener?.let{ click->
                     click(post)
                 }
@@ -210,50 +199,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
             }
         }
     }
-    inner class profileViewHolder(val binding:ContainerProfileBinding):RecyclerView.ViewHolder(binding.root){
-        fun onbind()
-        {
-            if(followingperson==1)
-                binding.imgfollow.setImageResource(R.drawable.favorite_on)
-            else
-                binding.imgfollow.setImageResource(R.drawable.favorite_off)
 
-            if (userprofileimage == null) {
-                when (usergender) {
-                    "남자" -> binding.profileimage.setImageResource(R.drawable.icon_male)
-                    "여자" -> binding.profileimage.setImageResource(R.drawable.icon_female)
-                    else -> binding.profileimage.setImageResource(R.drawable.icon_none)
-                }
-            } else {
-                Glide.with(binding.profileimage.context)
-                    .load(userprofileimage)
-                    .into(binding.profileimage)
-                var img = userprofileimage
-                binding.profileimage.onSingleClick {
-                    ProfileimgClickListener?.let{ click->
-                        click(img)
-                    }
-
-                }
-            }
-            binding.btnfollow.setOnClickListener {
-                followClickListener?.let{ click->
-                    click(followingperson)
-
-                }
-            }
-            binding.btnchat.onSingleClick {
-                chatClickListener?.let{ click->
-                    click()
-
-                }
-
-            }
-            binding.tvnickname.text = usernickname
-
-            binding.tvgenderage.text = "${usergender} · ${SocialApplication.getAge(userage!!)} "
-        }
-    }
 
     companion object {
         val diffUtil = object : DiffUtil.ItemCallback<Post>(){
@@ -275,38 +221,9 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
         tagClickListener=listener
     }
 
-    fun setOnProfileClickListener(listener:(String?)->Unit){
-        ProfileimgClickListener=listener
-    }
-    var ProfileimgClickListener:((String?)->Unit)?=null
-
     var PostClickListener:((Post)->Unit)?=null
 
     var checkedDistance:Int?=5
-
-    var followingperson:Int=0
-
-    var usergender:String="none"
-    var usernickname:String=""
-    var userprofileimage:String?=null
-    var userage:Int?=null
-    fun setuserinfo(profileimage:String?,nickname:String,gender:String,age:Int?){
-        userprofileimage=profileimage
-        usernickname=nickname
-        usergender=gender
-        userage=age
-    }
-    var followClickListener:((Int)->Unit)?=null
-    fun setOnFollowClickListener(listener: (Int) ->Unit){
-        followClickListener=listener
-    }
-    fun setfollowing(followingstate:Int){
-        followingperson=followingstate
-    }
-    var chatClickListener:(()->Unit)?=null
-    fun setOnChatClickListener(listener:()->Unit){
-        chatClickListener=listener
-    }
 
     fun setOnPostClickListener(listener: (Post) -> Unit){
         PostClickListener=listener

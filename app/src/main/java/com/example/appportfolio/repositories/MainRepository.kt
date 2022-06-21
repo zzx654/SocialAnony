@@ -70,10 +70,20 @@ class MainRepository {
     }
     suspend fun getFollowingPerson(
         lastuserid:Int?,
+        userid:Int?,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.getFollowingPerson(lastuserid))
+            Resource.Success(api.getFollowingPerson(lastuserid,userid))
+        }
+    }
+    suspend fun getFollowerPerson(
+        lastuserid:Int?,
+        userid:Int?,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall{
+            Resource.Success(api.getFollowerPerson(lastuserid,userid))
         }
     }
     suspend fun getChatProfiles(
