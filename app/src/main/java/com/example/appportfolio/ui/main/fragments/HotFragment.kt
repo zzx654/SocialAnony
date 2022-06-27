@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.HorizontalAdapter
 import com.example.appportfolio.adapters.PostPreviewAdapter
 import com.example.appportfolio.adapters.TextHeaderAdapter
@@ -23,13 +24,16 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentHotBinding
+import com.example.appportfolio.other.Constants.AUDIOCONTENT
+import com.example.appportfolio.other.Constants.IMAGECONTENT
+import com.example.appportfolio.other.Constants.VOTECONTENT
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.HotPersonViewModel
-import com.example.appportfolio.ui.main.viewmodel.hotImagesViewModel
+import com.example.appportfolio.ui.main.viewmodel.hotContentsViewModel
 import com.example.appportfolio.ui.main.viewmodel.hotPostViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -44,11 +48,15 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
     lateinit var hotpersonAdapter:HorizontalAdapter
     lateinit var hotpersonHeaderAdapter: TextHeaderAdapter
     lateinit var hotImagesAdapter:PostPreviewAdapter
+    lateinit var hotAudioAdapter:PostPreviewAdapter
     lateinit var hotPostsAdapter:PostPreviewAdapter
+    lateinit var hotVotesAdapter: PostPreviewAdapter
     lateinit var hotImagesHeaderAdapter:TextHeaderAdapter
+    lateinit var hotAudioHeaderAdapter: TextHeaderAdapter
     lateinit var hotPostsHeaderAdapter:TextHeaderAdapter
+    lateinit var hotVoteHeaderAdapter: TextHeaderAdapter
     private val hotPersonViewModel: HotPersonViewModel by viewModels()
-    private val vmHotImages: hotImagesViewModel by viewModels()
+    private val vmHotContents: hotContentsViewModel by viewModels()
     private val vmHotPosts:hotPostViewModel by viewModels()
     lateinit var gpsTracker: GpsTracker
     private var mRootView:View?=null
@@ -79,14 +87,24 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             hotpersonAdapter= HorizontalAdapter(requireContext())
             hotpersonHeaderAdapter=TextHeaderAdapter()
             hotImagesHeaderAdapter=TextHeaderAdapter()
+            hotAudioHeaderAdapter= TextHeaderAdapter()
             hotPostsHeaderAdapter= TextHeaderAdapter()
+            hotVoteHeaderAdapter= TextHeaderAdapter()
             hotImagesAdapter=PostPreviewAdapter()
             hotPostsAdapter= PostPreviewAdapter()
+            hotAudioAdapter= PostPreviewAdapter()
+            hotVotesAdapter= PostPreviewAdapter()
             hotImagesAdapter.setOnPostClickLitener { post->
-                vmHotImages.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotPostsAdapter.setOnPostClickLitener { post->
                 vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            hotAudioAdapter.setOnPostClickLitener { post->
+                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            hotVotesAdapter.setOnPostClickLitener { post->
+                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotpersonAdapter.hotpersonAdapter.setOnPersonClickListener { person->
                 if(person.userid!=vmAuth.userid.value!!)
@@ -99,19 +117,42 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             hotpersonHeaderAdapter.title="인기유저"
             hotImagesHeaderAdapter.title="인기사진"
             hotPostsHeaderAdapter.title="인기게시물"
-            concatAdapter=ConcatAdapter(hotpersonHeaderAdapter,hotpersonAdapter,hotImagesHeaderAdapter,hotImagesAdapter,hotPostsHeaderAdapter,hotPostsAdapter)
+            hotAudioHeaderAdapter.title="인기 음성게시물"
+            hotVoteHeaderAdapter.title="인기 투표게시물"
+            concatAdapter=ConcatAdapter(hotpersonHeaderAdapter,hotpersonAdapter,hotImagesHeaderAdapter,hotImagesAdapter,
+                hotAudioHeaderAdapter,hotAudioAdapter,hotVoteHeaderAdapter,hotVotesAdapter,hotPostsHeaderAdapter,hotPostsAdapter)
             binding.srLayout.setOnRefreshListener {
                 hotPersonViewModel.getHotUsers(null,null,api)
             }
             setupRecyclerView()
+            if((activity as MainActivity).isConnected!!)
+                hotPersonViewModel.getHotUsers(null,null,api)
+            else
+                showwarn()
+            binding.retry.onSingleClick {
+                if((activity as MainActivity).isConnected!!)
+                {
+                    loadingDialog.show()
+                    binding.srLayout.visibility=View.VISIBLE
+                    binding.tvWarn.visibility=View.GONE
+                    binding.retry.visibility=View.GONE
+                    hotPersonViewModel.getHotUsers(null,null,api)
+                }
+
+            }
 
             mRootView=binding.root
         }
         subscribeToObserver()
 
-        hotPersonViewModel.getHotUsers(null,null,api)
 
         return mRootView
+    }
+    private fun showwarn(){
+        binding.srLayout.visibility=View.GONE
+        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+        binding.tvWarn.visibility=View.VISIBLE
+        binding.retry.visibility=View.VISIBLE
     }
     private fun setupRecyclerView(){
         binding.rvHot.apply {
@@ -124,7 +165,14 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
     {
         hotPersonViewModel.checkuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError ={
-                snackbar(it)
+                //snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it,
+
+                )
             }
         ){
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
@@ -155,8 +203,14 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             loadingDialog.show()
         },
         onError={
-            snackbar(it)
             loadingDialog.dismiss()
+            SocialApplication.showError(
+                binding.root,
+                requireContext(),
+                (activity as MainActivity).isConnected!!,
+                it
+            )
+
         }
     ){
         loadingDialog.dismiss()
@@ -176,13 +230,21 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
         }
     })
-        vmHotImages.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
+        vmHotContents.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
                 loadingDialog.show()
             },
             onError={
-                snackbar(it)
+
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+
                 loadingDialog.dismiss()
+
             }
         ){
             loadingDialog.dismiss()
@@ -205,14 +267,16 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
         })
         hotPersonViewModel.gethotUsersResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
-                snackbar(it)
+                loadingDialog.dismiss()
                 binding.srLayout.isRefreshing=false
+                showwarn()
+
             }
         ){
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
                 when(it.resultCode){
                     200->{
-                        vmHotImages.getHotImages(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+                        vmHotContents.getHotImages(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                         hotpersonAdapter.hotpersonlist=it.persons
                         hotpersonHeaderAdapter.loadmoreVis=true
                         hotpersonHeaderAdapter.setloadmoreClickListener {
@@ -227,23 +291,24 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                 }
             }
         })
-        vmHotImages.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
+        vmHotContents.getHotImagesResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
             onError={
-                binding.srLayout.isRefreshing=false
-                snackbar(it)
+                loadingDialog.dismiss()
+              showwarn()
             }
         ){
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
                 when(it.resultCode)
                 {
                     200->{
-                        vmHotPosts.getHotPosts(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+                        vmHotContents.getHotAudio(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                         hotImagesHeaderAdapter.loadmoreVis=true
                         hotImagesHeaderAdapter.setloadmoreClickListener {
-                            (activity as MainActivity).replaceFragment("hotImagesFragment",HotImagesFragment(),null)
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype",IMAGECONTENT)
+                            (activity as MainActivity).replaceFragment("hotContentsFragment",HotContentsFragment(),bundle)
                         }
-                        //hotImagesHeaderAdapter.notifyDataSetChanged()
                         hotImagesAdapter.submitList(it.posts)
                     }
                     else->{
@@ -255,12 +320,75 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
 
         })
+        vmHotContents.getHotAudioResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                loadingDialog.dismiss()
+                binding.srLayout.isRefreshing=false
+                showwarn()
+            }
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode)
+                {
+                    200->{
+                        vmHotContents.getHotVotes(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                        hotAudioHeaderAdapter.loadmoreVis=true
+                        hotAudioHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype", AUDIOCONTENT)
+                            (activity as MainActivity).replaceFragment("hotContentssFragment",HotContentsFragment(),bundle)
+                        }
+                        hotAudioAdapter.submitList(it.posts)
+                    }
+                    else->{
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+        vmHotContents.getHotVoteResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                loadingDialog.dismiss()
+                binding.srLayout.isRefreshing=false
+                showwarn()
+            }
+        ){
+
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode)
+                {
+                    200->{
+                        vmHotPosts.getHotPosts(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+                        hotVoteHeaderAdapter.loadmoreVis=true
+                        hotVoteHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype", VOTECONTENT)
+
+                            (activity as MainActivity).replaceFragment("hotContentsFragment",HotContentsFragment(),bundle)
+                        }
+                        //hotImagesHeaderAdapter.notifyDataSetChanged()
+                        hotVotesAdapter.submitList(it.posts)
+                    }
+                    else->{
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+
+
         vmHotPosts.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
             onError={
-                snackbar(it)
+                loadingDialog.dismiss()
+                showwarn()
             }
         ){
+            loadingDialog.dismiss()
             if(binding.srLayout.isRefreshing)
                 binding.srLayout.isRefreshing=false
             SocialApplication.handleResponse(requireContext(), it.resultCode) {

@@ -5,10 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AbsListView
-import android.widget.ProgressBar
-import android.widget.ScrollView
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.widget.NestedScrollView
@@ -21,6 +18,7 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -50,6 +48,8 @@ abstract class BasePostFragment(
     protected abstract val rvPosts:RecyclerView
     protected abstract val loadProgressBar:ProgressBar
     protected abstract val srLayout:SwipeRefreshLayout
+    protected abstract val tvWarn: TextView
+    protected abstract val retry:TextView
     var isLoading=false
     var isScrolling=false
     var isLast=false
@@ -79,8 +79,15 @@ abstract class BasePostFragment(
     {
         activity?.runOnUiThread {
             srLayout.setOnRefreshListener {
-                isLast=false
-                refreshPosts()
+                if((activity as MainActivity).isConnected!!){
+                    isLast=false
+                    refreshPosts()
+                }
+                else{
+                    srLayout.isRefreshing=false
+                }
+
+
             }
             scrollTool.setOnClickListener {
                 scrollTopOrRefresh()
@@ -93,6 +100,16 @@ abstract class BasePostFragment(
             }
             postAdapter.setOnPostClickListener {
                 basePostViewModel.getSelectedPost(it.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            retry.onSingleClick {
+                if((activity as MainActivity).isConnected!!)
+                {
+                    retry.visibility=View.GONE
+                    tvWarn.visibility=View.GONE
+                    srLayout.visibility=View.VISIBLE
+                    (activity as MainActivity).setAccessToken()
+                    refreshPosts()
+                }
             }
             setupRecyclerView()
         }
@@ -162,12 +179,11 @@ abstract class BasePostFragment(
         super.onResume()
         gpsTracker= GpsTracker(requireContext())
     }
-    open fun loadNewPosts()
-    {
-    }
-    open fun refreshPosts()
-    {
-    }
+    abstract fun loadNewPosts()
+    abstract fun refreshPosts()
+
+
+
     private fun navigateToPostFragment(post: Post)
     {
         val bundle=Bundle()
@@ -181,7 +197,8 @@ abstract class BasePostFragment(
               loadingDialog.show()
             },
             onError={
-                snackbar(it)
+                //snackbar(it)
+
                 loadingDialog.dismiss()
             }
         ){
@@ -216,7 +233,17 @@ abstract class BasePostFragment(
                 }
             },
             onError = {
-                snackbar(it)
+                if(!(activity as MainActivity).isConnected!!){
+                    if(postAdapter.currentList.isEmpty())
+                    {
+                        srLayout.visibility=View.GONE
+                        tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        tvWarn.visibility=View.VISIBLE
+                        retry.visibility=View.VISIBLE
+                    }
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
                 if(!srLayout.isRefreshing)
                 {
                     if(postAdapter.currentList.isEmpty())

@@ -145,13 +145,6 @@ class MainRepository {
             Resource.Success(api.getchatrequests())
         }
     }
-    suspend fun getchatlists(
-        api:MainApi
-    )= withContext(Dispatchers.IO){
-        safeCall{
-            Resource.Success(api.getchatlists())
-        }
-    }
     suspend fun requestchat(
         userid:Int,
         roomid:String,
@@ -325,11 +318,11 @@ class MainRepository {
             Resource.Success(api.checkSelectedComment(postuserid,commentuserid,commentid,postid))
         }
     }
-    suspend fun uploadprofileimg(image:MultipartBody.Part, api: MainApi)
+    suspend fun uploadimg(image:MultipartBody.Part, api: MainApi)
             = withContext(Dispatchers.IO){
         safeCall{
 
-            Resource.Success(api.uploadprofileimg(image))
+            Resource.Success(api.uploadimg(image))
         }
     }
 
@@ -513,10 +506,25 @@ class MainRepository {
         lastpostdate: String?,
         latitude: Double?,
         longitude: Double?,
+        limit:Int,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall {
-            Resource.Success(api.getuserPosts(userid,lastpostnum, lastpostdate, latitude, longitude))
+            Resource.Success(api.getuserPosts(userid,lastpostnum, lastpostdate, latitude, longitude,limit))
+        }
+    }
+    suspend fun getuserContents(
+        userid:Int,
+        lastpostnum: Int?,
+        lastpostdate: String?,
+        latitude: Double?,
+        longitude: Double?,
+        limit:Int,
+        type:String,
+        api:MainApi
+    )= withContext(Dispatchers.IO){
+        safeCall {
+            Resource.Success(api.getuserContents(userid,lastpostnum, lastpostdate, latitude, longitude,limit,type))
         }
     }
     suspend fun getFollowingPosts(
@@ -582,16 +590,17 @@ class MainRepository {
             Resource.Success(api.getHotPosts(lastpostnum, lastposthot, latitude, longitude,limit))
         }
     }
-    suspend fun getHotImages(
+    suspend fun getHotContents(
         lastpostnum: Int?,
         lastposthot: Int?,
         latitude: Double?,
         longitude: Double?,
         limit:Int,
+        type:String,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall {
-            Resource.Success(api.getHotImages(lastpostnum, lastposthot, latitude, longitude,limit))
+            Resource.Success(api.getHotContents(lastpostnum, lastposthot, latitude, longitude,limit,type))
         }
     }
 }

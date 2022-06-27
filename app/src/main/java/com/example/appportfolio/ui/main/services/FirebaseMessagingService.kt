@@ -47,8 +47,9 @@ class FirebaseMessagingService: FirebaseMessagingService() {
         val prefEditor=sharedPreferences.edit()
         val mainactivityintent= Intent(applicationContext, MainActivity::class.java)
         val initactivityintent= Intent(applicationContext, InitActivity::class.java)
-        Log.e("FirebaseMessageing", "message : ${remoteMessage.data.toString()}")
-        if(remoteMessage.data.get("notitype").equals("chat")&&AppLifecycleManager.isDestroyed)
+        Log.e("FirebaseMessageing", "message : ${remoteMessage.data}")
+        //if(remoteMessage.data.get("notitype").equals("chat")&&AppLifecycleManager.isDestroyed)
+        if(remoteMessage.data.get("notitype").equals("chat"))
         {
             val senderid=remoteMessage.data.get("senderid")
             val roomid=remoteMessage.data.get("roomid")
@@ -64,23 +65,16 @@ class FirebaseMessagingService: FirebaseMessagingService() {
                     chatRepository.insertChat(dateData)
                     chatRepository.insertChat(chatdata)
                 }
-
-
             }
             else{
                 CoroutineScope(Dispatchers.IO).launch {
                     chatRepository.insertChat(chatdata)
                 }
             }
-
-
-
-
-            //room db에 조지기 구현
         }
         if(AppLifecycleManager.isForeground||!sharedPreferences.getBoolean("pushonoff",true))
             return
-        else
+        else if(remoteMessage.data.get("type")!="EXIT")
         {
             val pm =
                 getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -99,7 +93,7 @@ class FirebaseMessagingService: FirebaseMessagingService() {
             val title = remoteMessage.data.get("title")
             val type = remoteMessage.data.get("notitype")
             val message = remoteMessage.data.get("message")
-            //type가 채팅이라면 room db에 조져야함
+            //type가 채팅이라면 room db에
             val pendingIntent= PendingIntent.getActivity(
                 applicationContext,
                 UUID.randomUUID().hashCode(),

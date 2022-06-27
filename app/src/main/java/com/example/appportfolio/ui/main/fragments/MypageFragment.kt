@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.ProfileContainerAdapter
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.MainApi
@@ -60,6 +62,16 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
             binding.srLayout.setOnRefreshListener {
                 (activity as MainActivity).getmyprofile()
             }
+            binding.retry.onSingleClick {
+                if((activity as MainActivity).isConnected!!)
+                {
+                    binding.retry.visibility=View.GONE
+                    binding.tvWarn.visibility=View.GONE
+                    binding.srLayout.visibility=View.VISIBLE
+                    (activity as MainActivity).setAccessToken()
+                    (activity as MainActivity).getmyprofile()
+                }
+            }
             childFragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, settingpreFragment(), "setting_fragment")
                 .commit()
@@ -70,8 +82,15 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         }
 
         subsribeToObserver()
-
-        (activity as MainActivity).getmyprofile()
+        if((activity as MainActivity).isConnected!!){
+            (activity as MainActivity).getmyprofile()
+        }
+        else{
+            binding.srLayout.visibility=View.GONE
+            binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+            binding.tvWarn.visibility=View.VISIBLE
+            binding.retry.visibility=View.VISIBLE
+        }
         return mRootView
     }
     val prefListener =
@@ -108,7 +127,12 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
             },
             onError={
                 loadingDialog.dismiss()
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             loadingDialog.dismiss()
@@ -116,7 +140,12 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         vmAuth.toggleChatResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 error=true
                 (activity as MainActivity).setChatReceive(curtoggle!!)
 
@@ -129,7 +158,15 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         })
         vmAuth.getmyprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                if(!(activity as MainActivity).isConnected!!){
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
             }
         ){
             if(binding.srLayout.isRefreshing)

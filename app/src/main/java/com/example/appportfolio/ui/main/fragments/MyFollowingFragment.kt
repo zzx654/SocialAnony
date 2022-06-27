@@ -17,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.FragmentSearchpersonBinding
+import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -34,6 +36,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     lateinit var binding: FragmentSearchpersonBinding
     lateinit var searchedadapter: PersonAdapter
     lateinit var followingadapter:PersonAdapter
+    private var firstLoad=true
     private var mRootView:View?=null
     override val basePersonViewModel: BasePersonViewModel
         get() {
@@ -47,6 +50,8 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
         get() = binding.edtNick
     override val loadfirstprogress: ProgressBar
         get() = binding.firstloadprogress
+    override val rootView: View
+        get() = binding.root
 
     protected val viewModel: MyFollowingViewModel
         get() = basePersonViewModel as MyFollowingViewModel
@@ -83,7 +88,8 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
 
             firstloading=true
             init()
-            viewModel.getFollowingPersons(null,null,api)
+
+
             mRootView=binding.root
         }
         subscribeToObserver()
@@ -93,6 +99,21 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        if(firstLoad)
+        {
+            firstLoad=false
+            if((activity as MainActivity).isConnected!!){
+                viewModel.getFollowingPersons(null,null,api)
+            }
+            else SocialApplication.showError(
+                requireView(),
+                requireContext(),
+                false,
+                "",
+                "다시로드",
+
+                ) { viewModel.getFollowingPersons(null, null, api) }
+        }
 
     }
     override fun onResume() {

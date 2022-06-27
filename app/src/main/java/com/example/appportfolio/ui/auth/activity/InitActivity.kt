@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import com.example.appportfolio.*
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
@@ -17,7 +18,9 @@ import com.example.appportfolio.auth.Status
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.ActivityInitBinding
 import com.example.appportfolio.other.Event
+import com.example.appportfolio.other.NetworkConnection
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -34,14 +37,20 @@ class InitActivity: AppCompatActivity() {
     lateinit var api: AuthApi
     @Inject
     lateinit var userPreferences: UserPreferences
+    private var isConnected=false
     lateinit var applyResult:(Status, String?, String?)->Unit
     var token:String?=null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.window?.apply {
             this.statusBarColor = Color.TRANSPARENT
             decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
 
+        }
+        val connection = NetworkConnection(this)
+        connection.observe(this) { isconnected ->
+           isConnected=isconnected
         }
 
 
@@ -82,7 +91,18 @@ class InitActivity: AppCompatActivity() {
         }
         viewModel.autologinResponse.observe(this, Event.EventObserver(
             onError = {
-                Toast.makeText(this,it, Toast.LENGTH_SHORT).show()
+                var message:String
+                if(!isConnected)
+                   message="네트워크 연결상태를 확인 후 다시 시도해주세요"
+                else
+                    message=it
+                binding.initprogressbar.visibility=View.GONE
+                Snackbar.make(binding.root,message,Snackbar.LENGTH_INDEFINITE).apply {
+                    setAction("다시시도"){
+                        viewModel.setAccessToken(runBlocking { userPreferences.authToken.first() })
+                    }
+                    show()
+                }
             }
         ) {
             binding.initprogressbar.visibility=View.GONE

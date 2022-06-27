@@ -12,6 +12,8 @@ interface ChatDao {
     fun insertChat(chatdata: ChatData):Long
 
 
+    @Query("SELECT *FROM chatcontents WHERE roomid=:roomid ORDER BY id DESC LIMIT 1")
+    fun getAddedChat(roomid: String):LiveData<ChatData>
     @Query("SELECT *FROM chatcontents WHERE id in (SELECT MAX(id) FROM chatcontents GROUP BY roomid) ORDER BY id desc")
     fun getAllChats():LiveData<List<ChatData>>
 

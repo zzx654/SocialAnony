@@ -67,6 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp">
             <TextView
+                android:id="@+id/tvWarn"
                 android:text="검색결과가 없습니다"
                 android:textColor="#AEA5A5"
                 app:layout_constraintTop_toTopOf="parent"
@@ -77,6 +78,18 @@
                 android:layout_height="wrap_content">
 
             </TextView>
+            <TextView
+                android:id="@+id/retry"
+                android:visibility="gone"
+                android:textStyle="bold"
+                android:text="다시 시도"
+                android:layout_marginTop="10dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:textColor="@color/skinfore"
+                app:layout_constraintTop_toBottomOf="@+id/tvWarn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>

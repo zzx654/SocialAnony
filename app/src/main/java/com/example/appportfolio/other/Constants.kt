@@ -46,4 +46,8 @@ object Constants {
 
     const val FOLLOWING=0
     const val FOLLOWER=1
+
+    const val IMAGECONTENT=0
+    const val AUDIOCONTENT=1
+    const val VOTECONTENT=2
 }

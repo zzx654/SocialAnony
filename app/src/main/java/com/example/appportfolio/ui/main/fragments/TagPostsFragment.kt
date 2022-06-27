@@ -13,6 +13,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.*
 import com.example.appportfolio.api.build.MainApi
@@ -20,7 +21,9 @@ import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentTagpostsBinding
 import com.example.appportfolio.other.Event
+import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.TagViewModel
 import com.google.android.material.tabs.TabLayoutMediator
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,10 +33,12 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
-    private val vmTag: TagViewModel by viewModels()
+    private lateinit var vmTag: TagViewModel
     lateinit var mainapi: MainApi
     @Inject
     lateinit var preferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog:LoadingDialog
     val tagname:String?
     get() = arguments?.getString("tag","")
     private lateinit var vmAuth: AuthViewModel
@@ -49,6 +54,7 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         activity?.run{
             vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
         }
+        vmTag=ViewModelProvider(requireActivity()).get(TagViewModel::class.java)
         mainapi= RemoteDataSource().buildApi(MainApi::class.java,
             runBlocking { preferences.authToken.first() })
         vmTag.getTagLiked(tagname!!,mainapi)
@@ -89,7 +95,9 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
                 goback()
             }
             R.id.tagtoggle -> {
-                toggleLike()
+                vmTag.isLiked.value?.let{
+                    toggleLike()
+                }
             }
         }
         return super.onOptionsItemSelected(item)
@@ -141,7 +149,21 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         })
         vmTag.toggleTagResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
+            onLoading={
+                loadingDialog.show()
+            },
+            onError={
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+
+                )
+                loadingDialog.dismiss()
+            }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode!!) {
                 if (it.isLiked == 0) {
                     vmTag.setisLiked(1)

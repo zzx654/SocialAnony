@@ -328,7 +328,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
         var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
         requestImage=body
-        vmEdit.uploadprofileimg(requestImage,api)
+        vmEdit.uploadimg(requestImage,api)
     }
     fun hideKeyboard() {
         if (::inputMethodManager.isInitialized.not()) {

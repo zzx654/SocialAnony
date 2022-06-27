@@ -465,18 +465,33 @@ abstract class BaseCommentFragment (layoutId:Int
         })
         baseCommentViewModel.postCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-                if(!commentAdapter.currentList.isEmpty())
-                    postcommentprogress.visibility=View.VISIBLE
+                loadingDialog.show()
+                //if(!commentAdapter.currentList.isEmpty())
+               //     postcommentprogress.visibility=View.VISIBLE
                 sendcomment.visibility=View.GONE
             },
             onError={
                 snackbar(it)
-                postcommentprogress.visibility=View.GONE
+                loadingDialog.dismiss()
+               // postcommentprogress.visibility=View.GONE
             }
 
         ){
 
-            postcommentprogress.visibility=View.GONE
+            loadingDialog.dismiss()
+            postAdapter?.let{ adapter->
+                if(adapter.noCommentVis)
+                {
+                    adapter.noCommentVis=false
+                    adapter.rgCommentVis=true
+                    rvComments.findViewHolderForAdapterPosition(0)?.let { holder ->
+                        (holder as PostDetailsAdapter.postViewHolder).binding.rgcomment.visibility=View.VISIBLE
+                        (holder as PostDetailsAdapter.postViewHolder).binding.noComment.visibility=View.GONE
+                    }
+
+                }
+            }
+            //postcommentprogress.visibility=View.GONE
             handleResponse(requireContext(),it.resultCode){
                 when(it.resultCode)
                 {

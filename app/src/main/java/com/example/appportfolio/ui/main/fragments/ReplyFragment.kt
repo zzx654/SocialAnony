@@ -161,7 +161,9 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         }
         return super.onOptionsItemSelected(item)
     }
-    override fun shownotexist()= snackbar("해당 댓글이 삭제되었습니다")
+    override fun shownotexist(){
+        snackbar("해당 댓글이 삭제되었습니다")
+    }
 
     override fun applyList(comments: List<Comment>) {
         var newComments:List<Comment> = listOf()

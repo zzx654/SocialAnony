@@ -29,11 +29,11 @@ class OthersProfileViewModel@Inject constructor(private val repository: MainRepo
         get() = _getPostsResponse
 
 
-    fun getuserPosts(userid:Int,lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,api: MainApi)
+    fun getuserPosts(userid:Int,lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,limit:Int,api: MainApi)
     {
         _getPostsResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.getuserPosts(userid,lastpostnum,lastpostdate,latitude,longitude,api)
+            val result=repository.getuserPosts(userid,lastpostnum,lastpostdate,latitude,longitude,limit,api)
             _getPostsResponse.postValue(Event(result))
         }
 

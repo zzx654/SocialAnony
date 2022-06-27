@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.adapters.PostDetailsAdapter
@@ -161,6 +162,8 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             bindvote()
             if(post.commentcount>0)
                 refreshComments()
+            else
+                postadapter.noCommentVis=true
             binding.fragment=this@PostFragment
             mRootView=binding.root
         }
@@ -356,7 +359,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 }
             },
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 postadapter.loadVoteVis=false
                 rvComments.findViewHolderForAdapterPosition(0)?.let{
                     (it as PostDetailsAdapter.postViewHolder).binding.loadvote.visibility=View.GONE
@@ -398,7 +406,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 }
             },
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 postadapter.loadVoteVis=false
                 rvComments.findViewHolderForAdapterPosition(0)?.let{
                     (it as PostDetailsAdapter.postViewHolder).binding.loadvote.visibility=View.GONE
@@ -435,7 +448,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             },
             onError={
                 loadingDialog.dismiss()
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
 
             }
         ){
@@ -456,7 +474,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 loadingDialog.show()
             },
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             }
         ){
@@ -472,7 +495,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         })
         vmComment.checkSelectedCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
@@ -501,7 +529,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         })
         vmInteract.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             if(srLayout.isRefreshing)
@@ -529,7 +562,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         })
         vmInteract.toggleLikeResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError= {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             },
             onLoading={
@@ -561,7 +599,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         })
         vmInteract.toggleBookmarkResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             },
             onLoading={

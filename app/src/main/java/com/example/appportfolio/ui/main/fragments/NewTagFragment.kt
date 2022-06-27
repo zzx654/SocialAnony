@@ -6,10 +6,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -19,6 +21,7 @@ import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
+import com.example.appportfolio.ui.main.viewmodel.TagViewModel
 import com.example.appportfolio.ui.main.viewmodel.newPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,6 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class NewTagFragment: BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
     lateinit var newpostAdapter: PostAdapter
+    private lateinit var vmTag: TagViewModel
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
@@ -42,6 +46,10 @@ class NewTagFragment: BasePostFragment(R.layout.fragment_posts) {
         get() = newpostAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
+    override val tvWarn: TextView
+        get() = binding.tvWarn
+    override val retry: TextView
+        get() = binding.retry
     protected val viewModel: newPostViewModel
         get() = basePostViewModel as newPostViewModel
     private var mRootView:View?=null
@@ -56,6 +64,7 @@ class NewTagFragment: BasePostFragment(R.layout.fragment_posts) {
                 inflater,
                 R.layout.fragment_posts, container, false
             )
+            vmTag= ViewModelProvider(requireActivity()).get(TagViewModel::class.java)
             newpostAdapter = PostAdapter()
             setView()
             refreshPosts()
@@ -70,6 +79,7 @@ class NewTagFragment: BasePostFragment(R.layout.fragment_posts) {
     }
 
     override fun refreshPosts() {
+        vmTag.getTagLiked((this@NewTagFragment.parentFragment as TagPostsFragment).tagname!!,api)
         getPosts(true)
     }
 
@@ -80,7 +90,7 @@ class NewTagFragment: BasePostFragment(R.layout.fragment_posts) {
         val curPosts=postAdapter.currentList
         if(!refresh)
         {
-            if(!curPosts.isNullOrEmpty())
+            if(!curPosts.isEmpty())
             {
                 val lastPost=curPosts.last()
                 lastpostnum=lastPost.postnum

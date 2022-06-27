@@ -50,8 +50,6 @@ class ChatViewModel@Inject constructor(
     private val _getchatrequestsResponse= MutableLiveData<Event<Resource<getchatrequestsResponse>>>()
     val getchatrequestsResponse: LiveData<Event<Resource<getchatrequestsResponse>>> = _getchatrequestsResponse
 
-    private val _getchatlistsResponse= MutableLiveData<Event<Resource<getchatlistsResponse>>>()
-    val getchatlistsResponse: LiveData<Event<Resource<getchatlistsResponse>>> = _getchatlistsResponse
 
     private val _getroomProfilesResponse= MutableLiveData<Event<Resource<getRoomProfilesResponse>>>()
     val getroomProfilesResponse: LiveData<Event<Resource<getRoomProfilesResponse>>> = _getroomProfilesResponse
@@ -101,7 +99,7 @@ class ChatViewModel@Inject constructor(
     ){
         _uploadimgResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.uploadprofileimg(image, api)
+            val result=repository.uploadimg(image, api)
             _uploadimgResponse.postValue(Event(result))
         }
     }
@@ -128,15 +126,9 @@ class ChatViewModel@Inject constructor(
             _getchatrequestsResponse.postValue(Event(result))
         }
     }
-    fun getchatlists(api: MainApi)
-    {
-        _getchatlistsResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch(dispatcher) {
-            val result=repository.getchatlists(api)
-            _getchatlistsResponse.postValue(Event(result))
-        }
-    }
     fun getAllChats() = chatRepository.getAllChats()
+
+    fun getAddedChats(roomid: String) = chatRepository.getAddedChat(roomid)
 
     fun loadimages(roomid: String) = chatRepository.loadimages(roomid)
     fun loadchatContents(roomid:String) = chatRepository.loadchatContents(roomid)

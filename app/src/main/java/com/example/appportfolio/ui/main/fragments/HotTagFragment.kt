@@ -6,19 +6,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
+import com.example.appportfolio.ui.main.viewmodel.TagViewModel
 import com.example.appportfolio.ui.main.viewmodel.hotPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,9 +38,13 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
             val vm: hotPostViewModel by viewModels()
             return vm
         }
+    override val tvWarn: TextView
+        get() = binding.tvWarn
+    override val retry: TextView
+        get() = binding.retry
     override val postAdapter: PostAdapter
         get() = hotpostAdapter
-
+    private lateinit var vmTag: TagViewModel
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
     protected val viewModel: hotPostViewModel
@@ -58,6 +62,7 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
                 R.layout.fragment_posts, container, false
             )
             hotpostAdapter = PostAdapter()
+            vmTag= ViewModelProvider(requireActivity()).get(TagViewModel::class.java)
             setView()
             refreshPosts()
             mRootView=binding.root
@@ -69,6 +74,7 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
     }
 
     override fun refreshPosts() {
+        vmTag.getTagLiked((this@HotTagFragment.parentFragment as TagPostsFragment).tagname!!,api)
         getPosts(true)
     }
 

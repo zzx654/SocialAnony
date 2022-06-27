@@ -44,13 +44,13 @@ class ProfileEditViewModel @Inject constructor(private val mainRepository: MainR
             _checknickResponse.postValue(Event(result))
         }
     }
-    fun uploadprofileimg(
+    fun uploadimg(
         image:MultipartBody.Part,
         api: MainApi
     ){
         _uploadimgResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=mainRepository.uploadprofileimg(image, api)
+            val result=mainRepository.uploadimg(image, api)
             _uploadimgResponse.postValue(Event(result))
         }
     }

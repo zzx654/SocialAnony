@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
@@ -47,6 +48,10 @@ class MyPostsFragment :BasePostFragment(R.layout.fragment_posts) {
     protected val viewModel: myPostsViewModel
         get() = basePostViewModel as myPostsViewModel
     private var mRootView:View?=null
+    override val tvWarn: TextView
+        get() = binding.tvWarn
+    override val retry: TextView
+        get() = binding.retry
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,

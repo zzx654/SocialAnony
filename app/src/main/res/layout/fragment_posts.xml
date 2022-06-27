@@ -8,7 +8,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+    <TextView
+        android:visibility="gone"
+        android:textColor="@color/gray"
+        android:id="@+id/tvWarn"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 
+        <TextView
+            android:id="@+id/retry"
+            android:visibility="gone"
+            android:textStyle="bold"
+            android:text="다시 시도"
+            android:layout_marginTop="10dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:textColor="@color/skinfore"
+            app:layout_constraintTop_toBottomOf="@+id/tvWarn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:descendantFocusability="blocksDescendants"
@@ -42,18 +64,6 @@
             android:src="@drawable/ic_refresh"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-        <TextView
-            android:visibility="invisible"
-            android:id="@+id/tvWarn"
-            android:textSize="15dp"
-            android:textColor="@color/gray"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="위치정보 권한이 필요합니다"/>
         <ProgressBar
             android:id="@+id/loadProgressBar"
             android:visibility="gone"

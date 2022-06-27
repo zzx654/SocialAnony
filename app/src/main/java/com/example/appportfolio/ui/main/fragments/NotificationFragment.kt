@@ -19,7 +19,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.NotiAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -80,6 +82,16 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
                 vmNoti= ViewModelProvider(this).get(NotiViewModel::class.java)
             }
+            binding.retry.onSingleClick {
+                if((activity as MainActivity).isConnected!!)
+                {
+                    binding.retry.visibility=View.GONE
+                    binding.tvWarn.visibility=View.GONE
+                    binding.srLayout.visibility=View.VISIBLE
+                    (activity as MainActivity).setAccessToken()
+                    vmNoti.getNotis(null,null,api)
+                }
+            }
             api= RemoteDataSource().buildApi(MainApi::class.java,
                 runBlocking { preferences.authToken.first() })
             notiAdapter.setOnNotiClickListener {
@@ -87,11 +99,17 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 vmNoti.readNoti(it.notiid!!,api)
                 vmNoti.setSelectedNoti(it)
             }
-            notiAdapter.apply {
-                //stateRestorationPolicy= RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-           }
 
-            vmNoti.getNotis(null,null,api)
+            if((activity as MainActivity).isConnected!!){
+                vmNoti.getNotis(null,null,api)
+
+            }
+            else{
+                binding.srLayout.visibility=View.GONE
+                binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                binding.tvWarn.visibility=View.VISIBLE
+                binding.retry.visibility=View.VISIBLE
+            }
             mRootView=binding.root
         }
         setupRecyclerView()
@@ -125,7 +143,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     {
         vmNoti.readAllNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
@@ -141,7 +164,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         })
         vmNoti.deleteAllNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             isLast=false
@@ -154,7 +182,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         })
         vmNoti.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             }
         ){
@@ -189,7 +222,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         })
         vmNoti.checkSelectedCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             }
         ){
@@ -208,7 +246,12 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         }
         vmNoti.readNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             }
         ){
@@ -255,20 +298,33 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 isLoading=true
             },
             onError = {
-                snackbar(it)
-                if(!binding.srLayout.isRefreshing)
-                {
-                    if(notiAdapter.currentList.isEmpty())
-                        binding.loadProgressBar.visibility=View.GONE
+                binding.srLayout.isRefreshing=false
+                if(notiAdapter.currentList.isEmpty()){
+                    binding.loadProgressBar.visibility=View.GONE
+                    if((activity as MainActivity).isConnected!!){
+                        SocialApplication.showError(
+                            binding.root,
+                            requireContext(),
+                            (activity as MainActivity).isConnected!!,
+                            it
+                        )
+
+                    }
                     else{
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
+                    }
+                }
+                if(!binding.srLayout.isRefreshing&&notiAdapter.currentList.isNotEmpty())
+                {
                         var currentllist=notiAdapter.currentList.toMutableList()
                         currentllist.removeLast()
                         notiAdapter.submitList(currentllist)
-                    }
 
                 }
-                else
-                    binding.srLayout.isRefreshing=false
+
             }
         ){
             isLoading = false

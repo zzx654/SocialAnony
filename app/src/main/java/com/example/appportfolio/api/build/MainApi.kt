@@ -98,9 +98,6 @@ interface MainApi {
     @POST("/getchatrequests")
     suspend fun getchatrequests(
     ):getchatrequestsResponse
-    @POST("/getchatlists")
-    suspend fun getchatlists(
-    ):getchatlistsResponse
     @FormUrlEncoded
     @POST("/requestchat")
     suspend fun requestchat(
@@ -359,8 +356,20 @@ interface MainApi {
         @Field("lastpostnum")lastpostnum:Int?,
         @Field("lastpostdate")lastpostdate:String?,
         @Field("latitude")latitude:Double?,
-        @Field("longitude")longitude:Double?
+        @Field("longitude")longitude:Double?,
+        @Field("limit")limit:Int
 
+    ): getPostResponse
+    @FormUrlEncoded
+    @POST("/getuserContents")
+    suspend fun getuserContents(
+        @Field("userid")userid:Int?,
+        @Field("lastpostnum")lastpostnum:Int?,
+        @Field("lastpostdate")lastpostdate:String?,
+        @Field("latitude")latitude:Double?,
+        @Field("longitude")longitude:Double?,
+        @Field("limit")limit:Int,
+        @Field("type")type:String
     ): getPostResponse
     @FormUrlEncoded
     @POST("/checkuser")
@@ -417,14 +426,16 @@ interface MainApi {
     ): getPostResponse
 
     @FormUrlEncoded
-    @POST("/getHotImages")
-    suspend fun getHotImages(
+    @POST("/getHotContents")
+    suspend fun getHotContents(
         @Field("lastpostnum")lastpostnum:Int?,
         @Field("lastposthot")lastposthot:Int?,
         @Field("latitude")latitude:Double?,
         @Field("longitude")longitude:Double?,
-        @Field("limit")limit:Int
+        @Field("limit")limit:Int,
+        @Field("type")type:String
     ): getPostResponse
+
 
     @FormUrlEncoded
     @POST("/postContents")
@@ -447,8 +458,8 @@ interface MainApi {
     suspend fun uploadImageRequest(
         @Part imageFile: List<MultipartBody.Part>): uploadImagesResponse
     @Multipart
-    @POST("/uploadprofileimg")
-    suspend fun uploadprofileimg(
+    @POST("/uploadimg")
+    suspend fun uploadimg(
         @Part imageFile: MultipartBody.Part): uploadImageResponse
     @Multipart
     @POST("/uploadaudio")

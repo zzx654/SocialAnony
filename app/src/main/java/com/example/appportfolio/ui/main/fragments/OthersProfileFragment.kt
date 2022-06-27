@@ -15,6 +15,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ConcatAdapter
@@ -28,49 +29,54 @@ import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
+import com.example.appportfolio.adapters.PostPreviewAdapter
 import com.example.appportfolio.adapters.ProfileContainerAdapter
+import com.example.appportfolio.adapters.TextHeaderAdapter
+import com.example.appportfolio.api.build.MainApi
+import com.example.appportfolio.api.build.RemoteDataSource
+import com.example.appportfolio.auth.UserPreferences
 
 import com.example.appportfolio.databinding.FragmentPostsBinding
+import com.example.appportfolio.databinding.FragmentUserprofileBinding
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
+import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
-
-    lateinit var binding:FragmentPostsBinding
+class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
+    lateinit var api: MainApi
+    @Inject
+    lateinit var userPreferences: UserPreferences
+    lateinit var binding:FragmentUserprofileBinding
     private var mRootView:View?=null
-    lateinit var userpostAdapter: PostAdapter
     private val userid:Int
         get() = arguments?.getInt("userid",0)!!
     private val from:String
         get() = arguments?.getString("from")!!
     private var following=0
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
-    override val basePostViewModel: BasePostViewModel
-        get() {
-            val vm: OthersProfileViewModel by viewModels()
-            return vm
-        }
-    override val postAdapter: PostAdapter
-        get() = userpostAdapter
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
-    protected val viewModel: OthersProfileViewModel
-        get() = basePostViewModel as OthersProfileViewModel
-
+    lateinit var gpsTracker: GpsTracker
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
+    lateinit var ImagesHeaderAdapter: TextHeaderAdapter
+    lateinit var AudioHeaderAdapter: TextHeaderAdapter
+    lateinit var VoteHeaderAdapter: TextHeaderAdapter
+    lateinit var EveryHeaderAdapter:TextHeaderAdapter
+    lateinit var ImagesAdapter: PostPreviewAdapter
+    lateinit var AudioAdapter: PostPreviewAdapter
+    lateinit var VotesAdapter: PostPreviewAdapter
+    lateinit var EveryAdapter:PostPreviewAdapter
+    private val vmUserProfile:OthersProfileViewModel by viewModels()
+    private val vmUserContents:UserContentsViewModel by viewModels()
     private lateinit var vmPerson:BasePersonViewModel
     private lateinit var vmToggle:applyFollowViewModel
     private lateinit var concatAdapter: ConcatAdapter
@@ -84,50 +90,53 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
         if(mRootView==null)
         {
             vmToggle=ViewModelProvider(requireActivity()).get(applyFollowViewModel::class.java)
+            api= RemoteDataSource().buildApi(
+                MainApi::class.java,
+                runBlocking { userPreferences.authToken.first() })
+            gpsTracker= GpsTracker(requireContext())
             if(from=="searchPersonFragment")
                 vmPerson=ViewModelProvider(requireActivity()).get(SearchPersonViewModel::class.java)
             else
                 vmPerson=ViewModelProvider(requireActivity()).get(MyFollowingViewModel::class.java)
-            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
-                R.layout.fragment_posts,container,false)
-            userpostAdapter=PostAdapter()
+            binding= DataBindingUtil.inflate(inflater,
+                R.layout.fragment_userprofile,container,false)
             profileAdapter= ProfileContainerAdapter()
-            concatAdapter= ConcatAdapter(profileAdapter,userpostAdapter)
+            ImagesHeaderAdapter= TextHeaderAdapter()
+            AudioHeaderAdapter= TextHeaderAdapter()
+            VoteHeaderAdapter= TextHeaderAdapter()
+            EveryHeaderAdapter= TextHeaderAdapter()
+            ImagesAdapter= PostPreviewAdapter()
+            AudioAdapter= PostPreviewAdapter()
+            VotesAdapter= PostPreviewAdapter()
+            EveryAdapter= PostPreviewAdapter()
+
+            concatAdapter= ConcatAdapter(profileAdapter,ImagesHeaderAdapter,ImagesAdapter,AudioHeaderAdapter,AudioAdapter,
+            VoteHeaderAdapter,VotesAdapter,EveryHeaderAdapter,EveryAdapter)
             (activity as MainActivity).setToolBarVisible("othersProfileFragment")
             following=arguments?.getInt("follow")!!
             profileAdapter.setfollowing(following)
-            refreshPosts()
+            setupRecyclerView()
+            binding.srLayout.setOnRefreshListener {
+                vmUserProfile.getuserProfile(userid,api)
+            }
+            loadingDialog.show()
             mRootView=binding.root
         }
 
+
+        subscribeToObserver()
         return mRootView
     }
 
-    override fun setupRecyclerView()=binding.rvPosts.apply{
-        adapter=concatAdapter
-        layoutManager= LinearLayoutManager(requireContext())
-        addOnScrollListener(scrollListener)
-        setHasFixedSize(true)
-        setItemViewCacheSize(20)
-        itemAnimator=null
-    }
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewModel.getuserProfile(userid,api)
-        profileAdapter.setOnFollowClickListener { following->
-            if(following==1)
-                showunfollowalert()
-            else
-                vmPerson.toggleFollow(userid,following,api)
-
-        }
-        profileAdapter.setOnChatClickListener {
-            showchatalert()
-        }
+    private fun subscribeToObserver(){
         vmPerson.togglefollowResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             },
             onLoading={
@@ -138,7 +147,7 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     if (profileAdapter.followingperson == 1) {
-                            profileAdapter.setfollowing(0)
+                        profileAdapter.setfollowing(0)
                         profileAdapter.followercount-=1
                         profileAdapter.notifyDataSetChanged()
                         Toast.makeText(
@@ -165,9 +174,14 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
                 }
             }
         })
-        viewModel.requestchatResponse.observe(viewLifecycleOwner,Event.EventObserver(
+        vmUserProfile.requestchatResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 loadingDialog.dismiss()
             },
             onLoading={
@@ -198,13 +212,30 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
             }
         })
 
-        viewModel.getprofileResponse.observe(viewLifecycleOwner, Event.EventObserver(
+        vmUserProfile.getprofileResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
                 snackbar(it)
+                loadingDialog.dismiss()
+                binding.srLayout.isRefreshing=false
+                if(!(activity as MainActivity).isConnected!!){
+
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
+                    ImagesHeaderAdapter.title="사진"
+                    EveryHeaderAdapter.title="전체게시물"
+                    AudioHeaderAdapter.title="음성게시물"
+                    VoteHeaderAdapter.title="투표게시물"
+                    vmUserContents.getUserImages(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                     profileAdapter.setuserinfo(it.profileimage,it.nickname,it.gender,it.age!!,it.followingcount!!,it.followercount!!,it.postscount!!)
                     (activity as MainActivity).binding.title.text = it.nickname
                     profileAdapter.toolsVis=true
@@ -233,13 +264,225 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
                             (activity as MainActivity).replaceFragment("userFollowFragment",UserFollowFragment(),bundle)
                         }
                     }
-
-                    profileAdapter.notifyDataSetChanged()
-                    setView()
-
+                }
+                else{
+                    Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    loadingDialog.dismiss()
                 }
             }
         })
+        vmUserContents.getUserImagesResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                loadingDialog.dismiss()
+                binding.srLayout.isRefreshing=false
+                if(!(activity as MainActivity).isConnected!!){
+
+                    binding.srLayout.visibility=View.GONE
+                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                    binding.tvWarn.visibility=View.VISIBLE
+                    binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+            }
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmUserContents.getUserAudio(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                when(it.resultCode)
+                {
+
+                    200->{
+                        ImagesHeaderAdapter.tvContainerVis=false
+                        ImagesHeaderAdapter.loadmoreVis=true
+                        ImagesHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype", Constants.IMAGECONTENT)
+                            bundle.putInt("userid",userid)
+                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                        }
+                        ImagesAdapter.submitList(it.posts)
+                    }
+                    100->{
+                        ImagesHeaderAdapter.loadmoreVis=false
+                        ImagesHeaderAdapter.tvContainerVis=true
+                        ImagesHeaderAdapter.guideText="닉네임을 공개한 사진게시물이 없습니다"
+                    }
+                    else->{
+
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+        vmUserContents.getUserAudioResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                binding.srLayout.isRefreshing=false
+                loadingDialog.dismiss()
+                if(!(activity as MainActivity).isConnected!!){
+
+                    binding.srLayout.visibility=View.GONE
+                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                    binding.tvWarn.visibility=View.VISIBLE
+                    binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+            }
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmUserContents.getUserVotes(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                when(it.resultCode)
+                {
+                    200->{
+                        AudioHeaderAdapter.tvContainerVis=false
+                        AudioHeaderAdapter.loadmoreVis=true
+                        AudioHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype", Constants.AUDIOCONTENT)
+                            bundle.putInt("userid",userid)
+                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                        }
+                        AudioAdapter.submitList(it.posts)
+                    }
+                    100->{
+                        AudioHeaderAdapter.loadmoreVis=false
+                        AudioHeaderAdapter.tvContainerVis=true
+                        AudioHeaderAdapter.guideText="닉네임을 공개한 음성게시물이 없습니다"
+                    }
+                    else->{
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+        vmUserContents.getUserVoteResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                binding.srLayout.isRefreshing=false
+                loadingDialog.dismiss()
+                if(!(activity as MainActivity).isConnected!!){
+
+                    binding.srLayout.visibility=View.GONE
+                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                    binding.tvWarn.visibility=View.VISIBLE
+                    binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+            }
+        ){
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmUserProfile.getuserPosts(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+                when(it.resultCode)
+                {
+                    200->{
+                        VoteHeaderAdapter.tvContainerVis=false
+                        VoteHeaderAdapter.loadmoreVis=true
+                        VoteHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("contenttype", Constants.VOTECONTENT)
+                            bundle.putInt("userid",userid)
+                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                        }
+                        VotesAdapter.submitList(it.posts)
+                    }
+                    100->{
+                        VoteHeaderAdapter.tvContainerVis=true
+                        VoteHeaderAdapter.loadmoreVis=false
+                        VoteHeaderAdapter.guideText="닉네임을 공개한 투표게시물이 없습니다"
+                    }
+                    else->{
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+        vmUserProfile.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError={
+                if(!(activity as MainActivity).isConnected!!){
+
+                    binding.srLayout.visibility=View.GONE
+                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                    binding.tvWarn.visibility=View.VISIBLE
+                    binding.retry.visibility=View.VISIBLE
+
+                }
+                else
+                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+                loadingDialog.dismiss()
+            }
+        ){
+            if(binding.srLayout.isRefreshing)
+                binding.srLayout.isRefreshing=false
+            loadingDialog.dismiss()
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when(it.resultCode)
+                {
+                    200->{
+
+                        EveryHeaderAdapter.tvContainerVis=false
+                        EveryHeaderAdapter.loadmoreVis=true
+                        EveryHeaderAdapter.setloadmoreClickListener {
+                            val bundle=Bundle()
+                            bundle.putInt("userid", userid)
+                            (activity as MainActivity).replaceFragment("userPostsFragment",UserPostsFragment(),bundle)
+                        }
+                        concatAdapter.notifyDataSetChanged()
+                        EveryAdapter.submitList(it.posts)
+
+                    }
+                    100->{
+                        EveryHeaderAdapter.tvContainerVis=true
+                        EveryHeaderAdapter.loadmoreVis=false
+                        EveryHeaderAdapter.guideText="닉네임을 공개한 게시물이 없습니다"
+                        concatAdapter.notifyDataSetChanged()
+                    }
+                    else->{
+                        binding.srLayout.isRefreshing=false
+                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+            }
+        })
+    }
+    private fun setupRecyclerView()=binding.rvProfile.apply{
+        adapter=concatAdapter
+        layoutManager= LinearLayoutManager(requireContext())
+        itemAnimator=null
+    }
+    @RequiresApi(Build.VERSION_CODES.M)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if((activity as MainActivity).isConnected!!){
+            vmUserProfile.getuserProfile(userid,api)
+        }
+        else{
+            binding.srLayout.visibility=View.GONE
+            binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+            binding.tvWarn.visibility=View.VISIBLE
+            binding.retry.visibility=View.VISIBLE
+        }
+
+        profileAdapter.setOnFollowClickListener { following->
+            if(following==1)
+                showunfollowalert()
+            else
+                vmPerson.toggleFollow(userid,following,api)
+
+        }
+        profileAdapter.setOnChatClickListener {
+            showchatalert()
+        }
+
     }
     private fun showchatalert(){
         val dialog= AlertDialog.Builder(requireContext()).create()
@@ -254,7 +497,7 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
             dialog.cancel()
         }
         positive.setOnClickListener {
-            viewModel.requestchat(userid, UUID.randomUUID().toString(),api)
+            vmUserProfile.requestchat(userid, UUID.randomUUID().toString(),api)
             dialog.dismiss()
             dialog.cancel()
         }
@@ -282,36 +525,6 @@ class OthersProfileFragment:BasePostFragment(R.layout.fragment_posts) {
         dialog.setView(mView)
         dialog.create()
         dialog.show()
-    }
-    override fun loadNewPosts() {
-        getPosts()
-    }
-
-    override fun refreshPosts() {
-        getPosts(true)
-    }
-
-    fun getPosts(refresh:Boolean=false)
-    {
-        var lastpostnum:Int?=null
-        var lastpostdate:String?=null
-        val curPosts=postAdapter.currentList
-        if(!refresh)
-        {
-            if(!curPosts.isNullOrEmpty())
-            {
-                val lastPost=curPosts.last()
-                lastpostnum=lastPost.postnum
-                lastpostdate=lastPost.date
-            }
-        }
-        if(SocialApplication.checkGeoPermission(requireContext()))
-        {
-            viewModel.getuserPosts(userid,lastpostnum,lastpostdate,gpsTracker.latitude,gpsTracker.longitude,api)
-        }
-        else{
-            viewModel.getuserPosts(userid,lastpostnum,lastpostdate,null,null,api)
-        }
     }
     override fun onResume() {
         setHasOptionsMenu(true)

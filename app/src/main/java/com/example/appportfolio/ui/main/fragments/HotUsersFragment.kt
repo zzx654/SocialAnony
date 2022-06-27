@@ -15,9 +15,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication.Companion.showError
 import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.databinding.FragmentUsersBinding
+import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
+import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
 import com.example.appportfolio.ui.main.viewmodel.HotPersonViewModel
@@ -28,6 +31,7 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
     lateinit var binding:FragmentUsersBinding
     private var mRootView: View?=null
     private lateinit var hotusersAdapter: PersonAdapter
+    private var firstLoad=true
     override val basePersonViewModel: BasePersonViewModel
         get(){
             val vm= ViewModelProvider(requireActivity()).get(HotPersonViewModel::class.java)
@@ -41,6 +45,8 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
         get() = null
     override val loadfirstprogress: ProgressBar
         get() = binding.loadfirst
+    override val rootView: View
+        get() = binding.root
 
     override fun applyFollowingState() {
         var togglingindex:Int
@@ -91,12 +97,26 @@ class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
             setupPersonRv(binding.rvHotUsers,hotusersAdapter,hotusersscrollListener)
             firstloading=true
             init()
-            viewModel.getHotUsers(null,null,api)
+
+
             mRootView=binding.root
         }
         subscribeToObserver()
 
         return mRootView
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        if(firstLoad){
+            firstLoad=false
+            if((activity as MainActivity).isConnected!!){
+                viewModel.getHotUsers(null,null,api)
+            }
+            else{
+                showError(requireView(),requireContext(),false,"","다시로드"){  viewModel.getHotUsers(null,null,api)}
+            }
+        }
     }
     private val hotusersscrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {

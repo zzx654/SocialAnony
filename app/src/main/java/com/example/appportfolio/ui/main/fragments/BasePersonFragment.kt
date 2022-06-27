@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.api.build.MainApi
@@ -55,6 +56,7 @@ abstract class BasePersonFragment (layoutId:Int
     protected abstract val edtSearch: EditText?
 
     protected abstract val loadfirstprogress:ProgressBar
+    protected abstract val rootView:View
     protected var curTogglinguser=0
     var isLoading=false
     var isLast=false
@@ -220,7 +222,12 @@ abstract class BasePersonFragment (layoutId:Int
 
             onError={
                 loadingDialog.dismiss()
-                snackbar(it)
+                SocialApplication.showError(
+                    rootView,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it,
+                )
             },
             onLoading ={
                 loadingDialog.show()
@@ -317,7 +324,13 @@ abstract class BasePersonFragment (layoutId:Int
 
         firstloading=false
 
-        snackbar(errormsg)
+        SocialApplication.showError(
+            rootView,
+            requireContext(),
+            (activity as MainActivity).isConnected!!,
+            errormsg,
+
+        )
     }
     abstract fun applyFollowingState()
 

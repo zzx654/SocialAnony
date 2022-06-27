@@ -10,6 +10,8 @@ class ChatRepository @Inject constructor(private val db:ChatDatabase) {
 
     fun getAllChats() = db.getChatDao().getAllChats()
 
+    fun getAddedChat(roomid: String) = db.getChatDao().getAddedChat(roomid)
+
     suspend fun readChats(roomid:String) = db.getChatDao().readChats(roomid)
 
     fun loadimages(roomid:String) = db.getChatDao().loadimages(roomid)

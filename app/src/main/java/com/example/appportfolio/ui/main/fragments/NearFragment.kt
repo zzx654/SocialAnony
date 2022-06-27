@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.other.Constants.RG_HEADER
@@ -46,6 +48,11 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
         get() = binding.loadProgressBar
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
+    override val tvWarn: TextView
+        get() = binding.tvWarn
+    override val retry: TextView
+        get() = binding.retry
+
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -75,6 +82,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
 
             mRootView=binding.root
             refreshPosts()
+
         }
         return mRootView
     }
@@ -116,6 +124,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
                     srLayout.isRefreshing=false
                 Toast.makeText(requireContext(),"위치 서비스를 활성화 해주세요",Toast.LENGTH_SHORT).show()
                 binding.tvWarn.visibility=View.VISIBLE
+                binding.tvWarn.text=requireContext().getString(R.string.gpsdisabled)
             }
         }
         else

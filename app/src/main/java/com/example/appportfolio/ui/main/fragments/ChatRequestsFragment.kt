@@ -13,6 +13,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.getTodayString
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.ChatRequestsAdapter
@@ -24,6 +25,7 @@ import com.example.appportfolio.data.entities.Chatroom
 import com.example.appportfolio.databinding.FragmentChatrequestsBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
@@ -35,6 +37,8 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     lateinit var api: MainApi
     @Inject
     lateinit var chatrequestsAdapter: ChatRequestsAdapter
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     private lateinit var viewModel: ChatViewModel
     private lateinit var selectedRequest:ChatRequests
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,9 +72,19 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     {
         viewModel.acceptchatResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
-                Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 chatrequestsAdapter.submitList(it.requests)
                 viewModel.setChatRequests(it.requests)
@@ -81,9 +95,19 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         })
         viewModel.refusechatResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError={
-                Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+            },
+            onLoading={
+                loadingDialog.show()
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 chatrequestsAdapter.submitList(it.requests)
             }
@@ -97,10 +121,10 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         val chatcontent=ChatData(null,selectedRequest.organizer,selectedRequest.roomid, getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start","대화가 시작되었습니다",1)
         viewModel.insertChat(chatcontent,0)
         var oldChatlist=viewModel.mychats.value!!
-        var newChatlist:List<Chatroom> = listOf(Chatroom(selectedRequest.organizer,selectedRequest.profileimage,selectedRequest.gender,selectedRequest.nickname,1,selectedRequest.participant,
-            selectedRequest.roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start",
-            "대화가 시작되었습니다",1))+oldChatlist
-        viewModel.setChats(newChatlist)
+        //var newChatlist:List<Chatroom> = listOf(Chatroom(selectedRequest.organizer,selectedRequest.profileimage,selectedRequest.gender,selectedRequest.nickname,1,selectedRequest.participant,
+         //   selectedRequest.roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start",
+          //  "대화가 시작되었습니다",1))+oldChatlist
+        //viewModel.setChats(newChatlist)
     }
     private fun setupRecyclerView()=binding.rvRequests.apply{
         layoutManager= LinearLayoutManager(requireContext())

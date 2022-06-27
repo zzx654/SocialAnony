@@ -17,6 +17,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.SearchRecyclerAdapter
 import com.example.appportfolio.api.build.RetrofitLoc
 import com.example.appportfolio.data.entities.*
@@ -24,6 +25,7 @@ import com.example.appportfolio.databinding.FragmentSearchlocBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.LocationActivity
+import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.LocViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -82,10 +84,6 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         (activity as LocationActivity).binding.title.text="위치 검색"
         super.onResume()
 
-    }
-
-    override fun onStop() {
-        super.onStop()
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item!!.itemId){
@@ -171,7 +169,12 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
             },
             onError={
                 isLoading=false
-                Toast.makeText(requireContext(),it, Toast.LENGTH_SHORT).show()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 var currentlist=searchadapter.currentList.toMutableList()
                 currentlist.removeLast()
                 searchadapter.submitList(currentlist)
@@ -226,5 +229,10 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         searchadapter.currentPage = searchInfo.page.toInt()
 
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        hideKeyboard()
     }
 }

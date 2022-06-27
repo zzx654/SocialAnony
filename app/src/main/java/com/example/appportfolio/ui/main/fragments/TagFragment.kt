@@ -17,7 +17,10 @@ import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
+import com.example.appportfolio.SocialApplication.Companion.showError
 import com.example.appportfolio.adapters.TagAdapter
 import com.example.appportfolio.adapters.TextHeaderAdapter
 import com.example.appportfolio.api.build.MainApi
@@ -91,13 +94,29 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                     vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
                 }
                 var job: Job?=null
+                binding.retry.onSingleClick {
+                    if((activity as MainActivity).isConnected!!)
+                    {
+                        binding.edtTag.isClickable = true
+                        binding.edtTag.isEnabled = true
+                        binding.retry.visibility=View.GONE
+                        binding.containeralert.visibility=View.GONE
+                        if(binding.edtTag.text.toString().trim().isEmpty())
+                            binding.rvFavoritepopular.visibility=View.VISIBLE
+                        else
+                            binding.rvSearchedTag.visibility=View.VISIBLE
+                        loadingDialog.show()
+                        vmTag.getFavoriteTag(mainapi)
+                        vmTag.getPopularTag(mainapi)
+                    }
+                }
                 binding.edtTag.addTextChangedListener { editable ->
                     job?.cancel()
                     job = lifecycleScope.launch {
                         delay(Constants.SEARCH_TIME_DELAY)
 
                         editable?.let {
-                            if (!binding.edtTag.text.toString().trim().isEmpty())
+                            if (binding.edtTag.text.toString().trim().isNotEmpty())
                             {
                                 if(!it.toString().equals("#")) {
                                     var tag=it.toString()
@@ -157,12 +176,36 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
             }
 
         subscribeToObserver()
-        vmTag.getFavoriteTag(mainapi)
-        vmTag.getPopularTag(mainapi)
+        if((activity as MainActivity).isConnected!!)
+        {
+            vmTag.getFavoriteTag(mainapi)
+            vmTag.getPopularTag(mainapi)
+        }
+        else{
+            if(mRootView==null){
+                showwarn(false,null)
+            }
+        }
+
 
 
         return mRootView
 
+    }
+    private fun showwarn(isConnected:Boolean,msg:String?)
+    {
+        var error=requireContext().getString(R.string.networkdisdconnected)
+        msg?.let{
+            if(isConnected)
+                error=it
+        }
+        binding.edtTag.isClickable = false
+        binding.edtTag.isEnabled = false
+        binding.rvSearchedTag.visibility=View.GONE
+        binding.rvFavoritepopular.visibility=View.GONE
+        binding.containeralert.visibility=View.VISIBLE
+        binding.tvWarn.text=error
+        binding.retry.visibility=View.VISIBLE
     }
     fun showToggleDialog(tagname:String,count:Int,isLiked:Int)
     {
@@ -207,6 +250,12 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
             },
             onError = {
                 loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             loadingDialog.dismiss()
@@ -270,8 +319,11 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                       },
             onError = {
                 //snackbar(it)
+                loadingDialog.dismiss()
+                showwarn((activity as MainActivity).isConnected!!,it)
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
                     favoriteTextAdapter.tvContainerVis=true
@@ -293,9 +345,11 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         })
         vmTag.populartagResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
-                snackbar(it)
+                loadingDialog.dismiss()
+                showwarn((activity as MainActivity).isConnected!!,it)
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
                     //binding.linearpopular.visibility = View.GONE
@@ -329,6 +383,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                     searchedAdapter.submitList(it.tags)
                 } else {
                     searchedAdapter.submitList(it.tags)
+                    binding.tvWarn.text="검색결과가 없습니다"
                     binding.containeralert.visibility=View.VISIBLE
                 }
             }

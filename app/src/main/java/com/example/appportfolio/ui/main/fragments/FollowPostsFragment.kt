@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
@@ -43,7 +44,10 @@ class FollowPostsFragment: BasePostFragment(R.layout.fragment_posts) {
     protected val viewModel: followingPostViewModel
         get() = basePostViewModel as followingPostViewModel
 
-
+    override val tvWarn: TextView
+        get() = binding.tvWarn
+    override val retry: TextView
+        get() = binding.retry
     lateinit var binding:FragmentPostsBinding
     private var mRootView:View?=null
     @RequiresApi(Build.VERSION_CODES.M)

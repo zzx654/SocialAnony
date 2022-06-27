@@ -1,5 +1,6 @@
 package com.example.appportfolio.adapters
 
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
@@ -13,8 +14,9 @@ import com.example.appportfolio.data.entities.Block
 import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.databinding.*
 import com.example.appportfolio.other.ChatType
+import java.io.File
 
-class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
+class ChatAdapter(val dir:File): ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         if(viewType==ChatType.LEFT_MESSAGE){
@@ -193,6 +195,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+
         }
     }
     inner class RightImageViewHolder(private val binding: ChatRightImageBinding):

@@ -510,7 +510,13 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             onLoading={
             },
             onError = {
-                snackbar(it)
+                progressDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             if(it.equals("200"))
@@ -559,7 +565,12 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         }
         vmUpload.tagSearchResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
                 binding.progresstag.visibility=View.GONE
             },
             onLoading={

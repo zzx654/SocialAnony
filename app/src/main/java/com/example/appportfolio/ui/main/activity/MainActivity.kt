@@ -19,11 +19,8 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.NavigationUI.setupWithNavController
-import androidx.navigation.ui.setupWithNavController
 import androidx.preference.PreferenceManager
 import com.example.appportfolio.*
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -40,6 +37,7 @@ import com.example.appportfolio.other.Constants.TAG_CHAT
 import com.example.appportfolio.other.Constants.TAG_HOME
 import com.example.appportfolio.other.Constants.TAG_MYPAGE
 import com.example.appportfolio.other.Constants.TAG_NOTI
+import com.example.appportfolio.other.NetworkConnection
 import com.example.appportfolio.ui.auth.activity.AuthActivity
 import com.example.appportfolio.ui.main.fragments.*
 import com.example.appportfolio.ui.main.viewmodel.ChatViewModel
@@ -58,11 +56,12 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    var isConnected:Boolean?=null
     lateinit var sharedPreferences:SharedPreferences
     lateinit var prefEditor:SharedPreferences.Editor
     @Inject
     lateinit var signManager: SignManager
-    lateinit var chatrooms:List<ChatData>
+    lateinit var chatRooms:List<ChatData>
     lateinit var curReceivedChat: ReceivedChat
     lateinit var mSocket: Socket
     private lateinit var vmAuth:AuthViewModel
@@ -74,17 +73,26 @@ class MainActivity : AppCompatActivity() {
     lateinit var authapi: AuthApi
     lateinit var mainapi:MainApi
     lateinit var fcmToken:String
+    private var roomProfiles:MutableList<RoomProfile> = mutableListOf()
     var platform:String?=null
     var account:String?=null
     var token:String?=null
     private val backStack: ArrayDeque<String> = ArrayDeque()
-    lateinit var navHostFragment:NavHostFragment
+    private var getChats: LiveData<List<ChatData>>?=null
     private var gson: Gson = Gson()
-
+    //val connection = NetworkConnection(this)
     private var currentTab:String?=null
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
+        val connection = NetworkConnection(this)
+        connection.observe(this) { isconnected ->
+            if(isConnected==null){
+                changeFragment(TAG_HOME, HomeFragment())
+                backStack.addLast("main")
+            }
+            isConnected=isconnected
+        }
         sharedPreferences=PreferenceManager.getDefaultSharedPreferences(this)
         prefEditor=sharedPreferences.edit()
         binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
@@ -92,12 +100,11 @@ class MainActivity : AppCompatActivity() {
         binding.flFragmentContainer.setPadding(0,0,0,58.dp)
         vmAuth = ViewModelProvider(this).get(AuthViewModel::class.java)
         vmChat = ViewModelProvider(this).get(ChatViewModel::class.java)
-        val preferences= UserPreferences(this)
-        vmNoti=ViewModelProvider(this).get(NotiViewModel::class.java)
 
-            vmAuth.setAccessToken(runBlocking { preferences.authToken.first() })
-        changeFragment(TAG_HOME, HomeFragment())
-        backStack.addLast("main")
+        vmNoti=ViewModelProvider(this).get(NotiViewModel::class.java)
+        setAccessToken()
+
+
         binding.bottomNavigationView.apply{
             setOnItemSelectedListener { item->
                 when(item.itemId)
@@ -118,9 +125,327 @@ class MainActivity : AppCompatActivity() {
                 true
             }
         }
+
         getFirebaseToken()
 
         subscribeToObserver()
+    }
+    fun setAccessToken()
+    {
+        val preferences= UserPreferences(this)
+        vmAuth.setAccessToken(runBlocking { preferences.authToken.first() })
+    }
+    override fun onResume() {
+        super.onResume()
+        if(vmAuth.userid.value!=null)
+        {
+            vmAuth.checkfcmtoken(fcmToken,authapi)
+            checkunreadnoti()
+            vmChat.getchatrequests(mainapi)
+        }
+    }
+    private fun subscribeToObserver() {
+
+        vmChat.getroomProfilesResponse.observe(this,Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            handleResponse(this,it.resultCode){
+
+                getChats?.removeObservers(this)
+                        roomProfiles=it.profiles.toMutableList()
+                    getChats=vmChat.getAllChats()
+                    getChats!!.observe(this){ chatrooms->
+                        chatRooms=chatrooms
+                            var newchatrooms:List<Chatroom> = listOf()
+                            if(chatrooms.isEmpty())
+                                vmChat.setChats(listOf())
+                            else{
+
+                                chatrooms.map{ room->
+                                    val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
+                                    profile?.let{ roomprofile->
+                                        val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
+                                        val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
+                                        val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
+                                            if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
+                                            ismy,room.senderid!!,room.roomid,room.date,
+                                            room.type,room.content,room.isread!!)
+                                        newchatrooms+=chatroom
+                                    }
+                                }
+                                if(chatRooms.isNotEmpty()&&newchatrooms.isEmpty())
+                                    vmChat.getRoomProfiles(mainapi)//프로필목록이 없을시 불러옴
+                                else
+                                    vmChat.setChats(newchatrooms.toList())
+                            }
+                    }
+                }
+        })
+        vmAuth.withdrawalResponse.observe(this,Event.EventObserver(
+            onError = {
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200)
+                {
+                    Intent(this, AuthActivity::class.java).also{
+                        startActivity(it)
+                    }
+                    Toast.makeText(this,"회원 탈퇴되었습니다 그동안 이용해주셔서 감사합니다",Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            }
+
+        })
+        vmChat.getchatrequestsResponse.observe(this,Event.EventObserver(
+        ){
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200)
+                {
+                    vmChat.setChatRequests(it.requests)
+                    curchatrequests=it.requests
+                    showchatbadge()
+                }
+                else
+                {
+                    vmChat.setChatRequests(listOf())
+                    curchatrequests= listOf()
+                }
+            }
+
+        })
+        vmChat.mychatRequests.observe(this){ requests->
+            vmChat.mychats.value?.let{
+                if(!vmChat.mychats.value!!.any { chatroom->
+                        chatroom.isread==0
+                    }){
+                    //안읽은메시지가없다면
+                    if(requests.size==0)
+                        hidechatbadge()
+                    else
+                        showchatbadge()
+                }
+                else{
+                    //안읽은메시지있으면
+                    showchatbadge()
+                }
+            }
+        }
+        vmChat.mychats.observe(this){
+
+            if(vmChat.mychatRequests.value!!.isEmpty())
+            {
+                if(it.any { room-> room.isread==0 })
+                    showchatbadge()
+                else
+                    hidechatbadge()
+            }
+            else
+                showchatbadge()
+
+        }
+        vmAuth.getChatonoffResponse.observe(this,Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200)
+                {
+                    if(it.value==1)
+                        prefEditor.putBoolean("chatonoff",true)
+                    else
+                        prefEditor.putBoolean("chatonoff",false)
+                    prefEditor.commit()
+                }
+                else{
+                    Toast.makeText(this,"서버 오류발생",Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        vmAuth.checkfcmresponse.observe(this,Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            if(it.resultCode==100)
+            {//저장되어있는 fcmtoken이 다른경우 다른 기기 로그인이 되어있는경우
+                logout()
+            }
+        })
+        vmNoti.checkNotiUnreadResponse.observe(this,Event.EventObserver(
+
+            onError={
+                Toast.makeText(this,"알림 요청중 에러발생",Toast.LENGTH_SHORT).show()
+            }
+        ){
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200)
+                    shownotibadge()
+                else
+                    hidenotibadge()
+            }
+        })
+        vmAuth.getUseridResponse.observe(this,Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            vmChat.getRoomProfiles(mainapi)
+            vmChat.getchatrequests(mainapi)
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200)
+                {
+                    vmAuth.setUserid(it.userid)
+                    vmAuth.setPlatform(it.platform)
+                    try{
+                        mSocket= IO.socket("https://socialanony.herokuapp.com")
+                        Log.d("SOCKET", "Connection success : " + mSocket.id());
+
+                    }catch (e: URISyntaxException){
+                        e.printStackTrace();
+                    }
+                    mSocket.connect()
+
+                    mSocket.on(
+                        Socket.EVENT_CONNECT
+                    ) { args: Array<Any?>? ->
+                        mSocket.emit(
+                            "recordsocket",
+                            gson.toJson(MyAccount(it.userid))
+                        )
+
+                        vmChat.getRoomProfiles(mainapi)
+                        vmAuth.checkfcmtoken(fcmToken,authapi)
+                        checkunreadnoti()
+                    }
+                    mSocket.on("updatechatrequest") { args: Array<Any> ->
+                        runOnUiThread {
+                            showchatbadge()
+                        }
+                        var lst:List<ChatRequests> = listOf()
+                        val array=JSONArray(args[0].toString())
+                        for(i in 0 until array.length())
+                        {
+                            val jsonObj=array.getJSONObject(i)
+                            val roomid=jsonObj.optString("roomid")
+                            val organizer=jsonObj.optInt("organizer")
+                            val participant=jsonObj.optInt("participant")
+                            val joined=jsonObj.optInt("joined")
+                            val nickname=jsonObj.optString("nickname")
+                            val gender=jsonObj.optString("gender")
+                            val profileimage=jsonObj.optString("profileimage")
+                            lst+=ChatRequests(roomid,organizer,participant,joined,nickname,gender,profileimage)
+                            vmChat.setChatRequests(lst)
+                        }
+                    }
+                    mSocket.on("updaterooms") { args: Array<Any> ->
+
+                        val chatdata=gson.fromJson(
+                            args[0].toString(),
+                            ReceivedChat::class.java
+                        )
+                        runOnUiThread {
+                            showchatbadge()
+                        }
+
+                            roomProfiles +=RoomProfile(chatdata.roomid,chatdata.senderid,chatdata.profileimage,chatdata.gender,chatdata.nickname)
+                            roomProfiles.find { it.roomid==chatdata.roomid }?.let{ foundprofile->
+                                roomProfiles!! -=foundprofile
+                            }
+                        var newchatrooms:List<Chatroom> = listOf()
+                        chatRooms.map{ room->
+                            val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
+                            profile?.let{ roomprofile->
+                                val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
+                                val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
+                                val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
+                                    if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
+                                    ismy,room.senderid!!,room.roomid,room.date,
+                                    room.type,room.content,room.isread!!)
+                                newchatrooms+=chatroom
+                            }
+                        }
+                        vmChat.setChats(newchatrooms.toList())
+                    }
+                    mSocket.on("updatenoti"){ args:Array<Any> ->
+                        val notidata=gson.fromJson(
+                            args[0].toString(),
+                            Noti::class.java
+                        )
+                        vmNoti.curnotis.value?.let{
+                            var templist=it
+                            val newnoti=listOf(notidata)
+                            templist=newnoti+templist
+                            vmNoti.setNotis(templist)
+
+                        }
+                        runOnUiThread{
+                            shownotibadge()
+                        }
+                    }
+                    mSocket.on("logout"){ args:Array<Any> ->
+                        logout(false)
+                    }
+                    vmAuth.getChatonoff(authapi)
+                }
+            }
+        })
+        vmAuth.accessToken.observe(this) { accesstoken ->
+            token = accesstoken
+            authapi = RemoteDataSource().buildApi(AuthApi::class.java, token)
+            mainapi=RemoteDataSource().buildApi(MainApi::class.java, token)
+            vmAuth.getUserid(authapi)
+        }
+        vmAuth.logoutResponse.observe(this, Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            },
+            onLoading = {
+            }
+        ){
+            handleResponse(this,it.resultCode){
+                if(it.resultCode==200){
+                    Intent(this, AuthActivity::class.java).also{
+                        startActivity(it)
+                    }
+                    finish()
+                }
+            }
+        })
+    }
+    fun updatechatroom(chatdata:ChatData,profileimage:String,gender:String,nickname:String,isread:Int,opponentid:Int)
+    {
+        var oldChatlist= vmChat.mychats.value!!
+        var newChatlist:List<Chatroom>
+        val ismy=if(chatdata.senderid==vmAuth.userid.value!!)1 else 0
+        val foundchat=oldChatlist.find{chatroom-> chatroom.roomid.equals(chatdata.roomid)}
+        if(foundchat==null)
+        {
+            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
+                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
+                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
+        }
+        else
+        {
+            oldChatlist-=foundchat
+            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
+                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
+                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
+        }
+        vmChat.setChats(newChatlist)
+    }
+    fun deleteroom(roomid:String)
+    {
+        var Chatlist=vmChat.mychats.value!!
+        val foundchat=Chatlist.find{chatroom-> chatroom.roomid.equals(roomid)}
+        foundchat?.let{
+            Chatlist-=it
+        }
+        vmChat.setChats(Chatlist)
     }
     fun setupTopBottom()
     {
@@ -256,10 +581,6 @@ class MainActivity : AppCompatActivity() {
          ft.commitNow()
         currentTab=tag
     }
-    fun getgooglemail():String?
-    {
-        return signManager.getGoogleMail()
-    }
     fun getmyprofile()
     {
         vmAuth.getmyprofile(authapi)
@@ -309,353 +630,13 @@ class MainActivity : AppCompatActivity() {
         vmAuth.togglechat(toggleparam,authapi)
     }
 
-    override fun onResume() {
-        super.onResume()
-        if(vmAuth.userid.value!=null&&mainapi!=null)
-        {
-            vmAuth.checkfcmtoken(fcmToken,authapi)
-            checkunreadnoti()
-            val getchats=vmChat.getAllChats()
-            getchats.observe(this){
-                chatrooms=it
 
-                if(it.isEmpty())
-                {
-                    vmChat.setChats(listOf())
-                    vmChat.getchatrequests(mainapi)
-                }
-                else{
-                    vmChat.getRoomProfiles(mainapi)
-                }
-                getchats.removeObservers(this)
-            }
-        }
-    }
     val Int.dp:Int
         get() {
             val metrics=resources.displayMetrics
             return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,this.toFloat(),metrics).toInt()
         }
-    private fun subscribeToObserver() {
-        vmChat.mychats.observe(this){
 
-            if(vmChat.mychatRequests.value!!.isEmpty())
-            {
-                if(it.any { room-> room.isread==0 })
-                    showchatbadge()
-                else
-                    hidechatbadge()
-            }
-        }
-        vmChat.getroomProfilesResponse.observe(this,Event.EventObserver(
-            onError={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    var newchatrooms:List<Chatroom> = listOf()
-                    val profiles=it.profiles
-
-                    for(i in chatrooms.indices)
-                    {
-                        val profile=profiles.find{ profile-> profile.roomid.equals(chatrooms[i].roomid)}
-                        profile?.let{
-                            val profileimage=if(profile!!.profileimage==null) "none" else profile!!.profileimage
-                            val ismy=if(chatrooms[i].senderid==vmAuth.userid.value!!)1 else 0
-                            val chatroom=Chatroom(profile!!.userid,profileimage,profile!!.gender,profile!!.nickname,
-                                ismy,chatrooms[i].senderid!!,chatrooms[i].roomid,chatrooms[i].date,
-                                chatrooms[i].type,chatrooms[i].content,chatrooms[i].isread!!)
-                            newchatrooms+=chatroom
-                        }
-
-                    }
-                    if(chatrooms.any{ data->
-                            data.isread==0&&data.senderid!=vmAuth.userid.value!!
-                        }){
-                        showchatbadge()
-                    }
-                    vmChat.setChats(newchatrooms.toList())
-                    vmChat.getchatrequests(mainapi)
-                }
-            }
-
-        })
-        vmAuth.userid.observe(this){
-        }
-        vmAuth.withdrawalResponse.observe(this,Event.EventObserver(
-            onError = {
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    Intent(this, AuthActivity::class.java).also{
-                        startActivity(it)
-                    }
-                    Toast.makeText(this,"회원 탈퇴되었습니다 그동안 이용해주셔서 감사합니다",Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            }
-
-        })
-        vmChat.getchatlistsResponse.observe(this,Event.EventObserver(
-            onError = {
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    vmChat.setChats(it.rooms)
-                    if(curchatrequests.size==0)
-                    {
-                        if(it.rooms.any{room->
-                                room.ismy==0&&room.isread==0
-                            })
-                            showchatbadge()
-                        else
-                            hidechatbadge()
-                    }
-                }
-                else
-                {
-                    vmChat.setChats(listOf())
-                }
-            }
-
-        })
-        vmChat.getchatrequestsResponse.observe(this,Event.EventObserver(
-            onError ={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    vmChat.setChatRequests(it.requests)
-                    curchatrequests=it.requests
-                    showchatbadge()
-                }
-                else
-                {
-                    vmChat.setChatRequests(listOf())
-                    curchatrequests= listOf()
-                }
-            }
-
-        })
-        vmChat.mychatRequests.observe(this){ requests->
-            vmChat.mychats.value?.let{
-                var unreadexist=false
-                if(!vmChat.mychats.value!!.any { chatroom->
-                    chatroom.isread==0
-                }){
-                    if(requests.size==0)
-                        hidechatbadge()
-                    else
-                        showchatbadge()
-                }
-            }
-        }
-        vmAuth.getChatonoffResponse.observe(this,Event.EventObserver(
-            onError={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    if(it.value==1)
-                        prefEditor.putBoolean("chatonoff",true)
-                    else
-                        prefEditor.putBoolean("chatonoff",false)
-                    prefEditor.commit()
-                }
-                else{
-                    Toast.makeText(this,"서버 오류발생",Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
-        vmAuth.checkfcmresponse.observe(this,Event.EventObserver(
-            onError={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            if(it.resultCode==100)
-            {//저장되어있는 fcmtoken이 다른경우 다른 기기 로그인이 되어있는경우
-                logout()
-            }
-        })
-        vmNoti.checkNotiUnreadResponse.observe(this,Event.EventObserver(
-
-            onError={
-                Toast.makeText(this,"알림 요청중 에러발생",Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                    shownotibadge()
-                else
-                    hidenotibadge()
-                val getchats=vmChat.getAllChats()
-                getchats.observe(this){
-                    chatrooms=it
-                    if(it.isEmpty())
-                    {
-                        vmChat.setChats(listOf())
-                        vmChat.getchatrequests(mainapi)
-                    }
-                    else{
-                        vmChat.getRoomProfiles(mainapi)
-                    }
-                    getchats.removeObservers(this)
-                }
-            }
-        })
-        vmAuth.getUseridResponse.observe(this,Event.EventObserver(
-            onError={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200)
-                {
-                    vmAuth.setUserid(it.userid)
-                    vmAuth.setPlatform(it.platform)
-                    try{
-                        mSocket= IO.socket("https://socialanony.herokuapp.com")
-                        Log.d("SOCKET", "Connection success : " + mSocket.id());
-
-                    }catch (e: URISyntaxException){
-                        e.printStackTrace();
-                    }
-                    mSocket.connect()
-
-                    mSocket.on(
-                        Socket.EVENT_CONNECT
-                    ) { args: Array<Any?>? ->
-                        mSocket.emit(
-                            "recordsocket",
-                            gson.toJson(MyAccount(it.userid))
-                        )
-                        vmAuth.checkfcmtoken(fcmToken,authapi)
-                        checkunreadnoti()
-                    }
-                    mSocket.on("updatechatrequest") { args: Array<Any> ->
-                        runOnUiThread {
-                            showchatbadge()
-                        }
-                        var lst:List<ChatRequests> = listOf()
-                        val array=JSONArray(args[0].toString())
-                        for(i in 0 until array.length())
-                        {
-                            val jsonObj=array.getJSONObject(i)
-                            val roomid=jsonObj.optString("roomid")
-                            val organizer=jsonObj.optInt("organizer")
-                            val participant=jsonObj.optInt("participant")
-                            val joined=jsonObj.optInt("joined")
-                            val nickname=jsonObj.optString("nickname")
-                            val gender=jsonObj.optString("gender")
-                            val profileimage=jsonObj.optString("profileimage")
-                            lst+=ChatRequests(roomid,organizer,participant,joined,nickname,gender,profileimage)
-                            vmChat.setChatRequests(lst)
-                        }
-                    }
-                    mSocket.on("updaterooms") { args: Array<Any> ->
-
-                        val chatdata=gson.fromJson(
-                            args[0].toString(),
-                            ReceivedChat::class.java
-                        )
-                        runOnUiThread {
-                            showchatbadge()
-                        }
-                        curReceivedChat=chatdata
-                        val chatcontent=ChatData(null,curReceivedChat.senderid,curReceivedChat.roomid,curReceivedChat.date,curReceivedChat.type,curReceivedChat.content,0)
-                        vmChat.insertChat(chatcontent,curReceivedChat.dateChanged)
-                        updatechatroom(chatcontent,
-                            chatdata.profileimage ?: "none",chatdata.gender,chatdata.nickname,0,chatdata.senderid)
-                    }
-                    mSocket.on("updatenoti"){ args:Array<Any> ->
-                        val notidata=gson.fromJson(
-                            args[0].toString(),
-                            Noti::class.java
-                        )
-                        vmNoti.curnotis.value?.let{
-                            var templist=it
-                            val newnoti=listOf(notidata)
-                            templist=newnoti+templist
-                            vmNoti.setNotis(templist)
-
-                        }
-                         runOnUiThread{
-                            shownotibadge()
-                        }
-                    }
-                    mSocket.on("logout"){ args:Array<Any> ->
-                        logout(false)
-                    }
-                    vmAuth.getChatonoff(authapi)
-                }
-            }
-        })
-        vmAuth.accessToken.observe(this) { accesstoken ->
-            token = accesstoken
-            authapi = RemoteDataSource().buildApi(AuthApi::class.java, token)
-            mainapi=RemoteDataSource().buildApi(MainApi::class.java, token)
-
-            vmAuth.getUserid(authapi)
-        }
-        vmAuth.logoutResponse.observe(this, Event.EventObserver(
-            onError={
-                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
-            },
-            onLoading = {
-            }
-        ){
-            handleResponse(this,it.resultCode){
-                if(it.resultCode==200){
-                    Intent(this, AuthActivity::class.java).also{
-                        startActivity(it)
-                    }
-                    finish()
-                }
-            }
-        })
-    }
-    fun updatechatroom(chatdata:ChatData,profileimage:String,gender:String,nickname:String,isread:Int,opponentid:Int)
-    {
-        var oldChatlist= vmChat.mychats.value!!
-        var newChatlist:List<Chatroom>
-        val ismy=if(chatdata.senderid==vmAuth.userid.value!!)1 else 0
-        val foundchat=oldChatlist.find{chatroom-> chatroom.roomid.equals(chatdata.roomid)}
-        if(foundchat==null)
-        {
-            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
-                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
-                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
-        }
-        else
-        {
-            oldChatlist-=foundchat
-            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
-                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
-                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
-        }
-        vmChat.setChats(newChatlist)
-    }
-    fun deleteroom(roomid:String)
-    {
-        var Chatlist=vmChat.mychats.value!!
-        val foundchat=Chatlist.find{chatroom-> chatroom.roomid.equals(roomid)}
-        foundchat?.let{
-            Chatlist-=it
-        }
-        vmChat.setChats(Chatlist)
-    }
     override fun onBackPressed() {
     }
     fun withdrawal()

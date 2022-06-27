@@ -11,14 +11,17 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
+import com.example.appportfolio.databinding.DialogInteractionBindingImpl
 import com.example.appportfolio.databinding.FragmentChangepwBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -31,6 +34,8 @@ class SetPasswordFragment:Fragment(R.layout.fragment_changepw) {
     lateinit var binding: FragmentChangepwBinding
     @Inject
     lateinit var preferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog:LoadingDialog
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -70,7 +75,20 @@ class SetPasswordFragment:Fragment(R.layout.fragment_changepw) {
     {
         viewModel.changepasswordResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
+            onError={
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+            },
+            onLoading={
+                loadingDialog.show()
+            }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     Toast.makeText(requireContext(), "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show()

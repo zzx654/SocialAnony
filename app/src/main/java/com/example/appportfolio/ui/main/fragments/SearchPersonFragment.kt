@@ -40,6 +40,8 @@ class SearchPersonFragment: BasePersonFragment(R.layout.fragment_searchperson) {
         get() = binding.edtNick
     override val loadfirstprogress: ProgressBar
         get() = binding.firstloadprogress
+    override val rootView: View
+        get() = binding.root
     protected val viewModel: SearchPersonViewModel
         get() = basePersonViewModel as SearchPersonViewModel
     override fun onCreateView(

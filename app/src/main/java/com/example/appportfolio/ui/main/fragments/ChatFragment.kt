@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.datetostr
 import com.example.appportfolio.SocialApplication.Companion.getTodayString
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -51,18 +52,18 @@ import com.example.appportfolio.data.entities.*
 import com.example.appportfolio.databinding.FragmentChatBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Keyboard
+import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.LocationActivity
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.ChatViewModel
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -87,15 +88,18 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private var userprofileimage:String?="none"
     private var usernickname:String=""
     private var usergender:String=""
-private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+    private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
     lateinit var api: MainApi
     private var beforechatsSize=0
     private var lastFirstVisiblePosition:Int=0
     private var prescrollbottom=false
     private  var opponentid:Int=0
+    private var snackbar: Snackbar?=null
     private var curChatContents:List<ChatData> = listOf()
     @Inject
     lateinit var userPreferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog:LoadingDialog
     private val roomid:String
         get(){
             return arguments?.getString("roomid","")!!
@@ -169,7 +173,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                 m_imageFile?.let{ file->
                     if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         val source = ImageDecoder.createSource(activity?.contentResolver!!, Uri.fromFile(file))
-                        ImageDecoder.decodeBitmap(source)?.let {
+                        ImageDecoder.decodeBitmap(source).let {
                             bmap=it
                         }
                     }else{
@@ -237,7 +241,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                 }
             }
         }
-        chatAdapter=ChatAdapter()
+        chatAdapter=ChatAdapter(requireActivity().cacheDir)
         chatAdapter.registerAdapterDataObserver(adapterDataObserver)
         chatAdapter.setMyId(vmAuth.userid.value!!)
         chatAdapter.setOnImageClickListener {
@@ -254,7 +258,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     (activity as MainActivity).replaceFragment("imageFragment",ImageFragment(),bundle)
                 }
             }
-
         }
         chatAdapter.setOnLocationClickListener {
             val token=it.content.split('&')
@@ -273,49 +276,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
         }catch(e: Exception){
             e.printStackTrace();
             Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
-        }
-
-        activity?.let{
-            (it as MainActivity).mSocket.on("update"){ args: Array<Any> ->
-                var data = gson.fromJson(
-                    args[0].toString(),
-                    MessageData::class.java
-                )
-                if(!scrollbottom)
-                    previewMessage(data)
-                if(data.profileimage==null)
-                    data.profileimage="none"
-                var chatroomlist=vmChat.mychats.value!!
-                for(i in chatroomlist.indices)
-                {
-                    if(chatroomlist[i].roomid==roomid)
-                    {
-                        chatroomlist[i].isread=1
-                        chatroomlist[i].profileimage=if(data.type.equals("EXIT"))"none" else data.profileimage
-                        chatroomlist[i].nickname=if(data.type.equals("EXIT")) "대화상대없음" else data.nickname
-                    }
-                }
-                vmChat.setChats(chatroomlist)
-                data.nickname=usernickname
-                data.profileimage=userprofileimage
-                updatechat(data)
-                vmChat.readChats(roomid)
-            }
-            (it as MainActivity).mSocket.on("getuploadedimg"){ args: Array<Any> ->
-                var data= gson.fromJson(
-                    args[0].toString(),
-                    UploadedImg::class.java
-                )
-                if(data.resultCode==200)
-                {
-                    activity?.runOnUiThread {
-                        if(!binding.edtText.text.toString().equals(""))
-                            binding.sendcomment.visibility=View.VISIBLE
-                        binding.postcommentprogress.visibility=View.GONE
-                    }
-                    sendContent(data.ImageUrl,"IMAGE")
-                }
-            }
         }
     }
     private fun previewMessage(data:MessageData)
@@ -361,7 +321,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                 inflater,
                 R.layout.fragment_chat, container, false
             )
-
             opponentid = arguments?.getInt("userid", 0)!!
 
             val firstChatLoad = vmChat.loadchatContents(roomid)
@@ -376,17 +335,8 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                         oppoid = it.senderid!!
                     }
                 }
-                var templist = vmChat.mychats.value!!
-                for (i in templist.indices) {
-                    if (templist[i].roomid == roomid) {
-                        templist[i].isread = 1
-                        break
-                    }
-                }
-                vmChat.setChats(templist)
-                vmChat.readChats(roomid)
+                vmChat.readChats(roomid)//읽음
                 vmChat.getuserprofile(oppoid, api)
-
                 firstChatLoad.removeObservers(viewLifecycleOwner)
             }
             setupRecyclerView()
@@ -510,15 +460,13 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
             }
             opponentid=0
         }
-        var dateChanged:Boolean=false
-        val chatlistSize=chatAdapter.currentList.size
+        var dateChanged=false
         var templst=chatAdapter.currentList.toList()
-        var maxchatid=1
-        if(chatlistSize!==0)
+        var maxchatid=0
+        if(chatAdapter.currentList.isNotEmpty())
         {
-            dateChanged=isDateChanged(templst[chatlistSize-1].date)
-            maxchatid=templst[0].num!!
-
+            dateChanged=isDateChanged(chatAdapter.currentList.last().date)
+            maxchatid=chatAdapter.currentList.last().num!!
         }
         if (dateChanged) {
             templst+=
@@ -576,18 +524,12 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
     }
     private fun sendContent(content:String,Type:String){
         var dateChanged:Boolean=false
-        val chatlistSize=chatAdapter.currentList.size
         var templst=chatAdapter.currentList.toList()
-        var maxchatid=1
-        if(templst.isNotEmpty())
+        var maxchatid=0
+        if(chatAdapter.currentList.isNotEmpty())
         {
-            maxchatid=templst[0].num!!
-
-        }
-
-        if(chatlistSize!==0)
-        {
-            dateChanged=isDateChanged(templst[chatlistSize-1].date)
+            maxchatid=chatAdapter.currentList.last().num!!
+            dateChanged=isDateChanged(chatAdapter.currentList.last().date)
         }
         val sendData= SendData(
             roomid,
@@ -669,8 +611,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
     }
     private fun uploadImage(imageUri: Uri, context: Context)
     {
-        binding.sendcomment.visibility=View.GONE
-        binding.postcommentprogress.visibility=View.VISIBLE
         var requestImage:MultipartBody.Part
         val file= File(getRealPathFromURI(imageUri,context))
         val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
@@ -785,7 +725,7 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                 bundle.putParcelable("chatimages",ChatImages(null))
             else
                 bundle.putParcelable("chatimages",ChatImages(images))
-            (activity as MainActivity).replaceFragment("chatContentsFragment",ChatContentsFragment(),bundle)
+            //(activity as MainActivity).replaceFragment("chatContentsFragment",ChatContentsFragment(),bundle)
             loadimgs.removeObservers(viewLifecycleOwner)
         }
     }
@@ -876,24 +816,47 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                     exitroom()
                 }
             }
-
         })
         vmChat.uploadimgResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError = {
-                if(!binding.edtText.text.toString().equals(""))
-                    binding.sendcomment.visibility=View.VISIBLE
-                binding.postcommentprogress.visibility=View.GONE
-                Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200)
-                    it.imageUri
+                {
+                    sendContent(it.imageUri,"IMAGE")
+                }
             }
 
         })
         vmChat.getprofileResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+                loadingDialog.show()
+            },
+            onError = {
+                loadingDialog.dismiss()
+                var error:String
+                if(!(activity as MainActivity).isConnected!!)
+                    error= requireContext().getString(R.string.networkdisdconnected)
+                else
+                    error=it
+                snackbar=snackbar(error+"\n잠시후에 다시 시도해주세요",true,"다시시도"){
+                    vmChat.getuserprofile(opponentid,api)
+                }
+            }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     if (it.account == null) { //상대방이 탈퇴한상황
@@ -923,7 +886,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                             usergender,
                             userprofileimage
                         )
-
                     }
                     val oldchats = chatAdapter.currentList
 
@@ -932,6 +894,16 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
                             setchatcontents(chatlist.reversed(), true)
                         else
                             setchatcontents(chatlist.reversed() + oldchats, false)
+                    }
+                    vmChat.getAddedChats(roomid).observe(viewLifecycleOwner){
+                        if(it.isread==0&&it.senderid!=vmAuth.userid.value!!&&it.type!="DATE")
+                        {
+                            val data=MessageData(it.id,it.senderid,it.date,it.type,it.content,1,usernickname,usergender,userprofileimage)
+                            if(!scrollbottom)
+                                previewMessage(data)
+                            updatechat(data)
+                            vmChat.readChats(roomid)
+                        }
                     }
                 }
             }
@@ -1007,7 +979,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
         val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val imageFileName = "PHOTO_${timeStamp}.jpg"
         val storageDir=activity?.cacheDir
-        val file=File(storageDir,imageFileName)
         return File(storageDir, imageFileName)
     }
     override fun onStop() {
@@ -1024,5 +995,6 @@ private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Man
         (activity as MainActivity).mSocket.off("update")
         (activity as MainActivity).mSocket.off("getuploadedimg")
         (activity as MainActivity).setupTopBottom()
+        snackbar?.dismiss()
     }
 }

@@ -265,7 +265,7 @@ class RecordService:LifecycleService() {
     fun updateWavHeader(wav: File) {
         val sizes = ByteBuffer
             .allocate(8)
-            .order(ByteOrder.LITTLE_ENDIAN) // 아마 이 두 개를 계산할 때 좀 더 좋은 방법이 있을거라 생각하지만..
+            .order(ByteOrder.LITTLE_ENDIAN)
             .putInt(((wav.length() - 8) ).toInt()) // ChunkSize
             .putInt(((wav.length() - 44)).toInt()) // Chunk Size
             .array()
@@ -279,7 +279,6 @@ class RecordService:LifecycleService() {
             accessWave.seek(40) // 40바이트 지점으로 가서
             accessWave.write(sizes, 4, 4) // 채움
         } catch (ex: IOException) {
-            // 예외를 다시 던지나, finally 에서 닫을 수 있음
             throw ex
         } finally {
             if (accessWave != null) {
@@ -304,7 +303,7 @@ class RecordService:LifecycleService() {
         out.write(
             byteArrayOf(
                 'R'.toByte(), 'I'.toByte(), 'F'.toByte(), 'F'.toByte(),  // Chunk ID
-                0, 0, 0, 0,  // Chunk Size (나중에 업데이트 될것)
+                0, 0, 0, 0,
                 'W'.toByte(), 'A'.toByte(), 'V'.toByte(), 'E'.toByte(),  // Format
                 'f'.toByte(), 'm'.toByte(), 't'.toByte(), ' '.toByte(),  //Chunk ID
                 16, 0, 0, 0,  // Chunk Size

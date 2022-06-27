@@ -79,9 +79,6 @@ object MainModule {
     @ActivityScoped
     fun providePostAdapter()= PostAdapter()
 
-    @Provides
-    @ActivityScoped
-    fun provideChatAdapter()= ChatAdapter()
 
 
     @Provides

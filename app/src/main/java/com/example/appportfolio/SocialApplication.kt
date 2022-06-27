@@ -5,28 +5,36 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
 import android.os.Environment
+import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.accessibility.AccessibilityEventCompat.setAction
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.example.appportfolio.data.entities.LocationLatLngEntity
 import com.example.appportfolio.other.AppLifecycleManager
 import com.example.appportfolio.other.OnSingleClickListener
 import com.example.appportfolio.ui.auth.activity.AuthActivity
+import com.example.appportfolio.ui.main.activity.MainActivity
+import com.google.android.material.snackbar.Snackbar
 import com.kakao.sdk.common.KakaoSdk
 import dagger.hilt.android.HiltAndroidApp
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 @HiltAndroidApp
 class SocialApplication: Application() {
@@ -159,6 +167,22 @@ class SocialApplication: Application() {
             return date
 
         }
+        fun showError(view:View,context: Context,isConnected:Boolean,msg:String,actiontext:String?="확인",action:(() -> Unit)?=null){
+            var error=""
+            if(!isConnected)
+                error= context.getString(R.string.networkdisdconnected)
+            else
+                error=msg+"\n 잠시후 다시 시도해주세요"
+            Snackbar.make(view,error,Snackbar.LENGTH_INDEFINITE).apply {
+                setAction(actiontext){
+                    action?.let{  act->
+                        act()
+                    }
+                }
+                show()
+            }
+        }
+
     }
 
 }
