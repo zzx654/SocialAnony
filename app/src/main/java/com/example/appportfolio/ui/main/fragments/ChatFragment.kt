@@ -91,6 +91,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
     lateinit var api: MainApi
     private var beforechatsSize=0
+    private var blockingid:Int?=null
     private var lastFirstVisiblePosition:Int=0
     private var prescrollbottom=false
     private  var opponentid:Int=0
@@ -743,6 +744,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             dialog.cancel()
         }
         positive.setOnClickListener {
+            blockingid=opponentid
             vmChat.blockchatuser(false,opponentid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
 
             dialog.dismiss()
@@ -805,13 +807,26 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private fun subsribeToObserver()
     {
         vmChat.blockuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
-                Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==300)
                 {
+                    blockingid?.let{
+                        (activity as MainActivity).deleteBlockedcChatUser(it)
+                    }
                     Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
                     exitroom()
                 }

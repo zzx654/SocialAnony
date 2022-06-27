@@ -57,6 +57,7 @@ abstract class BaseCommentFragment (layoutId:Int
     lateinit var vmAuth: AuthViewModel
     lateinit var postcontents:Post
     protected var addtolast=true
+    protected var blockingid:Int?=null
     protected abstract val baseCommentViewModel: BaseCommentViewModel
     protected abstract val commentAdapter: CommentAdapter
     protected abstract val postAdapter:PostDetailsAdapter?
@@ -416,6 +417,9 @@ abstract class BaseCommentFragment (layoutId:Int
             }
         ){
             loadingDialog.dismiss()
+            blockingid?.let{
+                (activity as MainActivity).deleteBlockedcChatUser(it)
+            }
             handleResponse(requireContext(),it.resultCode){
                 Toast.makeText(requireContext(),"차단이 완료되었습니다",Toast.LENGTH_SHORT).show()
                 if(it.resultCode==300)

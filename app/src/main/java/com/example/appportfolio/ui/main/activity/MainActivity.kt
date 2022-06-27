@@ -135,6 +135,15 @@ class MainActivity : AppCompatActivity() {
         val preferences= UserPreferences(this)
         vmAuth.setAccessToken(runBlocking { preferences.authToken.first() })
     }
+    fun deleteBlockedcChatUser(userid:Int){
+        roomProfiles.find{profile-> profile.userid==userid}?.let{
+            roomProfiles-=it
+            chatRooms.find{ room-> it.roomid==room.roomid}?.let{ chatdata->
+                vmChat.deleteroom(chatdata.roomid)
+            }
+        }
+
+    }
     override fun onResume() {
         super.onResume()
         if(vmAuth.userid.value!=null)
@@ -143,6 +152,25 @@ class MainActivity : AppCompatActivity() {
             checkunreadnoti()
             vmChat.getchatrequests(mainapi)
         }
+    }
+    private fun setChatRooms(){
+        var newchatrooms:List<Chatroom> = listOf()
+        chatRooms.map{ room->
+            val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
+            profile?.let{ roomprofile->
+                val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
+                val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
+                val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
+                    if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
+                    ismy,room.senderid!!,room.roomid,room.date,
+                    room.type,room.content,room.isread!!)
+                newchatrooms+=chatroom
+            }
+        }
+        if(chatRooms.isNotEmpty()&&newchatrooms.isEmpty())
+            vmChat.getRoomProfiles(mainapi)//프로필목록이 없을시 불러옴
+        else
+            vmChat.setChats(newchatrooms.toList())
     }
     private fun subscribeToObserver() {
 
@@ -162,8 +190,8 @@ class MainActivity : AppCompatActivity() {
                             if(chatrooms.isEmpty())
                                 vmChat.setChats(listOf())
                             else{
-
-                                chatrooms.map{ room->
+                                setChatRooms()
+                                /**chatrooms.map{ room->
                                     val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
                                     profile?.let{ roomprofile->
                                         val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
@@ -178,7 +206,7 @@ class MainActivity : AppCompatActivity() {
                                 if(chatRooms.isNotEmpty()&&newchatrooms.isEmpty())
                                     vmChat.getRoomProfiles(mainapi)//프로필목록이 없을시 불러옴
                                 else
-                                    vmChat.setChats(newchatrooms.toList())
+                                    vmChat.setChats(newchatrooms.toList())**/
                             }
                     }
                 }
@@ -356,7 +384,8 @@ class MainActivity : AppCompatActivity() {
                             roomProfiles.find { it.roomid==chatdata.roomid }?.let{ foundprofile->
                                 roomProfiles!! -=foundprofile
                             }
-                        var newchatrooms:List<Chatroom> = listOf()
+                        setChatRooms()
+                        /**var newchatrooms:List<Chatroom> = listOf()
                         chatRooms.map{ room->
                             val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
                             profile?.let{ roomprofile->
@@ -369,7 +398,7 @@ class MainActivity : AppCompatActivity() {
                                 newchatrooms+=chatroom
                             }
                         }
-                        vmChat.setChats(newchatrooms.toList())
+                        vmChat.setChats(newchatrooms.toList())**/
                     }
                     mSocket.on("updatenoti"){ args:Array<Any> ->
                         val notidata=gson.fromJson(

@@ -16,6 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.BlockAdapter
 import com.example.appportfolio.api.build.MainApi
@@ -26,7 +27,9 @@ import com.example.appportfolio.databinding.FragmentBlockBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BlockViewModel
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -39,10 +42,13 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     lateinit var blockAdapter: BlockAdapter
     @Inject
     lateinit var preferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog:LoadingDialog
     lateinit var vmAuth: AuthViewModel
     lateinit var api: MainApi
     var curBlock:Block?=null
     private val vmBlock:BlockViewModel by viewModels()
+    private var snackbar: Snackbar?=null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -119,10 +125,22 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     {
         vmBlock.getBlockResponse.observe(viewLifecycleOwner, Event.EventObserver(
 
+            onLoading={
+              loadingDialog.show()
+            },
             onError={
-                snackbar(it)
+                loadingDialog.dismiss()
+                var error:String
+                if(!(activity as MainActivity).isConnected!!)
+                    error= requireContext().getString(R.string.networkdisdconnected)
+                else
+                    error=it
+                snackbar=snackbar(error+"\n잠시후에 다시 시도해주세요",true,"다시시도"){
+                    vmBlock.getBlocks(api)
+                }
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==400)
                 {
@@ -133,15 +151,23 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                     blockAdapter.submitList(it.blocks)
                 }
             }
-
-
         })
         vmBlock.deleteBlockResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
+            onLoading={
+              loadingDialog.show()
+            },
             onError = {
-                snackbar(it)
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it,
+                )
             }
         ){
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==400)
                 {
@@ -157,6 +183,8 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     }
     override fun onDestroy() {
         super.onDestroy()
+        snackbar?.dismiss()
         (activity as MainActivity).setupTopBottom()
     }
+
 }

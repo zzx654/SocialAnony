@@ -329,14 +329,15 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     }
     override fun blockcommentuser(selectedComment: Comment) {
         var anonymous:Boolean=false
-        anonymous= selectedComment.anonymous!=null
+        anonymous= selectedComment.anonymous!=""
+        blockingid=selectedComment.userid
         vmInteract.blockcommentuser(anonymous,selectedComment.userid,selectedComment.platform==post.platform&&selectedComment.account==post.account,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
     }
 
     override fun blockpostuser() {
         var anonymous:Boolean=false
-        anonymous= post.anonymous!=null
-
+        anonymous= post.anonymous!=""
+        blockingid=post.userid
         vmInteract.blockpostuser(anonymous,post.userid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
     }
 

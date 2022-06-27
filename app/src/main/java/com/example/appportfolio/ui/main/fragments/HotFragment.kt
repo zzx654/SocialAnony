@@ -165,7 +165,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
     {
         hotPersonViewModel.checkuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError ={
-                //snackbar(it)
                 SocialApplication.showError(
                     binding.root,
                     requireContext(),
@@ -230,41 +229,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
         }
     })
-        vmHotContents.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
-            onLoading={
-                loadingDialog.show()
-            },
-            onError={
-
-                SocialApplication.showError(
-                    binding.root,
-                    requireContext(),
-                    (activity as MainActivity).isConnected!!,
-                    it
-                )
-
-                loadingDialog.dismiss()
-
-            }
-        ){
-            loadingDialog.dismiss()
-            SocialApplication.handleResponse(requireContext(), it.resultCode) {
-                when (it.resultCode) {
-                    100 -> Toast.makeText(requireActivity(), "삭제된 게시물입니다", Toast.LENGTH_SHORT)
-                        .show()
-                    400 -> Toast.makeText(
-                        requireActivity(),
-                        "차단당하거나 차단한 유저의 게시물입니다",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    else -> {
-                        val bundle=Bundle()
-                        bundle.putParcelable("post",it.posts[0])
-                        (activity as MainActivity).replaceFragment("postFragment",PostFragment(),bundle)
-                    }
-                }
-            }
-        })
         hotPersonViewModel.gethotUsersResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
                 loadingDialog.dismiss()
@@ -286,7 +250,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     }
                     else-> {
                         binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -299,10 +263,11 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
         ){
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmHotContents.getHotAudio(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                 when(it.resultCode)
                 {
                     200->{
-                        vmHotContents.getHotAudio(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                        //vmHotContents.getHotAudio(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                         hotImagesHeaderAdapter.loadmoreVis=true
                         hotImagesHeaderAdapter.setloadmoreClickListener {
                             val bundle=Bundle()
@@ -313,7 +278,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     }
                     else->{
                         binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -328,21 +293,23 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
         ){
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmHotContents.getHotVotes(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                 when(it.resultCode)
                 {
+
                     200->{
-                        vmHotContents.getHotVotes(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                        //vmHotContents.getHotVotes(null,null,gpsTracker.latitude,gpsTracker.longitude,api)
                         hotAudioHeaderAdapter.loadmoreVis=true
                         hotAudioHeaderAdapter.setloadmoreClickListener {
                             val bundle=Bundle()
                             bundle.putInt("contenttype", AUDIOCONTENT)
-                            (activity as MainActivity).replaceFragment("hotContentssFragment",HotContentsFragment(),bundle)
+                            (activity as MainActivity).replaceFragment("hotContentsFragment",HotContentsFragment(),bundle)
                         }
                         hotAudioAdapter.submitList(it.posts)
                     }
                     else->{
                         binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -357,10 +324,11 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
         ){
 
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                vmHotPosts.getHotPosts(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
                 when(it.resultCode)
                 {
                     200->{
-                        vmHotPosts.getHotPosts(null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+
                         hotVoteHeaderAdapter.loadmoreVis=true
                         hotVoteHeaderAdapter.setloadmoreClickListener {
                             val bundle=Bundle()
@@ -373,7 +341,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     }
                     else->{
                         binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        //Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                     }
                 }
 
@@ -404,7 +372,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     }
                     else->{
                         binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        //.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                     }
                 }
 

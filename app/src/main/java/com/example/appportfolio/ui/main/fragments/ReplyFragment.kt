@@ -26,14 +26,11 @@ import com.example.appportfolio.databinding.FragmentReplyBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
-import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.ReplyViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
-import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
@@ -99,7 +96,8 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
 
     override fun blockcommentuser(selectedComment: Comment) {
-        var anonymous=selectedComment.anonymous!=null
+        var anonymous=selectedComment.anonymous!=""
+        blockingid=selectedComment.userid
         vmInteract.blockcommentuser(anonymous,selectedComment.userid,comment.platform==selectedComment.platform&&comment.account==selectedComment.account,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
     }
 
