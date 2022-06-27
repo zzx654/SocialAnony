@@ -3,6 +3,7 @@ package com.example.appportfolio.other
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.PorterDuff
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.util.TypedValue
 import android.view.View
@@ -10,10 +11,8 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.databinding.BindingAdapter
-import androidx.navigation.findNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -24,8 +23,6 @@ import com.example.appportfolio.SocialApplication.Companion.getLocation
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.REPLYADDED
 
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
@@ -59,6 +56,8 @@ object BindingAdapter {
 
         Glide.with(view.context)
             .load(imagecontent)
+            .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+            .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
             .apply(RequestOptions.bitmapTransform(option))
             .into(view)
     }
@@ -189,6 +188,8 @@ object BindingAdapter {
             {
                 Glide.with(view.context)
                     .load(profileimage)
+                    .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+                    .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
                     .into(view)
             }
         }
@@ -210,6 +211,8 @@ object BindingAdapter {
         {
             Glide.with(view.context)
                 .load(profileimage)
+                .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+                .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
                 .into(view)
         }
     }
@@ -307,6 +310,8 @@ object BindingAdapter {
 
         Glide.with(view.context)
             .load(imagecontent)
+            .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+            .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
             .apply(RequestOptions.bitmapTransform(option))
             .into(view)
 
@@ -317,6 +322,8 @@ object BindingAdapter {
     fun bindImage(view: ImageView, imagecontent: String?) {
         Glide.with(view.context)
             .load(imagecontent)
+            .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+            .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
             .into(view)
         view.clipToOutline=true
     }
@@ -338,6 +345,8 @@ object BindingAdapter {
 
             Glide.with(view.context)
                 .load(lst[0])
+                .placeholder(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
+                .error(ColorDrawable(ContextCompat.getColor(view.context, R.color.gray)))
                 .apply(RequestOptions.bitmapTransform(option))
                 .into(view)
             view.clipToOutline=true

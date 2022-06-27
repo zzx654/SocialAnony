@@ -1,7 +1,10 @@
 package com.example.appportfolio.adapters
 
+import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
@@ -12,7 +15,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.ChatImage
 import com.example.appportfolio.databinding.ItemChatcontentimgBinding
 
-class FullImageAdapter: ListAdapter<ChatImage, RecyclerView.ViewHolder>(diffUtil) {
+class FullImageAdapter(val context:Context): ListAdapter<ChatImage, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         return DataBindingUtil.inflate<ItemChatcontentimgBinding>(
@@ -49,6 +52,8 @@ class FullImageAdapter: ListAdapter<ChatImage, RecyclerView.ViewHolder>(diffUtil
         {
             Glide.with(binding.img.context)
                 .load(chatimage.imageUrl)
+                .placeholder(ColorDrawable(ContextCompat.getColor(context, R.color.gray)))
+                .error(ColorDrawable(ContextCompat.getColor(context, R.color.gray)))
                 .into(binding.img)
         }
     }

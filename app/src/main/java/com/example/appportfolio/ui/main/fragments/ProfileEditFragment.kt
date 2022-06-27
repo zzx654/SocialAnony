@@ -1,6 +1,7 @@
 package com.example.appportfolio.ui.main.fragments
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,6 +16,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
@@ -107,6 +109,8 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         else{
             Glide.with(requireContext())
                 .load(profileurl!!)
+                .placeholder(ColorDrawable(getColor(requireContext(), R.color.gray)))
+                .error(ColorDrawable(getColor(requireContext(), R.color.gray)))
                 .into(binding.imgProfile)
         }
         cropContent=registerForActivityResult(cropActivityResultContract){uri->
@@ -297,6 +301,8 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             curImageUri=it
             Glide.with(requireContext())
                 .load(it)
+                .placeholder(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
+                .error(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
                 .into(binding.imgProfile)
         }
         vmEdit.uploadimgResponse.observe(viewLifecycleOwner,Event.EventObserver(

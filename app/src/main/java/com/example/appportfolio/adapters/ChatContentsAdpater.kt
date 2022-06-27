@@ -1,8 +1,11 @@
 package com.example.appportfolio.adapters
 
+import android.content.Context
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -12,7 +15,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.ChatImage
 import com.example.appportfolio.databinding.ItemGridimgBinding
 
-class ChatContentsAdpater: ListAdapter<ChatImage,RecyclerView.ViewHolder>(diffUtil) {
+class ChatContentsAdapter(val context: Context): ListAdapter<ChatImage,RecyclerView.ViewHolder>(diffUtil) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
@@ -30,6 +33,8 @@ class ChatContentsAdpater: ListAdapter<ChatImage,RecyclerView.ViewHolder>(diffUt
         {
             Glide.with(binding.gridImg.context)
                 .load(image.imageUrl)
+                //.placeholder(ColorDrawable(ContextCompat.getColor(binding.gridImg.context, R.color.gray)))
+                .error(ColorDrawable(ContextCompat.getColor(binding.gridImg.context, R.color.gray)))
                 .into(binding.gridImg)
 
             if(activecheck)
@@ -51,7 +56,7 @@ class ChatContentsAdpater: ListAdapter<ChatImage,RecyclerView.ViewHolder>(diffUt
     }
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val chatimage=currentList[position]
-        (holder as ChatContentsAdpater.ChatImageViewHolder).onbind(chatimage,position)
+        (holder as ChatContentsAdapter.ChatImageViewHolder).onbind(chatimage,position)
     }
     override fun getItemCount(): Int {
         return currentList.size

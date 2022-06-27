@@ -2,6 +2,7 @@ package com.example.appportfolio.adapters
 
 import android.content.Context
 import android.content.res.ColorStateList
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.util.TypedValue
 import android.view.LayoutInflater
@@ -155,6 +156,8 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
                     } else {
                         Glide.with(context)
                             .load(it.profileimage)
+                            .placeholder(ColorDrawable(ContextCompat.getColor(context, R.color.gray)))
+                            .error(ColorDrawable(ContextCompat.getColor(context, R.color.gray)))
                             .into(binding.imgProfile)
                     }
                 }

@@ -1,8 +1,10 @@
 package com.example.appportfolio.adapters
 
+import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -70,6 +72,8 @@ class ProfileContainerAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             } else {
                 Glide.with(binding.profileimage.context)
                     .load(userprofileimage)
+                    .placeholder(ColorDrawable(ContextCompat.getColor(binding.profileimage.context, R.color.gray)))
+                    .error(ColorDrawable(ContextCompat.getColor(binding.profileimage.context, R.color.gray)))
                     .into(binding.profileimage)
             }
             binding.profileimage.onSingleClick {

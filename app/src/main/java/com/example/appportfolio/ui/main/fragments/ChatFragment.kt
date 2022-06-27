@@ -241,7 +241,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 }
             }
         }
-        chatAdapter=ChatAdapter(requireActivity().cacheDir)
+        chatAdapter=ChatAdapter()
         chatAdapter.registerAdapterDataObserver(adapterDataObserver)
         chatAdapter.setMyId(vmAuth.userid.value!!)
         chatAdapter.setOnImageClickListener {
@@ -718,14 +718,14 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private fun navigateToImages()
     {
         val loadimgs=vmChat.loadimages(roomid)
-        loadimgs.observe(viewLifecycleOwner){
+        loadimgs.observe(viewLifecycleOwner){ it ->
             val images=it.map { ChatImage(it.date,it.content,false)  }
             val bundle=Bundle()
             if(it.isEmpty())
                 bundle.putParcelable("chatimages",ChatImages(null))
             else
                 bundle.putParcelable("chatimages",ChatImages(images))
-            //(activity as MainActivity).replaceFragment("chatContentsFragment",ChatContentsFragment(),bundle)
+            (activity as MainActivity).replaceFragment("chatContentsFragment",ChatContentsFragment(),bundle)
             loadimgs.removeObservers(viewLifecycleOwner)
         }
     }

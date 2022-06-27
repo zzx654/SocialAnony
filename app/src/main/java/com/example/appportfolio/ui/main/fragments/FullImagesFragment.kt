@@ -40,7 +40,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
     lateinit var progressDialog: DownloadProgressDialog
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        imagesAdapter= FullImageAdapter()
+        imagesAdapter= FullImageAdapter(requireContext())
     }
     override fun onCreateView(
         inflater: LayoutInflater,

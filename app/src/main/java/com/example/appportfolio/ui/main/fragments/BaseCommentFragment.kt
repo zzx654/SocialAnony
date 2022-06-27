@@ -1,5 +1,6 @@
 package com.example.appportfolio.ui.main.fragments
 
+import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
@@ -331,6 +333,8 @@ abstract class BaseCommentFragment (layoutId:Int
                 }
                 Glide.with(requireContext())
                     .load(profileimage)
+                    .placeholder(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
+                    .error(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
                     .into(profileimg)
             }
         }

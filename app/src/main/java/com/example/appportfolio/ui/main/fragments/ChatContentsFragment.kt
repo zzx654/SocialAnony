@@ -12,7 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.adapters.ChatContentsAdpater
+import com.example.appportfolio.adapters.ChatContentsAdapter
 import com.example.appportfolio.data.entities.ChatImage
 import com.example.appportfolio.data.entities.ChatImages
 import com.example.appportfolio.databinding.FragmentChatcontentsBinding
@@ -34,10 +34,10 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
     lateinit var binding:FragmentChatcontentsBinding
     private var chatimages:ChatImages? = null
     val PERMISSION_REQUEST_CODE=26
-    private lateinit var chatContentsAdpater:ChatContentsAdpater
+    private lateinit var chatContentsAdapter: ChatContentsAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        chatContentsAdpater= ChatContentsAdpater()
+        chatContentsAdapter= ChatContentsAdapter(requireContext())
     }
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,9 +50,9 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         chatimages=arguments?.getParcelable("chatimages")!!
         setupRecyclerView()
         chatimages?.chatimages?.let{
-            chatContentsAdpater.submitList(it)
+            chatContentsAdapter.submitList(it)
         }
-        chatContentsAdpater.setOnImageClickListener { position->
+        chatContentsAdapter.setOnImageClickListener { position->
             val bundle=Bundle()
             bundle.putParcelable("chatimages",chatimages!!)
             bundle.putInt("position",position)
@@ -62,7 +62,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
     }
 
     private fun setupRecyclerView()=binding.RvImages.apply {
-        adapter=chatContentsAdpater
+        adapter=chatContentsAdapter
         layoutManager= GridLayoutManager(requireContext(),3)
         itemAnimator=null
     }
@@ -79,13 +79,13 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        if(!chatContentsAdpater.activecheck)
+        if(!chatContentsAdapter.activecheck)
         {
             inflater.inflate(R.menu.chatcontent_checkoff, menu)
-            val images=chatContentsAdpater.currentList.map{
+            val images=chatContentsAdapter.currentList.map{
                 ChatImage(it.date,it.imageUrl,false)
             }
-            chatContentsAdpater.submitList(images)
+            chatContentsAdapter.submitList(images)
 
         }
         else
@@ -101,19 +101,19 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
             }
             R.id.activecheck->{
                 activity?.invalidateOptionsMenu()
-                chatContentsAdpater.updateCheckbox(true)
-                chatContentsAdpater.notifyDataSetChanged()
+                chatContentsAdapter.updateCheckbox(true)
+                chatContentsAdapter.notifyDataSetChanged()
 
             }
             R.id.inactivecheck->{
                 activity?.invalidateOptionsMenu()
-                chatContentsAdpater.updateCheckbox(false)
-                chatContentsAdpater.notifyDataSetChanged()
+                chatContentsAdapter.updateCheckbox(false)
+                chatContentsAdapter.notifyDataSetChanged()
             }
             R.id.download->{
                 //다운로드하기
                 if(
-                chatContentsAdpater.currentList.any{
+                    chatContentsAdapter.currentList.any{
                     it.isChecked
                 })
                     downloadimages()
@@ -138,8 +138,8 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         }
         else
         {
-            val downloadimgs=chatContentsAdpater.currentList.filter {
-                it.isChecked==true
+            val downloadimgs=chatContentsAdapter.currentList.filter {
+                it.isChecked
             }
             var bitmaps:List<Bitmap> = listOf()
             progressDialog.show()
@@ -174,8 +174,8 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
 
                 progressDialog.dismiss()
                 activity?.invalidateOptionsMenu()
-                chatContentsAdpater.updateCheckbox(false)
-                chatContentsAdpater.notifyDataSetChanged()
+                chatContentsAdapter.updateCheckbox(false)
+                chatContentsAdapter.notifyDataSetChanged()
             }
         }
 
