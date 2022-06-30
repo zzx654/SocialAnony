@@ -1,7 +1,6 @@
 package com.example.appportfolio.data.entities
 
 data class ReceivedChat (
-    val dateChanged:Int,
     val profileimage:String?,
     val nickname:String,
     val gender:String,

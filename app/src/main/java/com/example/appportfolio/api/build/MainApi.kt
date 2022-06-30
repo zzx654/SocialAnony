@@ -375,7 +375,7 @@ interface MainApi {
     @POST("/checkuser")
     suspend fun checkuser(
         @Field("userid")userid:Int?
-    ): intResponse
+    ): checkUserResponse
     @FormUrlEncoded
     @POST("/getFollowingPosts")
     suspend fun getFollowingPosts(

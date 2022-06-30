@@ -33,6 +33,7 @@ import androidx.core.widget.addTextChangedListener
 
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -85,18 +86,21 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
     private var unreadIndex=0
     private var loading=false
     lateinit var chatAdapter: ChatAdapter
-    private var userprofileimage:String?="none"
+    private var userprofileimage:String?=null
     private var usernickname:String=""
     private var usergender:String=""
     private val permissions = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
     lateinit var api: MainApi
+    lateinit var inputMethodManager: InputMethodManager
     private var beforechatsSize=0
     private var blockingid:Int?=null
     private var lastFirstVisiblePosition:Int=0
     private var prescrollbottom=false
     private  var opponentid:Int=0
+    private var opponentsender:Int=0
     private var snackbar: Snackbar?=null
-    private var curChatContents:List<ChatData> = listOf()
+    private var initChatContents:List<ChatData> = listOf()
+    private var getRealtimeChat:LiveData<ChatData>?=null
     @Inject
     lateinit var userPreferences: UserPreferences
     @Inject
@@ -197,13 +201,30 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 }
             }
         }
-    fun getImageUri(inContext: Context?, inImage: Bitmap?): Uri? {
+    /**fun getImageUri(inContext: Context?, inImage: Bitmap?): Uri? {
         val bytes = ByteArrayOutputStream()
-        if (inImage != null) {
-            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        }
-        val path = MediaStore.Images.Media.insertImage(inContext?.getContentResolver(), inImage, "Title" + " - " + Calendar.getInstance().getTime(), null)
+        inImage?.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(inContext?.contentResolver, inImage, "Title" + " - " + Calendar.getInstance().time, null)
         return Uri.parse(path)
+    }**/
+    fun getImageUri(context:Context,image:Bitmap?):Uri?{
+        val imagesFolder=File(requireContext().cacheDir,"images")
+        var uri:Uri?=null
+        try{
+            imagesFolder.mkdirs()
+            val file=File(imagesFolder,"Title" + " - " + Calendar.getInstance().time)
+            val stream=FileOutputStream(file)
+            image?.compress(Bitmap.CompressFormat.JPEG,100,stream)
+            stream.flush()
+            stream.close()
+            uri=FileProvider.getUriForFile(context.applicationContext,"com.example.appportfolio.fileprovider",file)
+
+        } catch (e:FileNotFoundException){
+            e.printStackTrace()
+        } catch (e:IOException){
+            e.printStackTrace()
+        }
+        return uri
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -323,25 +344,9 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 R.layout.fragment_chat, container, false
             )
             opponentid = arguments?.getInt("userid", 0)!!
-
-            val firstChatLoad = vmChat.loadchatContents(roomid)
-            firstChatLoad.observe(viewLifecycleOwner) {
-                curChatContents = it
-                var oppoid = opponentid
-                if (opponentid == 0) {
-                    (activity as MainActivity).binding.title.text = "대화상대없음"
-                    val opponentcontent =
-                        it.find { content -> content.senderid != vmAuth.userid.value!! }
-                    opponentcontent?.let {
-                        oppoid = it.senderid!!
-                    }
-                }
-                vmChat.readChats(roomid)//읽음
-                vmChat.getuserprofile(oppoid, api)
-                firstChatLoad.removeObservers(viewLifecycleOwner)
-            }
+            opponentsender=opponentid
             setupRecyclerView()
-            subsribeToObserver()
+
             mRootView = binding.root
         }
        else{
@@ -351,7 +356,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 (activity as MainActivity).binding.title.text=usernickname
         }
         var job: Job? = null
-        binding.edtText.setOnFocusChangeListener(object : View.OnFocusChangeListener {
+        binding.edtText.onFocusChangeListener = object : View.OnFocusChangeListener {
             override fun onFocusChange(view: View, hasFocus: Boolean) {
                 if (hasFocus) {
                     prescrollbottom=scrollbottom
@@ -367,7 +372,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                     }
                 }
             }
-        })
+        }
         binding.edtText.setOnClickListener {
             prescrollbottom=scrollbottom
 
@@ -450,7 +455,49 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             val intent = Intent(requireContext(), LocationActivity::class.java)
             resultLauncher.launch(intent)
         }
+        subsribeToObserver()
         return mRootView
+    }
+    override fun onResume() {
+        setHasOptionsMenu(true)
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.goback)
+            setDisplayShowTitleEnabled(false)
+        }
+        if(chatAdapter.currentList.isEmpty())
+        {
+            val firstChatLoad = vmChat.loadchatContents(roomid)
+            firstChatLoad.observe(viewLifecycleOwner) {
+                initChatContents = it.reversed()
+                //var oppoid = opponentid
+                if (opponentid == 0)
+                    (activity as MainActivity).binding.title.text = "대화상대없음"
+                vmChat.readChats(roomid)//읽음
+                if(userprofileimage==null)
+                {
+                    val getoppochat=vmChat.getOpponentChat(roomid,vmAuth.userid.value!!)
+                    getoppochat.observe(viewLifecycleOwner){ oppochat->
+                        if(oppochat.isNotEmpty())
+                            opponentsender=oppochat[0].senderid!!
+                        vmChat.getuserprofile(opponentsender, api)
+                        getoppochat.removeObservers(viewLifecycleOwner)
+                    }
+                }
+                else
+                    initContents(initChatContents,true,true)
+                firstChatLoad.removeObservers(viewLifecycleOwner)
+            }
+        }
+        else{
+            val lastChatLoad = vmChat.getLastChats(roomid,chatAdapter.currentList.last().num!!)
+            lastChatLoad.observe(viewLifecycleOwner){
+                    initContents(it.reversed(),true,true)
+                    vmChat.readChats(roomid)
+                lastChatLoad.removeObservers(viewLifecycleOwner)
+            }
+        }
+        super.onResume()
     }
     private fun updatechat(chat:MessageData)
     {
@@ -461,57 +508,12 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             }
             opponentid=0
         }
-        var dateChanged=false
         var templst=chatAdapter.currentList.toList()
-        var maxchatid=0
-        if(chatAdapter.currentList.isNotEmpty())
-        {
-            dateChanged=isDateChanged(chatAdapter.currentList.last().date)
-            maxchatid=chatAdapter.currentList.last().num!!
-        }
-        if (dateChanged) {
-            templst+=
-                listOf(
-                    MessageData(
-                        maxchatid+1,
-                        null,
-                        "",
-                        "DATE",
-                        getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),
-                        1,
-                        null,
-                        null,
-                        null
-                    ), MessageData(
-                        maxchatid+2,
-                        chat.senderid,
-                        chat.date,
-                        chat.type,
-                        chat.content,
-                        chat.isread,
-                        chat.nickname,
-                        chat.gender,
-                        chat.profileimage
-                    )
-                )
-        } else {
-            templst+=MessageData(
-                maxchatid+1,
-                chat.senderid,
-                chat.date,
-                chat.type,
-                chat.content,
-                chat.isread,
-                chat.nickname,
-                chat.gender,
-                chat.profileimage
-            )
-        }
+        templst+=chat
         if(scrollbottom)
             setchatcontents(templst,true)
         else
             setchatcontents(templst,false)
-
     }
     private fun sendText()
     {
@@ -524,23 +526,17 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         (activity as MainActivity).deleteroom(roomid)
     }
     private fun sendContent(content:String,Type:String){
-        var dateChanged:Boolean=false
-        var templst=chatAdapter.currentList.toList()
-        var maxchatid=0
-        if(chatAdapter.currentList.isNotEmpty())
-        {
-            maxchatid=chatAdapter.currentList.last().num!!
-            dateChanged=isDateChanged(chatAdapter.currentList.last().date)
-        }
+        //var dateChanged:Boolean=false
+        //if(chatAdapter.currentList.isNotEmpty())
+         //   dateChanged=isDateChanged(chatAdapter.currentList.last().date)
+
         val sendData= SendData(
             roomid,
             vmAuth.userid.value!!,
             opponentid,
             content,
             Type,
-            getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-            dateChanged,
-            getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
         )
         try{
             (activity as MainActivity).mSocket.emit("newMessage",gson.toJson(
@@ -550,65 +546,19 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             Toast.makeText(requireContext(),"연결 오류가 발생했습니다",Toast.LENGTH_SHORT).show()
             return
         }
-
         if(Type.equals("EXIT"))
         {
             vmChat.deleteroom(roomid)
             parentFragmentManager.popBackStack()
         }
         else
-        {
-            vmChat.insertChat(ChatData(null,vmAuth.userid.value!!,roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),Type,content,1),if(dateChanged)1 else 0)
-            (activity as MainActivity).updatechatroom(ChatData(null,vmAuth.userid.value!!,roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),Type,content,1),
-                userprofileimage!!,usergender,usernickname,1,opponentid)
-            if (dateChanged) {
-                templst+=
-                    listOf(
-                        MessageData(
-                            maxchatid+1,
-                            null,
-                            "",
-                            "DATE",
-                            getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),
-                            1,
-                            null,
-                            null,
-                            null
-                        ), MessageData(
-                            maxchatid+2,
-                            vmAuth.userid.value!!,
-                            getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-                            Type,
-                            content,
-                            1,
-                            null,
-                            null,
-                            null
-                        )
-                    )
-            } else {
-                templst+=MessageData(
-                    maxchatid+1,
-                    vmAuth.userid.value!!,
-                    getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-                    Type,
-                    content,
-                    1,
-                    null,
-                    null,
-                    null
-                )
-            }
-            scrollbottom=true
-            setchatcontents(templst,true)
-        }
+            vmChat.insertChat(ChatData(null,vmAuth.userid.value!!,roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),Type,content,1))
     }
-    fun isDateChanged(dateString:String):Boolean{
-        val date=datetostr(
-            strtodate(dateString,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-            SimpleDateFormat("yyyy-MM-dd")
-        )
-        return !date.equals(getTodayString(SimpleDateFormat("yyyy-MM-dd")))
+
+    override fun onPause() {
+        super.onPause()
+        snackbar?.dismiss()
+        getRealtimeChat?.removeObservers(viewLifecycleOwner)
     }
     private fun uploadImage(imageUri: Uri, context: Context)
     {
@@ -668,15 +618,21 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 val num=chatAdapter.currentList[0].num
                 val loadbefore=vmChat.loadbeforechatContents(roomid,num!!)
                 loadbefore.observe(viewLifecycleOwner){
-                    var chatlist:List<MessageData> = listOf()
-                    for(i in it)
-                    {
-                        chatlist+=MessageData(i.id,i.senderid,i.date,i.type,i.content,i.isread!!,usernickname,usergender,userprofileimage)
+                    if(it.isNotEmpty()){
+                        val prevchatlist=createMessageData(it.reversed())
+                        val curchatlist=chatAdapter.currentList.toMutableList()
+                        prevchatlist[0].dateChanged=isDateChanged(prevchatlist.last().date,curchatlist[0].date)
+                        //var chatlist:List<MessageData> = listOf()
+                        //for(i in it)
+                        //{
+                        //   chatlist+=MessageData(i.id,i.senderid,i.date,i.type,i.content,i.isread!!,usernickname,usergender,userprofileimage)
 
+                        //}
+                        activity?.runOnUiThread{
+                            setchatcontents(prevchatlist+curchatlist,false)
+                        }
                     }
-                    activity?.runOnUiThread{
-                        setchatcontents(chatlist.reversed()+chatAdapter.currentList.toList(),false)
-                    }
+
                     loadbefore.removeObservers(viewLifecycleOwner)
                 }
 
@@ -686,15 +642,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 binding.tvmsg.visibility=View.GONE
         }
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.goback)
-            setDisplayShowTitleEnabled(false)
-        }
-        super.onResume()
-    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.chat_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
@@ -866,8 +814,9 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                     error= requireContext().getString(R.string.networkdisdconnected)
                 else
                     error=it
+                initContents(initChatContents,false,true)//네트워크가 다시연결되었을때 observe를 지속하기위해 미리 observer 구독
                 snackbar=snackbar(error+"\n잠시후에 다시 시도해주세요",true,"다시시도"){
-                    vmChat.getuserprofile(opponentid,api)
+                    vmChat.getuserprofile(opponentsender,api)
                 }
             }
         ){
@@ -888,54 +837,95 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                         userprofileimage = "none"
                     if (opponentid != 0)
                         (activity as MainActivity).binding.title.text = usernickname
-                    var chatlist: List<MessageData> = listOf()
-                    for (i in curChatContents) {
-                        chatlist += MessageData(
-                            i.id,
-                            i.senderid,
-                            i.date,
-                            i.type,
-                            i.content,
-                            i.isread!!,
-                            usernickname,
-                            usergender,
-                            userprofileimage
-                        )
-                    }
-                    val oldchats = chatAdapter.currentList
-
-                    activity?.runOnUiThread {
-                        if (oldchats.isEmpty())
-                            setchatcontents(chatlist.reversed(), true)
-                        else
-                            setchatcontents(chatlist.reversed() + oldchats, false)
-                    }
-                    vmChat.getAddedChats(roomid).observe(viewLifecycleOwner){
-                        if(it.isread==0&&it.senderid!=vmAuth.userid.value!!&&it.type!="DATE")
-                        {
-                            val data=MessageData(it.id,it.senderid,it.date,it.type,it.content,1,usernickname,usergender,userprofileimage)
-                            if(!scrollbottom)
-                                previewMessage(data)
-                            updatechat(data)
-                            vmChat.readChats(roomid)
-                        }
-                    }
+                    if(getRealtimeChat!=null)
+                        initContents(initChatContents,false,false)
+                    else
+                        initContents(initChatContents,false,true)
                 }
             }
         })
+    }
+    private fun createMessageData(chatcontents: List<ChatData>):List<MessageData>{
+        var chatlist: List<MessageData> = listOf()
+        chatcontents.forEachIndexed { index, chatData ->
+            var dateChanged=if(index>0)isDateChanged(chatcontents[index-1].date,chatData.date)else false
+            chatlist += MessageData(
+                chatData.id,
+                chatData.senderid,
+                chatData.date,
+                chatData.type,
+                chatData.content,
+                chatData.isread!!,
+                usernickname,
+                usergender,
+                userprofileimage,
+                dateChanged
+            )
+        }
+        return chatlist
+    }
+    private fun initContents(chatcontents:List<ChatData>,addtoLast:Boolean,subscribeNewChat:Boolean)
+    {
+        var chatlist=createMessageData(chatcontents)
+        if(userprofileimage!=null)
+        {
+            val oldchats = chatAdapter.currentList
+
+            activity?.runOnUiThread {
+                if (oldchats.isEmpty())
+                    setchatcontents(chatlist, true)
+                else if(addtoLast)
+                    setchatcontents(oldchats + chatlist, false)
+                else
+                    setchatcontents(chatlist + oldchats, false)
+            }
+        }
+
+        if(subscribeNewChat){
+            getRealtimeChat?.removeObservers(viewLifecycleOwner)
+            getRealtimeChat=vmChat.getAddedChats(roomid)
+            getRealtimeChat?.observe(viewLifecycleOwner){
+
+                if(it.type!="start"&&chatAdapter.currentList.find { chat-> chat.num==it.id }==null
+                    &&chatlist.find {chat-> chat.num==it.id  }==null&&initChatContents.find{chat-> chat.id==it.id}==null)
+                { //현재 어댑터의 리스트와 새로추가할리스트에 포함되지않는 새로운 메시지일경우 추가하게끔
+                    if(userprofileimage==null)
+                        initChatContents+=it//아직 네트워크 문제또는 서버문제로 초기화가 잘진행되지 않았을시
+                    else
+                    {
+                        var dateChanged=false
+                        if(chatAdapter.currentList.isNotEmpty()){
+                            dateChanged=isDateChanged(chatAdapter.currentList.last().date,it.date)
+                        }
+                        val data=MessageData(it.id,it.senderid,it.date,it.type,it.content,1,usernickname,usergender,userprofileimage,dateChanged)
+                        if(!scrollbottom&&it.senderid!=vmAuth.userid.value!!)
+                            previewMessage(data)
+                        updatechat(data)
+                    }
+                    vmChat.readChats(roomid)
+                }
+            }
+        }
+    }
+    private fun isDateChanged(prevdate:String,curdate:String):Boolean{
+        val previousdate= SocialApplication.datetostr(
+            SocialApplication.strtodate(prevdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+            SimpleDateFormat("yyyy-MM-dd")
+        )
+        val currentdate= SocialApplication.datetostr(
+            SocialApplication.strtodate(curdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+            SimpleDateFormat("yyyy-MM-dd"))
+        return !previousdate.equals(currentdate)
     }
     fun showKeyboard() {
         imm.showSoftInput(binding.edtText, 0)
     }
     fun hideKeyboard() {
-        val webToken: IBinder? = activity?.currentFocus?.windowToken // 현재 포커스를 가진 뷰의 웹 토큰
-        if (binding.edtText.windowToken == null) { // 웹 토큰이 null인 경우 toggleSoftInput 메소드 사용
-            if (isKeyboardShowing) { // 현재 키보드 보일 경우 키보드 토글
-                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0)
-            }
-        } else { // 키보드 내리기
-            imm.hideSoftInputFromWindow(binding.edtText.windowToken, 0)
+        if (::inputMethodManager.isInitialized.not()) {
+            inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         }
+
+        inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
     private fun checkPermission(): Boolean {
         return (ContextCompat.checkSelfPermission(

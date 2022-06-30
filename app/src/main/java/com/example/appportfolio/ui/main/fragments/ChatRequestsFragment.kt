@@ -119,7 +119,7 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     }
     private fun setnewChats(selectedRequest: ChatRequests){
         val chatcontent=ChatData(null,selectedRequest.organizer,selectedRequest.roomid, getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start","대화가 시작되었습니다",1)
-        viewModel.insertChat(chatcontent,0)
+        viewModel.insertChat(chatcontent)
         var oldChatlist=viewModel.mychats.value!!
         //var newChatlist:List<Chatroom> = listOf(Chatroom(selectedRequest.organizer,selectedRequest.profileimage,selectedRequest.gender,selectedRequest.nickname,1,selectedRequest.participant,
          //   selectedRequest.roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start",

@@ -26,6 +26,7 @@ object Constants {
     const val POSTLIKED=2
     const val COMMENTLIKED=3
     const val REPLYADDED=5
+    const val FOLLOWED=6
     //신고,차단,대화요청,삭제
 
     const val REPORT="REPORT"

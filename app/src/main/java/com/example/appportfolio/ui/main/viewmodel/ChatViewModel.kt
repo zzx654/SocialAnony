@@ -71,21 +71,20 @@ class ChatViewModel@Inject constructor(
             _blockuserResponse.postValue(Event(result))
         }
     }
-    fun insertChat(chatdata:ChatData,dateChanged:Int)=viewModelScope.launch (Dispatchers.IO){
-        if(dateChanged!=0)
-        {
-            val dateData=ChatData(null,chatdata.senderid,chatdata.roomid,chatdata.date,"DATE",
-                SocialApplication.getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
-            chatRepository.insertChat(dateData)
-            chatRepository.insertChat(chatdata)
-        }
-        else
+    fun insertChat(chatdata:ChatData)=viewModelScope.launch (Dispatchers.IO){
+        //if(dateChanged!=0)
+        //{
+            //val dateData=ChatData(null,chatdata.senderid,chatdata.roomid,chatdata.date,"DATE",
+            //    SocialApplication.getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
+           // chatRepository.insertChat(dateData)
+          //  chatRepository.insertChat(chatdata)
+        //}
+        //else
             chatRepository.insertChat(chatdata)
     }
     fun readChats(roomid:String)=viewModelScope.launch(Dispatchers.IO) {
         chatRepository.readChats(roomid)
     }
-
     fun deleteroom(roomid:String)=viewModelScope.launch(Dispatchers.IO){
         chatRepository.deleteroom(roomid)
     }
@@ -128,6 +127,8 @@ class ChatViewModel@Inject constructor(
     }
     fun getAllChats() = chatRepository.getAllChats()
 
+    fun getOpponentChat(roomid:String,myid:Int) = chatRepository.getOpponentChat(roomid,myid)
+    fun getLastChats(roomid: String,lastid:Int) = chatRepository.getLastChats(roomid,lastid)
     fun getAddedChats(roomid: String) = chatRepository.getAddedChat(roomid)
 
     fun loadimages(roomid: String) = chatRepository.loadimages(roomid)

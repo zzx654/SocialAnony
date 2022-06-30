@@ -5,8 +5,9 @@ data class Noti (
     val type:Int,
     val text:String,
     val date:String,
-    val postid:String,
+    val postid:String?,
     val commentid:Int?,
+    val followerid:Int?,
     var isread:Int
 
         )

@@ -77,6 +77,7 @@ abstract class BasePostFragment(
     @RequiresApi(Build.VERSION_CODES.M)
     protected fun setView()
     {
+
         activity?.runOnUiThread {
             srLayout.setOnRefreshListener {
                 if((activity as MainActivity).isConnected!!){

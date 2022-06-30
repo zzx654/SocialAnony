@@ -204,7 +204,7 @@ abstract class BasePersonFragment (layoutId:Int
                 {
                     200->{
                         val bundle=Bundle()
-                        bundle.putInt("userid",it.value)
+                        bundle.putInt("userid",it.userid)
                         bundle.putInt("follow",curselectedfollowing)
                         bundle.putString("from",curfrag)
                         (activity as MainActivity).replaceFragment("othersProfileFragment",OthersProfileFragment(),bundle)

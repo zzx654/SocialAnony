@@ -32,6 +32,7 @@ import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentNotificationBinding
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.COMMENTLIKED
+import com.example.appportfolio.other.Constants.FOLLOWED
 import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Constants.POSTLIKED
 import com.example.appportfolio.other.Event
@@ -96,8 +97,10 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 runBlocking { preferences.authToken.first() })
             notiAdapter.setOnNotiClickListener {
                 loadingDialog.show()
-                vmNoti.readNoti(it.notiid!!,api)
+                selectedNoti=it
                 vmNoti.setSelectedNoti(it)
+                vmNoti.readNoti(it.notiid!!,api)
+
             }
 
             if((activity as MainActivity).isConnected!!){
@@ -110,9 +113,10 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 binding.tvWarn.visibility=View.VISIBLE
                 binding.retry.visibility=View.VISIBLE
             }
+            setupRecyclerView()
             mRootView=binding.root
         }
-        setupRecyclerView()
+
 
         subsribeToObserver()
 
@@ -220,6 +224,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
 
         })
+
         vmNoti.checkSelectedCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
                 SocialApplication.showError(
@@ -237,13 +242,44 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     loadingDialog.dismiss()
                 } else {
                     selectedComment = it.comments[0]
-                    vmNoti.getSelectedPost(selectedNoti.postid, null, null, api)
+                    vmNoti.getSelectedPost(selectedNoti.postid!!, null, null, api)
                 }
             }
         })
         vmNoti.selectedNoti.observe(viewLifecycleOwner){
             selectedNoti=it
         }
+        vmNoti.checkuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onError ={
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+                loadingDialog.dismiss()
+            }
+        ){
+            loadingDialog.dismiss()
+            handleResponse(requireContext(),it.resultCode){
+                when(it.resultCode)
+                {
+                    200->{
+                        val bundle=Bundle()
+                        bundle.putInt("userid",it.userid)
+                        bundle.putInt("follow",it.following)
+                        bundle.putString("from","notificationFragment")
+                        (activity as MainActivity).replaceFragment("othersProfileFragment",OthersProfileFragment(),bundle)
+                    }
+                    400->{
+                        Toast.makeText(requireContext(),"탈퇴한 회원입니다",Toast.LENGTH_SHORT).show()
+                    }
+                    500->{
+                        Toast.makeText(requireContext(),"해당유저를 차단했거나 차단당했습니다",Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
         vmNoti.readNotiResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError = {
                 SocialApplication.showError(
@@ -257,16 +293,22 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         ){
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
-                    if (selectedNoti.commentid == null)
-                        vmNoti.getSelectedPost(selectedNoti.postid, null, null, api)
-                    else
-                        vmNoti.checkSelectedComment(
-                            null,
-                            null,
-                            selectedNoti.commentid!!,
-                            selectedNoti.postid,
-                            api
-                        )
+                    if(selectedNoti.type==FOLLOWED)
+                        vmNoti.checkuser(selectedNoti.followerid!!,api)
+                    else{
+                        if (selectedNoti.commentid == null)
+                            vmNoti.getSelectedPost(selectedNoti.postid!!, null, null, api)
+                        else
+                            vmNoti.checkSelectedComment(
+                                null,
+                                null,
+                                selectedNoti.commentid!!,
+                                selectedNoti.postid!!,
+                                api
+                            )
+                    }
+
+
                     var templist=vmNoti.curnotis.value!!
                     val selectedindex=templist.indexOf(selectedNoti)
                     templist[selectedindex].isread=1
@@ -289,7 +331,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                         {
                             var templist=notiAdapter.currentList.toList()
                             templist+=listOf(
-                                Noti(null,0,"","","",null,0)
+                                Noti(null,0,"","","",null,null,0)
                             )
                             notiAdapter.submitList(templist)
                         }
@@ -366,7 +408,9 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
         })
         vmNoti.curnotis.observe(viewLifecycleOwner){
-                  notiAdapter.submitList(it)
+            //val list=it
+            //notiAdapter.submitList(null)
+                  notiAdapter.submitList(it.toMutableList())
             notiAdapter.notifyDataSetChanged()
         }
     }
@@ -388,7 +432,6 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 dialog.dismiss()
                 dialog.cancel()
            //읽음처리하라고서버에 보내고 응답받아서 읽음으로 전부 변경하면됨
-
             vmNoti.readAllNoti(api)
             //이 내용을 서버응답받은후에 수행
         }
@@ -436,18 +479,25 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 showReadAll()
             }
             R.id.delete->{
-                //전부 삭제해버리기 구현
+                //전부 삭제하기 구현
                 showDeleteAll()
             }
         }
         return super.onOptionsItemSelected(item)
     }
-    private fun setupRecyclerView()=binding.rvNoti.apply{
-        adapter=notiAdapter
-        layoutManager= LinearLayoutManager(requireContext())
-        setHasFixedSize(true)
-        itemAnimator=null
-        addOnScrollListener(this@NotificationFragment.scrollListener)
-        setItemViewCacheSize(20)
+    private fun setupRecyclerView(){
+        notiAdapter.setHasStableIds(true)
+        binding.rvNoti.apply{
+            adapter=notiAdapter
+            layoutManager= LinearLayoutManager(requireContext())
+            setHasFixedSize(true)
+            itemAnimator=null
+            addOnScrollListener(this@NotificationFragment.scrollListener)
+            setItemViewCacheSize(20)
+        }
+        val animator=binding.rvNoti.itemAnimator
+        if (animator is SimpleItemAnimator){          //아이템 애니메이커 기본 하위클래스
+            animator.supportsChangeAnimations = false  //애니메이션 값 false (리사이클러뷰가 화면을 다시 갱신 했을때 뷰들의 깜빡임 방지)
+        }
     }
 }

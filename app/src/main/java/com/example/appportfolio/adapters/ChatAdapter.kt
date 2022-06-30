@@ -1,22 +1,29 @@
 package com.example.appportfolio.adapters
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.SocialApplication.Companion.datetostr
+import com.example.appportfolio.SocialApplication.Companion.strtodate
 import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.databinding.*
 import com.example.appportfolio.other.ChatType
 import java.io.File
+import java.text.SimpleDateFormat
 
 class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
         if(viewType==ChatType.LEFT_MESSAGE){
-            return DataBindingUtil.inflate<ChatLefttextBinding>(
+            return DataBindingUtil.inflate<com.example.appportfolio.databinding.ChatLefttextBinding>(
                 layoutInflater,
                 R.layout.chat_lefttext,
                 parent,
@@ -114,7 +121,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
         return currentList.size
     }
     override fun getItemViewType(position: Int): Int {
-        if(currentList[position].type.equals("DATE")||currentList[position].type.equals("EXIT"))
+        if(currentList[position].type.equals("EXIT"))
         {
             return ChatType.CENTER
         }
@@ -158,6 +165,13 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
         }
     }
     inner class LeftLocationViewHolder(private val binding: ChatLeftLocationBinding):
@@ -174,6 +188,13 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
 
         }
     }
@@ -191,6 +212,13 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
 
         }
     }
@@ -203,12 +231,26 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
         }
     }
     inner class RightTextViewHolder(private val binding: ChatRighttextBinding):
         RecyclerView.ViewHolder(binding.root){
         fun onbind(chat:MessageData){
             binding.chat=chat
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
         }
     }
     inner class RightLocationViewHolder(private val binding: ChatRightLocationBinding):
@@ -220,6 +262,13 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
                     click(chat)
                 }
             }
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
         }
     }
 
@@ -227,6 +276,13 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
         RecyclerView.ViewHolder(binding.root){
         fun onbind(chat: MessageData){
             binding.content=chat
+            if(chat.dateChanged){
+                binding.layoutdate.visibility=View.VISIBLE
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                    SimpleDateFormat("yyyy년 M월 d일 E요일"))
+            }
+            else
+                binding.layoutdate.visibility=View.GONE
         }
     }
     companion object{
@@ -249,6 +305,24 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     var profileimgClickListener:((MessageData)->Unit)?=null
     var locationClickListener:((MessageData)->Unit)?=null
 
+    private fun isDateChanged(prevdate:String,curdate:String):Boolean{
+        val previousdate= SocialApplication.datetostr(
+            SocialApplication.strtodate(prevdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+            SimpleDateFormat("yyyy-MM-dd")
+        )
+        val currentdate= SocialApplication.datetostr(
+            SocialApplication.strtodate(curdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+            SimpleDateFormat("yyyy-MM-dd"))
+        return !previousdate.equals(currentdate)
+    }
+    private fun setDateSepVisibility(prevdate: String,curdate: String,layoutDate:ConstraintLayout,tvSep: TextView){
+        if(isDateChanged(prevdate, curdate)){
+            layoutDate.visibility=View.VISIBLE
+            tvSep.text=  datetostr(strtodate(curdate,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                SimpleDateFormat("yyyy년 M월 d일 E요일"))
+
+        }
+    }
     fun setOnProfileImageClickListener(listener: (MessageData) -> Unit){
         profileimgClickListener=listener
     }

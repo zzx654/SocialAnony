@@ -55,6 +55,9 @@ class NotiAdapter: ListAdapter<Noti, RecyclerView.ViewHolder>(diffUtil) {
             (holder as NotiAdapter.notiViewHolder).onbind(currentList[position])
     }
 
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
     override fun getItemViewType(position: Int): Int {
         return if(currentList[position].notiid==null)
             LOADING_VIEW_TYPE

@@ -5,10 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appportfolio.api.build.MainApi
-import com.example.appportfolio.api.responses.commentResponse
-import com.example.appportfolio.api.responses.getNotiResponse
-import com.example.appportfolio.api.responses.getPostResponse
-import com.example.appportfolio.api.responses.intResponse
+import com.example.appportfolio.api.responses.*
 import com.example.appportfolio.data.entities.Noti
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
@@ -24,6 +21,7 @@ class NotiViewModel @Inject constructor(private val mainRepository: MainReposito
                                         private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
 
+
     private val _curnotis= MutableLiveData<List<Noti>>()
     val curnotis: LiveData<List<Noti>> = _curnotis
 
@@ -32,6 +30,9 @@ class NotiViewModel @Inject constructor(private val mainRepository: MainReposito
 
     private val _getNotisResponse=MutableLiveData<Event<Resource<getNotiResponse>>>()
     val getNotiResponse:LiveData<Event<Resource<getNotiResponse>>> = _getNotisResponse
+
+    private val _getNewNotisResponse=MutableLiveData<Event<Resource<getNotiResponse>>>()
+    val getNewNotiResponse:LiveData<Event<Resource<getNotiResponse>>> = _getNewNotisResponse
 
     private val _checkSelectedCommentResponse=MutableLiveData<Event<Resource<commentResponse>>>()
     val checkSelectedCommentResponse:LiveData<Event<Resource<commentResponse>>> = _checkSelectedCommentResponse
@@ -50,8 +51,18 @@ class NotiViewModel @Inject constructor(private val mainRepository: MainReposito
 
     private val _getPostResponse=MutableLiveData<Event<Resource<getPostResponse>>>()
     val getPostResponse:LiveData<Event<Resource<getPostResponse>>> = _getPostResponse
-
-
+    private val _checkuserResponse= MutableLiveData<Event<Resource<checkUserResponse>>>()
+    val checkuserResponse: LiveData<Event<Resource<checkUserResponse>>> = _checkuserResponse
+    init{
+        _curnotis.postValue(listOf())
+    }
+    fun checkuser(userid: Int,api: MainApi){
+        _checkuserResponse.postValue(Event(Resource.Loading()))
+        viewModelScope.launch(dispatcher) {
+            val result=mainRepository.checkuser(userid,api)
+            _checkuserResponse.postValue(Event(result))
+        }
+    }
     fun setNotis(noti:List<Noti>)
     {
         _curnotis.postValue(noti)
@@ -126,6 +137,15 @@ class NotiViewModel @Inject constructor(private val mainRepository: MainReposito
         viewModelScope.launch {
             val result=mainRepository.getNotis(notiid,date, api)
             _getNotisResponse.postValue(Event(result))
+        }
+    }
+    fun getNewNotis(
+        api: MainApi
+    ){
+        _getNewNotisResponse.postValue(Event(Resource.Loading()))
+        viewModelScope.launch {
+            val result=mainRepository.getNotis(null,null, api)
+            _getNewNotisResponse.postValue(Event(result))
         }
     }
 

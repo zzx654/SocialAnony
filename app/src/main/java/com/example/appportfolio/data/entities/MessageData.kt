@@ -9,6 +9,7 @@ data class MessageData(
     var isread:Int,
     var nickname:String?,
     var gender:String?,
-    var profileimage:String?
+    var profileimage:String?,
+    var dateChanged:Boolean
     
 )

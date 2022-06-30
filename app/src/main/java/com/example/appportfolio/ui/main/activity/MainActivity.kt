@@ -174,6 +174,18 @@ class MainActivity : AppCompatActivity() {
     }
     private fun subscribeToObserver() {
 
+        vmNoti.getNewNotiResponse.observe(this,Event.EventObserver(
+            onError={
+                Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
+            }
+        ){
+            handleResponse(this,it.resultCode){
+                var oldNotis=vmNoti.curnotis.value
+                if(it.notis.isNotEmpty()&&(oldNotis==null||oldNotis.isEmpty()||(oldNotis[0].notiid!=it.notis[0].notiid))){
+                    vmNoti.setNotis(it.notis)
+                }
+            }
+        })
         vmChat.getroomProfilesResponse.observe(this,Event.EventObserver(
             onError={
                 Toast.makeText(this,it,Toast.LENGTH_SHORT).show()
@@ -186,28 +198,11 @@ class MainActivity : AppCompatActivity() {
                     getChats=vmChat.getAllChats()
                     getChats!!.observe(this){ chatrooms->
                         chatRooms=chatrooms
-                            var newchatrooms:List<Chatroom> = listOf()
                             if(chatrooms.isEmpty())
                                 vmChat.setChats(listOf())
-                            else{
+                            else
                                 setChatRooms()
-                                /**chatrooms.map{ room->
-                                    val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
-                                    profile?.let{ roomprofile->
-                                        val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
-                                        val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
-                                        val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
-                                            if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
-                                            ismy,room.senderid!!,room.roomid,room.date,
-                                            room.type,room.content,room.isread!!)
-                                        newchatrooms+=chatroom
-                                    }
-                                }
-                                if(chatRooms.isNotEmpty()&&newchatrooms.isEmpty())
-                                    vmChat.getRoomProfiles(mainapi)//프로필목록이 없을시 불러옴
-                                else
-                                    vmChat.setChats(newchatrooms.toList())**/
-                            }
+
                     }
                 }
         })
@@ -345,7 +340,7 @@ class MainActivity : AppCompatActivity() {
                             "recordsocket",
                             gson.toJson(MyAccount(it.userid))
                         )
-
+                        vmNoti.getNewNotis(mainapi)
                         vmChat.getRoomProfiles(mainapi)
                         vmAuth.checkfcmtoken(fcmToken,authapi)
                         checkunreadnoti()
@@ -379,26 +374,11 @@ class MainActivity : AppCompatActivity() {
                         runOnUiThread {
                             showchatbadge()
                         }
-
                             roomProfiles +=RoomProfile(chatdata.roomid,chatdata.senderid,chatdata.profileimage,chatdata.gender,chatdata.nickname)
                             roomProfiles.find { it.roomid==chatdata.roomid }?.let{ foundprofile->
                                 roomProfiles!! -=foundprofile
                             }
                         setChatRooms()
-                        /**var newchatrooms:List<Chatroom> = listOf()
-                        chatRooms.map{ room->
-                            val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
-                            profile?.let{ roomprofile->
-                                val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
-                                val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
-                                val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
-                                    if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
-                                    ismy,room.senderid!!,room.roomid,room.date,
-                                    room.type,room.content,room.isread!!)
-                                newchatrooms+=chatroom
-                            }
-                        }
-                        vmChat.setChats(newchatrooms.toList())**/
                     }
                     mSocket.on("updatenoti"){ args:Array<Any> ->
                         val notidata=gson.fromJson(

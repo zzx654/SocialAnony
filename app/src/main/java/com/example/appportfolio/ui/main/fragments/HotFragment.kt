@@ -148,6 +148,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
 
         return mRootView
     }
+
     private fun showwarn(){
         binding.srLayout.visibility=View.GONE
         binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
@@ -178,7 +179,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                 when (it.resultCode) {
                     200 -> {
                         val bundle = Bundle()
-                        bundle.putInt("userid", it.value)
+                        bundle.putInt("userid", it.userid)
                         bundle.putInt("follow", curselectedfollowing)
                         bundle.putString("from", "HotFragment")
                         (activity as MainActivity).replaceFragment(

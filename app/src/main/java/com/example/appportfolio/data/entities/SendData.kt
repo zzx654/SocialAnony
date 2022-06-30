@@ -5,7 +5,5 @@ data class SendData(
     val receiverid:Int,
     val content:String,
     val type:String,
-    val sendTime:String,
-    val dateChanged:Boolean,
-    val changedDate:String
+    val sendTime:String
 )

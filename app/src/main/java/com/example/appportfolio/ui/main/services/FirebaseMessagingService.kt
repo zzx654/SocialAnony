@@ -56,21 +56,21 @@ class FirebaseMessagingService: FirebaseMessagingService() {
             val date=remoteMessage.data.get("date")
             val type=remoteMessage.data.get("type")
             val content=remoteMessage.data.get("content")
-            val dateChanged=remoteMessage.data.get("dateChanged")
+            //val dateChanged=remoteMessage.data.get("dateChanged")
             val chatdata= ChatData(null,senderid!!.toInt(),roomid!!,date!!,type!!,content!!,0)
-            if(dateChanged!!.toInt()!=0)
-            {
-                val dateData=ChatData(null,senderid!!.toInt(),roomid!!,date!!,"DATE",getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
+            //if(dateChanged!!.toInt()!=0)
+            //{
+                //val dateData=ChatData(null,senderid!!.toInt(),roomid!!,date!!,"DATE",getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
+                //CoroutineScope(Dispatchers.IO).launch {
+                 //   chatRepository.insertChat(dateData)
+                 //   chatRepository.insertChat(chatdata)
+                //}
+            //}
+            //else{
                 CoroutineScope(Dispatchers.IO).launch {
-                    chatRepository.insertChat(dateData)
                     chatRepository.insertChat(chatdata)
                 }
-            }
-            else{
-                CoroutineScope(Dispatchers.IO).launch {
-                    chatRepository.insertChat(chatdata)
-                }
-            }
+            //}
         }
         if(AppLifecycleManager.isForeground||!sharedPreferences.getBoolean("pushonoff",true))
             return
@@ -120,11 +120,7 @@ class FirebaseMessagingService: FirebaseMessagingService() {
             }
             val notification=getNotificationBuilder(title!!,message!!,type!!,pendingIntent).build()
             notificationManager.notify(1001,notification)
-
         }
-
-
-
     }
     private fun getNotificationBuilder(title:String,content:String,type:String,pendingIntent:PendingIntent)
 
@@ -142,7 +138,7 @@ class FirebaseMessagingService: FirebaseMessagingService() {
     }
     companion object {
         private const val CHANNEL_NAME = "Emoji Party"
-        private const val CHANNEL_DESCRIPTION = "Chatting"
+        //private const val CHANNEL_DESCRIPTION = "Chatting"
         private const val CHANNEL_ID = "Channel Id"
     }
 

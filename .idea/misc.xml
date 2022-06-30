@@ -20,8 +20,13 @@
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/drawable/voice_outlined.xml" value="0.2125" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/drawable/vote_border.xml" value="0.2125" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/drawable/vote_chart.xml" value="0.2125" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_centeritem.xml" value="0.22" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_left_image.xml" value="0.15833333333333333" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_left_location.xml" value="0.14479166666666668" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_lefttext.xml" value="0.22" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_right_image.xml" value="0.240625" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_right_location.xml" value="0.14479166666666668" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/chat_righttext.xml" value="0.15208333333333332" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/container_profile.xml" value="0.33" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/dialog_editpfimg.xml" value="0.10885416666666667" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/dialog_loading.xml" value="0.10885416666666667" />
@@ -45,6 +50,7 @@
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/fragment_searchperson.xml" value="0.2" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/fragment_tag.xml" value="0.16" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/fragment_userprofile.xml" value="0.34791666666666665" />
+        <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/fragment_users.xml" value="0.1" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/item_block.xml" value="0.20520833333333333" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/item_chatcontentimg.xml" value="0.20520833333333333" />
         <entry key="..\:/Users/LMH/AndroidStudioProjects/MySNS/app/src/main/res/layout/item_chatroom.xml" value="0.15833333333333333" />
