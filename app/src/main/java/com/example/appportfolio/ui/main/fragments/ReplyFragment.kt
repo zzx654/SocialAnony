@@ -7,8 +7,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -98,7 +96,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun blockcommentuser(selectedComment: Comment) {
         var anonymous=selectedComment.anonymous!=""
         blockingid=selectedComment.userid
-        vmInteract.blockcommentuser(anonymous,selectedComment.userid,comment.platform==selectedComment.platform&&comment.account==selectedComment.account,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
+        vmInteract.blockcommentuser(anonymous,selectedComment.userid,comment.platform==selectedComment.platform&&comment.account==selectedComment.account,api)
     }
 
     override fun blockpostuser() {
@@ -130,15 +128,14 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun postComment(anony: String) {
         post.userid
         comment.userid
-        vmReply.postReply(comment.ref,post.postid!!,comment.commentid!!,getTodayString(
-            SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),post.userid,comment.userid,api)
+        vmReply.postReply(comment.ref,post.postid!!,comment.commentid!!,anony,edtComment.text.toString(),post.userid,comment.userid,api)
     }
 
     override fun togglecomment(com: Comment) {
         if(com.userid==vmAuth.userid.value!!)
-            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid!!,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,null,null,null,com.commentid!!,com.commentliked,api)
         else
-            baseCommentViewModel.toggleComment(comment.commentid,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid!!,com.commentliked,api)
+            baseCommentViewModel.toggleComment(comment.commentid,com.userid,com.depth,com.postid,com.commentid!!,com.commentliked,api)
     }
     override fun onResume() {
         setHasOptionsMenu(true)

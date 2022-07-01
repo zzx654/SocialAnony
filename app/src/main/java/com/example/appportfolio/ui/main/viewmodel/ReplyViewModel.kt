@@ -40,11 +40,11 @@ class ReplyViewModel@Inject constructor(
             _deletereplyResponse.postValue(Event(result))
         }
     }
-    fun postReply(ref:Int,postid: String,commentid: Int,time: String,anonymous: String,text: String,postuserid:Int,commentuserid:Int,api: MainApi)
+    fun postReply(ref:Int,postid: String,commentid: Int,anonymous: String,text: String,postuserid:Int,commentuserid:Int,api: MainApi)
     {
         _postCommentResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.postReply(ref,postid,commentid,time,anonymous, text,postuserid,commentuserid, api)
+            val result=repository.postReply(ref,postid,commentid,anonymous, text,postuserid,commentuserid, api)
             _postCommentResponse.postValue(Event(result))
         }
 

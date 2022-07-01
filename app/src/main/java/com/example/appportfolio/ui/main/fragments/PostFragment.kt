@@ -237,7 +237,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     fun toggleLike()
     {
         var togglemy=post.userid==vmAuth.userid.value!!
-        vmInteract.toggleLikePost(getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),togglemy,post.userid,post.postid!!,post.isLiked!!,api)
+        vmInteract.toggleLikePost(togglemy,post.userid,post.postid!!,post.isLiked!!,api)
     }
     fun toggleBookmark()
     {
@@ -266,8 +266,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             postuserid=null
         else
             postuserid=post.userid
-        vmComment.postComment(postuserid,post.postid!!,getTodayString(
-            SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),anony,edtComment.text.toString(),api)
+        vmComment.postComment(postuserid,post.postid!!,anony,edtComment.text.toString(),api)
     }
 
     override fun fixtotop(postedcomment: Comment) {
@@ -331,14 +330,14 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         var anonymous:Boolean=false
         anonymous= selectedComment.anonymous!=""
         blockingid=selectedComment.userid
-        vmInteract.blockcommentuser(anonymous,selectedComment.userid,selectedComment.platform==post.platform&&selectedComment.account==post.account,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
+        vmInteract.blockcommentuser(anonymous,selectedComment.userid,selectedComment.platform==post.platform&&selectedComment.account==post.account,api)
     }
 
     override fun blockpostuser() {
         var anonymous:Boolean=false
         anonymous= post.anonymous!=""
         blockingid=post.userid
-        vmInteract.blockpostuser(anonymous,post.userid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
+        vmInteract.blockpostuser(anonymous,post.userid,api)
     }
 
     override fun shownotexist() {

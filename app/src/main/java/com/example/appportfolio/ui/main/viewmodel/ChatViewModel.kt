@@ -5,7 +5,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.responses.*
 import com.example.appportfolio.data.entities.ChatData
@@ -63,23 +62,15 @@ class ChatViewModel@Inject constructor(
         _mychatRequests.postValue(listOf())
         _mychats.postValue(listOf())
     }
-    fun blockchatuser(anonymous:Boolean,blockuserid:Int,time:String,api:MainApi){
+    fun blockchatuser(anonymous:Boolean,blockuserid:Int,api:MainApi){
 
         _blockuserResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.blockchatuser(anonymous,blockuserid,time,api)
+            val result=repository.blockchatuser(anonymous,blockuserid,api)
             _blockuserResponse.postValue(Event(result))
         }
     }
     fun insertChat(chatdata:ChatData)=viewModelScope.launch (Dispatchers.IO){
-        //if(dateChanged!=0)
-        //{
-            //val dateData=ChatData(null,chatdata.senderid,chatdata.roomid,chatdata.date,"DATE",
-            //    SocialApplication.getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
-           // chatRepository.insertChat(dateData)
-          //  chatRepository.insertChat(chatdata)
-        //}
-        //else
             chatRepository.insertChat(chatdata)
     }
     fun readChats(roomid:String)=viewModelScope.launch(Dispatchers.IO) {
@@ -144,11 +135,11 @@ class ChatViewModel@Inject constructor(
             _refusechatResponse.postValue(Event(result))
         }
     }
-    fun acceptchat(roomid: String,organizer: Int,participant: Int,time: String,api: MainApi)
+    fun acceptchat(roomid: String,organizer: Int,participant: Int,api: MainApi)
     {
         _acceptchatResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.acceptchat(roomid,organizer,participant,time,api)
+            val result=repository.acceptchat(roomid,organizer,participant,api)
 
             _acceptchatResponse.postValue(Event(result))
         }

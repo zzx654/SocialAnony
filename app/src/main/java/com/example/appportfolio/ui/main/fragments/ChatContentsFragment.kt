@@ -89,9 +89,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
 
         }
         else
-        {
             inflater.inflate(R.menu.chatcontent_checkon, menu)
-        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -165,7 +163,6 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
                         error=true
                         break
                     }
-
                 }
                 if(error)
                     Toast.makeText(requireContext(), "그림 저장을 실패하였습니다", Toast.LENGTH_SHORT).show()
@@ -178,10 +175,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
                 chatContentsAdapter.notifyDataSetChanged()
             }
         }
-
-
     }
-
     override fun onDestroy() {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()

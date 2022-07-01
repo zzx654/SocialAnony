@@ -28,11 +28,11 @@ class CommentViewModel @Inject constructor(
     override val getCommentResponse:LiveData<Event<Resource<commentResponse>>>
         get()= _getCommentResponse
 
-    fun postComment(postuserid:Int?,postid: String,time: String,anonymous: String,text: String,api: MainApi)
+    fun postComment(postuserid:Int?,postid: String,anonymous: String,text: String,api: MainApi)
     {
         _postCommentResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.postComment(postuserid,postid,time,anonymous, text, api)
+            val result=repository.postComment(postuserid,postid,anonymous, text, api)
             _postCommentResponse.postValue(Event(result))
         }
     }

@@ -104,27 +104,27 @@ class interactViewModel  @Inject constructor(
             _reportResponse.postValue(Event(result))
         }
     }
-    fun blockcommentuser(anonymous: Boolean,blockuserid:Int,popback:Boolean,time:String,api:MainApi)
+    fun blockcommentuser(anonymous: Boolean,blockuserid:Int,popback:Boolean,api:MainApi)
     {
         _blockuserResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.blockcommentuser(anonymous,blockuserid,popback,time,api)
+            val result=repository.blockcommentuser(anonymous,blockuserid,popback,api)
             _blockuserResponse.postValue(Event(result))
         }
     }
-    fun blockpostuser(anonymous:Boolean,blockuserid:Int,time:String,api:MainApi){
+    fun blockpostuser(anonymous:Boolean,blockuserid:Int,api:MainApi){
 
         _blockuserResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.blockpostuser(anonymous,blockuserid,time,api)
+            val result=repository.blockpostuser(anonymous,blockuserid,api)
             _blockuserResponse.postValue(Event(result))
         }
     }
-    fun toggleLikePost(date:String,togglemy:Boolean,postuserid:Int,postid:String,isLiked:Int,api:MainApi)
+    fun toggleLikePost(togglemy:Boolean,postuserid:Int,postid:String,isLiked:Int,api:MainApi)
     {
         _toggleLikeResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.toggleLikePost(date,togglemy,postuserid,postid,isLiked,api)
+            val result=repository.toggleLikePost(togglemy,postuserid,postid,isLiked,api)
             _toggleLikeResponse.postValue(Event(result))
         }
     }

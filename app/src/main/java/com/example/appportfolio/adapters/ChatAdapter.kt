@@ -305,24 +305,6 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     var profileimgClickListener:((MessageData)->Unit)?=null
     var locationClickListener:((MessageData)->Unit)?=null
 
-    private fun isDateChanged(prevdate:String,curdate:String):Boolean{
-        val previousdate= SocialApplication.datetostr(
-            SocialApplication.strtodate(prevdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-            SimpleDateFormat("yyyy-MM-dd")
-        )
-        val currentdate= SocialApplication.datetostr(
-            SocialApplication.strtodate(curdate, SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-            SimpleDateFormat("yyyy-MM-dd"))
-        return !previousdate.equals(currentdate)
-    }
-    private fun setDateSepVisibility(prevdate: String,curdate: String,layoutDate:ConstraintLayout,tvSep: TextView){
-        if(isDateChanged(prevdate, curdate)){
-            layoutDate.visibility=View.VISIBLE
-            tvSep.text=  datetostr(strtodate(curdate,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
-                SimpleDateFormat("yyyy년 M월 d일 E요일"))
-
-        }
-    }
     fun setOnProfileImageClickListener(listener: (MessageData) -> Unit){
         profileimgClickListener=listener
     }

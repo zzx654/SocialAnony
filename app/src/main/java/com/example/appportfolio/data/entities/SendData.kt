@@ -4,6 +4,5 @@ data class SendData(
     val senderid:Int,
     val receiverid:Int,
     val content:String,
-    val type:String,
-    val sendTime:String
+    val type:String
 )

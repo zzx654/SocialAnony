@@ -13,7 +13,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.preference.PreferenceManager
 import com.example.appportfolio.R
-import com.example.appportfolio.SocialApplication.Companion.getTodayString
 import com.example.appportfolio.data.entities.ChatData
 import com.example.appportfolio.other.AppLifecycleManager
 import com.example.appportfolio.repositories.ChatRepository
@@ -58,19 +57,9 @@ class FirebaseMessagingService: FirebaseMessagingService() {
             val content=remoteMessage.data.get("content")
             //val dateChanged=remoteMessage.data.get("dateChanged")
             val chatdata= ChatData(null,senderid!!.toInt(),roomid!!,date!!,type!!,content!!,0)
-            //if(dateChanged!!.toInt()!=0)
-            //{
-                //val dateData=ChatData(null,senderid!!.toInt(),roomid!!,date!!,"DATE",getTodayString(SimpleDateFormat("yyyy년 M월 d일 E요일")),1)
-                //CoroutineScope(Dispatchers.IO).launch {
-                 //   chatRepository.insertChat(dateData)
-                 //   chatRepository.insertChat(chatdata)
-                //}
-            //}
-            //else{
                 CoroutineScope(Dispatchers.IO).launch {
                     chatRepository.insertChat(chatdata)
                 }
-            //}
         }
         if(AppLifecycleManager.isForeground||!sharedPreferences.getBoolean("pushonoff",true))
             return
@@ -138,7 +127,6 @@ class FirebaseMessagingService: FirebaseMessagingService() {
     }
     companion object {
         private const val CHANNEL_NAME = "Emoji Party"
-        //private const val CHANNEL_DESCRIPTION = "Chatting"
         private const val CHANNEL_ID = "Channel Id"
     }
 

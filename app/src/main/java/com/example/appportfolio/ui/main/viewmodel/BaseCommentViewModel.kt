@@ -49,11 +49,11 @@ private val dispatcher: CoroutineDispatcher = Dispatchers.Main
             _deletecommentResponse.postValue(Event(result))
         }
     }
-    fun toggleComment(rootcommentid:Int?,commentuserid:Int?,depth:Int?,time:String?,postid:String?,commentid: Int,isLiked: Int,api: MainApi)
+    fun toggleComment(rootcommentid:Int?,commentuserid:Int?,depth:Int?,postid:String?,commentid: Int,isLiked: Int,api: MainApi)
     {
         _toggleCommentResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch(dispatcher) {
-            val result=repository.toggleComment(rootcommentid,commentuserid,depth,time,postid,commentid, isLiked, api)
+            val result=repository.toggleComment(rootcommentid,commentuserid,depth,postid,commentid, isLiked, api)
             _toggleCommentResponse.postValue(Event(result))
         }
 

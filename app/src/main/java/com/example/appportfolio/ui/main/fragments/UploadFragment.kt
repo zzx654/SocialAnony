@@ -411,7 +411,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                     getTagsstr(),
                     getLatitude(),
                     getLongitude(),
-                    getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
                     getVoteoptionstr()
                 )
             }
@@ -437,17 +436,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             longitude=gpsTracker.longitude!!
         }
         return longitude
-    }
-    fun getTodayString(format: SimpleDateFormat):String
-    {
-        var today= Calendar.getInstance()//오늘의 calendar객체
-        var todaystr= datetostr(today.time,format)
-
-        return todaystr
-    }
-    fun datetostr(date: Date, format: SimpleDateFormat):String
-    {
-        return format.format(date)
     }
     private fun getTagsstr():String?
     {
@@ -522,8 +510,6 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             if(it.equals("200"))
             {
                 progressDialog.dismiss()
-                //binding.rlbottom.visibility=View.GONE
-                //findNavController().popBackStack()
                 parentFragmentManager.popBackStack()
             }
             else

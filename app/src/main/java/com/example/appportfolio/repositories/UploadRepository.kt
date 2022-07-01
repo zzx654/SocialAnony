@@ -17,14 +17,13 @@ class UploadRepository {
         tags:String?,
         latitude:Double?,
         longitude:Double?,
-        date:String,
         image:String,
         audio:String,
         voteoptions:String?,
         api: MainApi
     )= withContext(Dispatchers.IO){
         safeCall {
-            Resource.Success(api.postContents(postid, anonymous, text,tags, latitude, longitude, date, image, audio,voteoptions))
+            Resource.Success(api.postContents(postid, anonymous, text,tags, latitude, longitude, image, audio,voteoptions))
         }
     }
     suspend fun postImage(images:List<MultipartBody.Part>, api: MainApi)

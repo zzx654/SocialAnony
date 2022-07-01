@@ -122,11 +122,10 @@ class MainRepository {
         roomid:String,
         organizer:Int,
         participant:Int,
-        time:String,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.acceptchat(roomid, organizer, participant, time))
+            Resource.Success(api.acceptchat(roomid, organizer, participant))
         }
     }
     suspend fun refusechat(
@@ -217,31 +216,28 @@ class MainRepository {
         anonymous:Boolean,
         blockuserid:Int,
         popback:Boolean,
-        time: String,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.blockcommentuser(anonymous,blockuserid,popback,time))
+            Resource.Success(api.blockcommentuser(anonymous,blockuserid,popback))
         }
     }
     suspend fun blockpostuser(
         anonymous:Boolean,
         blockuserid:Int,
-        time: String,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.blockpostuser(anonymous,blockuserid,time))
+            Resource.Success(api.blockpostuser(anonymous,blockuserid))
         }
     }
     suspend fun blockchatuser(
         anonymous:Boolean,
         blockuserid:Int,
-        time: String,
         api:MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.blockchatuser(anonymous,blockuserid,time))
+            Resource.Success(api.blockchatuser(anonymous,blockuserid))
         }
     }
     suspend fun readAllNoti(
@@ -296,7 +292,6 @@ class MainRepository {
         ref:Int,
         postid:String,
         commentid:Int,
-        time:String,
         anonymous:String,
         text:String,
         postuserid:Int,
@@ -304,7 +299,7 @@ class MainRepository {
         api:MainApi
     )=withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.postReply(ref,postid,commentid, time,anonymous,text,postuserid,commentuserid))
+            Resource.Success(api.postReply(ref,postid,commentid,anonymous,text,postuserid,commentuserid))
         }
     }
     suspend fun checkSelectedComment(
@@ -339,27 +334,25 @@ class MainRepository {
         rootcommentid:Int?,
         commentuserid: Int?,
         depth:Int?,
-        time:String?,
         postid:String?,
         commentid:Int,
         isLiked:Int,
         api:MainApi
     )=withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.toggleComment(rootcommentid,commentuserid, depth, time, postid, commentid, isLiked))
+            Resource.Success(api.toggleComment(rootcommentid,commentuserid, depth, postid, commentid, isLiked))
         }
     }
 
     suspend fun postComment(
         postuserid: Int?,
         postid:String,
-        time:String,
         anonymous:String,
         text:String,
         api:MainApi
     )=withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.postComment(postuserid,postid,time,anonymous,text))
+            Resource.Success(api.postComment(postuserid,postid,anonymous,text))
         }
     }
 
@@ -393,7 +386,6 @@ class MainRepository {
     }
 
     suspend fun toggleLikePost(
-        date:String,
         togglemy:Boolean,
         postuserid:Int,
         postid: String,
@@ -401,7 +393,7 @@ class MainRepository {
         api: MainApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.toggleLikePost(date,togglemy,postuserid,postid, isLiked))
+            Resource.Success(api.toggleLikePost(togglemy,postuserid,postid, isLiked))
         }
     }
     suspend fun toggleBookmarkPost(

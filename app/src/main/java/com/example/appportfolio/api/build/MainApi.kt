@@ -56,7 +56,6 @@ interface MainApi {
         @Field("tags")tags:String?,
         @Field("latitude")latitude:Double?,
         @Field("longitude")longitude:Double?,
-        @Field("date")date:String,
         @Field("image")image:String,
         @Field("audio")audio:String,
         @Field("voteoptions")voteoptions:String?
@@ -85,8 +84,7 @@ interface MainApi {
     suspend fun acceptchat(
         @Field("roomid")roomid: String,
         @Field("organizer")organizer: Int,
-        @Field("participant")participant: Int,
-        @Field("time")time: String,
+        @Field("participant")participant: Int
     ):getchatrequestsResponse
     @FormUrlEncoded
     @POST("/refusechat")
@@ -136,23 +134,20 @@ interface MainApi {
     suspend fun blockcommentuser(
         @Field("anonymous")anonymous:Boolean,
         @Field("blockuserid")blockuserid: Int,
-        @Field("popback")popback:Boolean,
-        @Field("time")time:String
+        @Field("popback")popback:Boolean
 
     ):intResponse
     @FormUrlEncoded
     @POST("/blockpostuser")
     suspend fun blockpostuser(
         @Field("anonymous")anonymous:Boolean,
-        @Field("blockuserid")blockuserid:Int,
-        @Field("time")time:String
+        @Field("blockuserid")blockuserid:Int
     ):intResponse
     @FormUrlEncoded
     @POST("/blockchatuser")
     suspend fun blockchatuser(
         @Field("anonymous")anonymous:Boolean,
-        @Field("blockuserid")blockuserid:Int,
-        @Field("time")time:String
+        @Field("blockuserid")blockuserid:Int
     ):intResponse
     @POST("/readAllNoti")
     suspend fun readAllNoti(
@@ -206,7 +201,6 @@ interface MainApi {
         @Field("ref")ref: Int,
         @Field("postid")postid: String,
         @Field("commentid")commentid:Int,
-        @Field("time")time:String,
         @Field("anonymous")anonymous: String,
         @Field("text")text:String,
         @Field("postuserid")postuserid:Int,
@@ -218,7 +212,6 @@ interface MainApi {
         @Field("rootcommentid")rootcommentid:Int?,
         @Field("commentuserid")commentuserid: Int?,
         @Field("depth")depth: Int?,
-        @Field("time")time: String?,
         @Field("postid")postid:String?,
         @Field("commentid")commentid: Int,
         @Field("isLiked")isLiked:Int
@@ -229,7 +222,6 @@ interface MainApi {
     suspend fun postComment(
         @Field("postuserid")postuserid: Int?,
         @Field("postid")postid: String,
-        @Field("time")time:String,
         @Field("anonymous")anonymous: String,
         @Field("text")text:String
     ):commentResponse
@@ -258,7 +250,6 @@ interface MainApi {
     @FormUrlEncoded
     @POST("/toggleLikePost")
     suspend fun toggleLikePost(
-        @Field("date")date:String,
         @Field("togglemy")togglemy:Boolean,
         @Field("postuserid")postuserid:Int,
         @Field("postid")postid:String,
@@ -441,14 +432,11 @@ interface MainApi {
     @POST("/postContents")
     suspend fun postContents(
         @Field("postid")postid : String,
-        @Field("account")account:String,
-        @Field("platform")platform:String,
         @Field("anonymous")anonymous:String,
         @Field("text")text:String,
         @Field("tags")tags:String?,
         @Field("latitude")latitude:Double?,
         @Field("longitude")longitude:Double?,
-        @Field("date")date:String,
         @Field("image")image:String,
         @Field("audio")audio:String
     ): String

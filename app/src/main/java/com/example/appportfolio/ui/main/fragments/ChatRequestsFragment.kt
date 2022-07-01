@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
@@ -21,7 +20,6 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.data.entities.ChatData
 import com.example.appportfolio.data.entities.ChatRequests
-import com.example.appportfolio.data.entities.Chatroom
 import com.example.appportfolio.databinding.FragmentChatrequestsBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -58,7 +56,7 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         }
         chatrequestsAdapter.setOnAcceptClickListener {
             selectedRequest=it
-            viewModel.acceptchat(it.roomid,it.organizer,it.participant,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
+            viewModel.acceptchat(it.roomid,it.organizer,it.participant,api)
         }
         chatrequestsAdapter.setOnRefuseClickListener {
             viewModel.refusechat(it.roomid,it.participant,api)
@@ -119,12 +117,8 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     }
     private fun setnewChats(selectedRequest: ChatRequests){
         val chatcontent=ChatData(null,selectedRequest.organizer,selectedRequest.roomid, getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start","대화가 시작되었습니다",1)
+        //표시될 대화의 내용에 포함되지않기떄문에 날짜로 아무값이나 넣음
         viewModel.insertChat(chatcontent)
-        var oldChatlist=viewModel.mychats.value!!
-        //var newChatlist:List<Chatroom> = listOf(Chatroom(selectedRequest.organizer,selectedRequest.profileimage,selectedRequest.gender,selectedRequest.nickname,1,selectedRequest.participant,
-         //   selectedRequest.roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),"start",
-          //  "대화가 시작되었습니다",1))+oldChatlist
-        //viewModel.setChats(newChatlist)
     }
     private fun setupRecyclerView()=binding.rvRequests.apply{
         layoutManager= LinearLayoutManager(requireContext())

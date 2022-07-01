@@ -49,7 +49,6 @@ class UploadService: LifecycleService(){
         val tags=MutableLiveData<String?>()
         val latitude=MutableLiveData<Double?>()
         val longitude=MutableLiveData<Double?>()
-        val todayString=MutableLiveData<String>()
         val imageResponse= MutableLiveData<Event<Resource<uploadImagesResponse>>>()
         val audioResponse= MutableLiveData<Event<Resource<uploadAudioResponse>>>()
         val postResponse = MutableLiveData<Event<Resource<String>>>()
@@ -80,13 +79,10 @@ class UploadService: LifecycleService(){
         tagstr:String?,
         lat:Double?,
         long:Double?,
-        todayStr:String,
         voteoptions: String?
     ) {
         val preferences= UserPreferences(this)
 
-        //authapi= RemoteDataSource().buildApi(AuthApi::class.java,runBlocking { preferences.authToken.first() })
-       // mainapi=RemoteDataSource().buildApi(MainApi::class.java)
         api= RemoteDataSource().buildApi(MainApi::class.java,runBlocking { preferences.authToken.first() })
         imgUris.value=imgs
         recordedPath.value=voice
@@ -96,7 +92,6 @@ class UploadService: LifecycleService(){
         tags.value=tagstr
         latitude.value=lat
         longitude.value=long
-        todayString.value=todayStr
         voptions.value=voteoptions
     }
     fun startPosting(
@@ -108,11 +103,10 @@ class UploadService: LifecycleService(){
         tags:String?,
         latitude:Double?,
         longitude:Double?,
-        todayString:String,
         voteoptions:String?
     ) {
         initialValues(imgUris,recordedPath,postuuid,anonymous,text,tags,
-        latitude,longitude,todayString,voteoptions)
+        latitude,longitude,voteoptions)
         subsribeToObserver()
         if(imgUris.isNullOrEmpty())
         {
@@ -125,7 +119,6 @@ class UploadService: LifecycleService(){
                     tags,
                     latitude,
                     longitude,
-                    todayString,
                     "NONE",
                     "NONE",
                    voptions.value,
@@ -213,7 +206,6 @@ class UploadService: LifecycleService(){
         tags:String?,
         latitude: Double?,
         longitude: Double?,
-        date:String,
         image:String,
         audio:String,
         voteoptions: String?,
@@ -222,7 +214,7 @@ class UploadService: LifecycleService(){
         postResponse.postValue(Event(Resource.Loading()))
         CoroutineScope(Dispatchers.Main).launch {
             val result= uploadRepository.postContent(postid,anonymous,postText,tags,latitude,
-                longitude,date,image,audio,voteoptions,api)
+                longitude,image,audio,voteoptions,api)
             postResponse.postValue(Event(result))
         }
     }
@@ -243,7 +235,6 @@ class UploadService: LifecycleService(){
                 tags.value,
                 latitude.value,
                 longitude.value,
-                todayString.value!!,
                 imgs.value!!,
                 it,
                 voptions.value,

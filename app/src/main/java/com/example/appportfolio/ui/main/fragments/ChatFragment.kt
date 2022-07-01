@@ -41,10 +41,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.SocialApplication.Companion.datetostr
-import com.example.appportfolio.SocialApplication.Companion.getTodayString
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
-import com.example.appportfolio.SocialApplication.Companion.strtodate
 import com.example.appportfolio.adapters.ChatAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -125,7 +122,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         binding.toolbox.visibility=View.GONE
         binding.toolBtn.setImageResource(R.drawable.tooladd)
         scrollbottom=true
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == Activity.RESULT_OK) { //구글 맵과 위치검색api 를 활용하여 얻은 위도 경도값을 받아옴
             val myData: Intent? = result.data
             val lat = myData?.getFloatExtra("lat",0.toFloat())
             val lon=myData?.getFloatExtra("lon",0.toFloat())
@@ -169,7 +166,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             return CropImage.getActivityResult(intent)?.uri
         }
     }
-    var m_imageFile: File? = null
+    var m_imageFile: File? = null //카메라로 찍은 사진 파일
     private val getContent =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
             var bmap:Bitmap?=null
@@ -198,15 +195,9 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                         binding.toolBtn.setImageResource(R.drawable.tooladd)
                         uploadImage(getImageUri(requireContext(),bmap)!!,requireContext())
                     }
-                }
+                }//카메라로 찍은사진 회전 보정후 uri로 변환하여 서버 업로드
             }
         }
-    /**fun getImageUri(inContext: Context?, inImage: Bitmap?): Uri? {
-        val bytes = ByteArrayOutputStream()
-        inImage?.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-        val path = MediaStore.Images.Media.insertImage(inContext?.contentResolver, inImage, "Title" + " - " + Calendar.getInstance().time, null)
-        return Uri.parse(path)
-    }**/
     fun getImageUri(context:Context,image:Bitmap?):Uri?{
         val imagesFolder=File(requireContext().cacheDir,"images")
         var uri:Uri?=null
@@ -347,6 +338,13 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             opponentsender=opponentid
             setupRecyclerView()
 
+            (activity as MainActivity).mSocket.on("sendResponse"){   args: Array<Any>->
+                val sentdata=gson.fromJson(
+                    args[0].toString(),
+                    SentData::class.java
+                )
+                vmChat.insertChat(ChatData(null,vmAuth.userid.value!!,roomid,sentdata.date,sentdata.type,sentdata.content,1))
+            }
             mRootView = binding.root
         }
        else{
@@ -356,7 +354,8 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 (activity as MainActivity).binding.title.text=usernickname
         }
         var job: Job? = null
-        binding.edtText.onFocusChangeListener = object : View.OnFocusChangeListener {
+        binding.edtText.onFocusChangeListener = object : View.OnFocusChangeListener {//edittext에 포커스가 생겼을때 키보드를 먼저 ui에 영향가지않게 show(toolbox가 올라와있을경우 때문에) 하고 toolbox를 사라지게한후
+            //다시 키보드가 ui에 영향을 줄수있게한다
             override fun onFocusChange(view: View, hasFocus: Boolean) {
                 if (hasFocus) {
                     prescrollbottom=scrollbottom
@@ -365,10 +364,10 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                     showcontainer = false
                     job?.cancel()
                     job = lifecycleScope.launch {
-                        activity?.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
+                        activity?.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)//키보드가 ui에 영향을 안줌
                         delay(100)
                         binding.toolbox.visibility = View.GONE
-                        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+                        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)//키보드에 따라 ui가 밀려남
                     }
                 }
             }
@@ -393,6 +392,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 else{
                     if(showcontainer)
                     {
+                        //edittext에 다시 포커스,키보드를 다시보여주기위해 키보드에 따라 ui가 영향받지 않게끔 설정 후 키보드 show하고 toolbox를 사라지게함
                         binding.edtText.requestFocus()
                         showcontainer=false
                         binding.toolBtn.setImageResource(R.drawable.tooladd)
@@ -403,6 +403,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                         activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                     }
                     else{
+                        //edittext 포커스를 다시 잃게함
                         binding.edtText.clearFocus()
                         showcontainer=true
                         binding.toolBtn.setImageResource(R.drawable.toolcancel)
@@ -466,18 +467,18 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             setDisplayShowTitleEnabled(false)
         }
         if(chatAdapter.currentList.isEmpty())
-        {
+        { //채팅 내용 비었을시 가장최근 20개의 문자 우선 load
             val firstChatLoad = vmChat.loadchatContents(roomid)
             firstChatLoad.observe(viewLifecycleOwner) {
                 initChatContents = it.reversed()
-                //var oppoid = opponentid
-                if (opponentid == 0)
+                if (opponentid == 0) //대화방에서 상대가 나간경우
                     (activity as MainActivity).binding.title.text = "대화상대없음"
                 vmChat.readChats(roomid)//읽음
                 if(userprofileimage==null)
                 {
                     val getoppochat=vmChat.getOpponentChat(roomid,vmAuth.userid.value!!)
                     getoppochat.observe(viewLifecycleOwner){ oppochat->
+                        //상대방의 userid가 0일수도있으므로 대화내용db 에서 상대방의 채팅내용 senderid를 얻음
                         if(oppochat.isNotEmpty())
                             opponentsender=oppochat[0].senderid!!
                         vmChat.getuserprofile(opponentsender, api)
@@ -489,7 +490,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 firstChatLoad.removeObservers(viewLifecycleOwner)
             }
         }
-        else{
+        else{//채팅내용이 이미 한번 load된경우 백그라운드 또는 다른프래그먼트에 있던 동안의 채팅 내용 load
             val lastChatLoad = vmChat.getLastChats(roomid,chatAdapter.currentList.last().num!!)
             lastChatLoad.observe(viewLifecycleOwner){
                     initContents(it.reversed(),true,true)
@@ -526,17 +527,12 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         (activity as MainActivity).deleteroom(roomid)
     }
     private fun sendContent(content:String,Type:String){
-        //var dateChanged:Boolean=false
-        //if(chatAdapter.currentList.isNotEmpty())
-         //   dateChanged=isDateChanged(chatAdapter.currentList.last().date)
-
         val sendData= SendData(
             roomid,
             vmAuth.userid.value!!,
             opponentid,
             content,
-            Type,
-            getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))
+            Type
         )
         try{
             (activity as MainActivity).mSocket.emit("newMessage",gson.toJson(
@@ -551,8 +547,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             vmChat.deleteroom(roomid)
             parentFragmentManager.popBackStack()
         }
-        else
-            vmChat.insertChat(ChatData(null,vmAuth.userid.value!!,roomid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),Type,content,1))
     }
 
     override fun onPause() {
@@ -622,20 +616,12 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                         val prevchatlist=createMessageData(it.reversed())
                         val curchatlist=chatAdapter.currentList.toMutableList()
                         prevchatlist[0].dateChanged=isDateChanged(prevchatlist.last().date,curchatlist[0].date)
-                        //var chatlist:List<MessageData> = listOf()
-                        //for(i in it)
-                        //{
-                        //   chatlist+=MessageData(i.id,i.senderid,i.date,i.type,i.content,i.isread!!,usernickname,usergender,userprofileimage)
-
-                        //}
                         activity?.runOnUiThread{
                             setchatcontents(prevchatlist+curchatlist,false)
                         }
                     }
-
                     loadbefore.removeObservers(viewLifecycleOwner)
                 }
-
             }
             scrollbottom = !recyclerView.canScrollVertically(1)
             if(scrollbottom)
@@ -693,7 +679,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         }
         positive.setOnClickListener {
             blockingid=opponentid
-            vmChat.blockchatuser(false,opponentid,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),api)
+            vmChat.blockchatuser(false,opponentid,api)
 
             dialog.dismiss()
             dialog.cancel()
@@ -997,7 +983,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
             "left",
             gson.toJson(Roomconnect(roomid,null))
         )
-        (activity as MainActivity).mSocket.off("update")
+        (activity as MainActivity).mSocket.off("sendResponse")
         (activity as MainActivity).mSocket.off("getuploadedimg")
         (activity as MainActivity).setupTopBottom()
         snackbar?.dismiss()

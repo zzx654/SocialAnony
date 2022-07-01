@@ -10,10 +10,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
-import androidx.core.widget.NestedScrollView
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -243,9 +240,9 @@ abstract class BaseCommentFragment (layoutId:Int
     open fun togglecomment(com:Comment)
     {
         if(com.userid==vmAuth.userid.value!!)
-            baseCommentViewModel.toggleComment(null,null,null,null,null,com.commentid!!,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,null,null,null,com.commentid!!,com.commentliked,api)
         else
-            baseCommentViewModel.toggleComment(null,com.userid,com.depth,getTodayString(SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),com.postid,com.commentid!!,com.commentliked,api)
+            baseCommentViewModel.toggleComment(null,com.userid,com.depth,com.postid,com.commentid!!,com.commentliked,api)
 
 
     }
@@ -474,14 +471,11 @@ abstract class BaseCommentFragment (layoutId:Int
         baseCommentViewModel.postCommentResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
                 loadingDialog.show()
-                //if(!commentAdapter.currentList.isEmpty())
-               //     postcommentprogress.visibility=View.VISIBLE
                 sendcomment.visibility=View.GONE
             },
             onError={
                 snackbar(it)
                 loadingDialog.dismiss()
-               // postcommentprogress.visibility=View.GONE
             }
 
         ){
@@ -658,16 +652,5 @@ abstract class BaseCommentFragment (layoutId:Int
         }
 
         return resultstr
-    }
-    fun getTodayString(format: SimpleDateFormat):String
-    {
-        var today= Calendar.getInstance()
-        var todaystr= datetostr(today.time,format)
-
-        return todaystr
-    }
-    private fun datetostr(date: Date, format: SimpleDateFormat):String
-    {
-        return format.format(date)
     }
 }
