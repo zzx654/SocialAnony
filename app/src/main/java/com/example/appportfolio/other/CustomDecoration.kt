@@ -25,8 +25,6 @@ class CustomDecoration(
     override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val left = parent.paddingStart+padding
         val right = parent.width - parent.paddingEnd-padding
-
-        println("몇갠데 도대체 ${parent.childCount}")
         for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
             val params = child.layoutParams as RecyclerView.LayoutParams
