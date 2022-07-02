@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.ItemHorizontalrvBinding
+import com.example.appportfolio.other.Constants.ITEM
 
 class HorizontalAdapter(val context:Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -26,6 +27,10 @@ class HorizontalAdapter(val context:Context): RecyclerView.Adapter<RecyclerView.
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         (holder as HotUserViewHolder).onbind()
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return ITEM
     }
 
     override fun getItemCount(): Int=1

@@ -88,16 +88,7 @@
         android:id="@+id/guidline3"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.95"/>
-    <View
-        android:id="@+id/line"
 
-        app:layout_constraintStart_toStartOf="@id/guidline1"
-        app:layout_constraintEnd_toEndOf="@id/guidline3"
-        app:layout_constraintBottom_toBottomOf="@id/tvsharp"
-        android:layout_width="0dp"
-        android:layout_height="0.05dp"
-
-        android:background="#CDD1D5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

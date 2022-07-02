@@ -7,6 +7,7 @@
             type="com.example.appportfolio.data.entities.Person" />
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:paddingBottom="10dp"
         android:paddingTop="10dp"
         android:background="@color/skin"
         android:layout_width="match_parent"
@@ -61,21 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
-        <View
-            android:id="@+id/occupy"
-            app:layout_constraintTop_toBottomOf="@+id/profileimage"
-            android:layout_width="match_parent"
-            android:layout_height="10dp"/>
-        <View
-            android:id="@+id/line"
-            android:layout_width="0dp"
-            android:layout_height="0.05dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:background="#CDD1D5"
-            app:layout_constraintTop_toBottomOf="@+id/occupy"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

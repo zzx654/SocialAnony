@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Chatroom
 import com.example.appportfolio.databinding.ItemChatroomBinding
+import com.example.appportfolio.other.Constants.ITEM
 
 class ChatRoomAdapter: ListAdapter<Chatroom,RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -42,6 +43,10 @@ class ChatRoomAdapter: ListAdapter<Chatroom,RecyclerView.ViewHolder>(diffUtil) {
 
     override fun getItemCount(): Int {
         return currentList.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return ITEM
     }
     companion object{
         val diffUtil=object: DiffUtil.ItemCallback<Chatroom>(){

@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -35,6 +36,7 @@ import com.example.appportfolio.other.Constants.COMMENTLIKED
 import com.example.appportfolio.other.Constants.FOLLOWED
 import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Constants.POSTLIKED
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -486,6 +488,8 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         return super.onOptionsItemSelected(item)
     }
     private fun setupRecyclerView(){
+        val customDecoration=CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),0f,false)
         notiAdapter.setHasStableIds(true)
         binding.rvNoti.apply{
             adapter=notiAdapter
@@ -494,6 +498,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             itemAnimator=null
             addOnScrollListener(this@NotificationFragment.scrollListener)
             setItemViewCacheSize(20)
+            addItemDecoration(customDecoration)
         }
         val animator=binding.rvNoti.itemAnimator
         if (animator is SimpleItemAnimator){          //아이템 애니메이커 기본 하위클래스

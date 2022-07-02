@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +17,7 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentChatroomBinding
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.ChatViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -79,9 +81,12 @@ class ChatroomFragment: Fragment(R.layout.fragment_chatroom) {
         return mRootView
     }
     private fun setupRecyclerView()=binding.rvchatroom.apply{
+        val customDecoration=CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,false)
         adapter=chatroomAdapter
         layoutManager= LinearLayoutManager(requireContext())
         itemAnimator=null
+        addItemDecoration(customDecoration)
     }
     private fun subsribeToObserver()
     {

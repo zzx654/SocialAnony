@@ -51,4 +51,8 @@ object Constants {
     const val IMAGECONTENT=0
     const val AUDIOCONTENT=1
     const val VOTECONTENT=2
+
+    const val ITEM=1
+    const val HEADER=0
+    const val DIVIDER=2
 }

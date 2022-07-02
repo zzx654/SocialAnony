@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -30,6 +31,7 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.FragmentTagBinding
 import com.example.appportfolio.other.Constants
+import com.example.appportfolio.other.CustomDecoration
 
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -230,15 +232,19 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         dialog.show()
     }
     private fun setupRecyclerView(){
+        val customDecoration=CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,true)
         binding.rvSearchedTag.apply {
             adapter = SearchedAdapter
             layoutManager = LinearLayoutManager(requireContext())
             itemAnimator = null
+            addItemDecoration(customDecoration)
         }
         binding.rvFavoritepopular.apply {
             adapter=FavoritePopularAdapter
             layoutManager= LinearLayoutManager(requireContext())
             itemAnimator=null
+            addItemDecoration(customDecoration)
         }
     }
     private fun subscribeToObserver()

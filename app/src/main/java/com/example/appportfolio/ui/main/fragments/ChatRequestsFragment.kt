@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -21,6 +22,7 @@ import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.data.entities.ChatData
 import com.example.appportfolio.data.entities.ChatRequests
 import com.example.appportfolio.databinding.FragmentChatrequestsBinding
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
@@ -121,9 +123,12 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         viewModel.insertChat(chatcontent)
     }
     private fun setupRecyclerView()=binding.rvRequests.apply{
+        val customDecoration= CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,false)
         layoutManager= LinearLayoutManager(requireContext())
         adapter=chatrequestsAdapter
         itemAnimator=null
+        addItemDecoration(customDecoration)
     }
     override fun onResume() {
         setHasOptionsMenu(true)

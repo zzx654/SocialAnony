@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -28,10 +29,7 @@ import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
-import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.adapters.PostPreviewAdapter
-import com.example.appportfolio.adapters.ProfileContainerAdapter
-import com.example.appportfolio.adapters.TextHeaderAdapter
+import com.example.appportfolio.adapters.*
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
@@ -39,6 +37,7 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.databinding.FragmentUserprofileBinding
 import com.example.appportfolio.other.Constants
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
@@ -110,8 +109,8 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
             VotesAdapter= PostPreviewAdapter()
             EveryAdapter= PostPreviewAdapter()
 
-            concatAdapter= ConcatAdapter(profileAdapter,ImagesHeaderAdapter,ImagesAdapter,AudioHeaderAdapter,AudioAdapter,
-            VoteHeaderAdapter,VotesAdapter,EveryHeaderAdapter,EveryAdapter)
+            concatAdapter= ConcatAdapter(profileAdapter,ImagesHeaderAdapter,ImagesAdapter,DividerAdapter(),AudioHeaderAdapter,AudioAdapter,DividerAdapter(),
+            VoteHeaderAdapter,VotesAdapter,DividerAdapter(),EveryHeaderAdapter,EveryAdapter)
             (activity as MainActivity).setToolBarVisible("othersProfileFragment")
             following=arguments?.getInt("follow")!!
             profileAdapter.setfollowing(following)
@@ -423,6 +422,7 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
             if(binding.srLayout.isRefreshing)
                 binding.srLayout.isRefreshing=false
             loadingDialog.dismiss()
+            binding.rvProfile.visibility=View.VISIBLE
             SocialApplication.handleResponse(requireContext(), it.resultCode) {
                 when(it.resultCode)
                 {
@@ -455,9 +455,12 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
         })
     }
     private fun setupRecyclerView()=binding.rvProfile.apply{
+        val customDecoration=CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,true)
         adapter=concatAdapter
         layoutManager= LinearLayoutManager(requireContext())
         itemAnimator=null
+        addItemDecoration(customDecoration)
     }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

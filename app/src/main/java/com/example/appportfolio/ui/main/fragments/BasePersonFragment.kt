@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -22,6 +23,7 @@ import com.example.appportfolio.api.responses.getpersonResponse
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.other.Constants
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -180,11 +182,14 @@ abstract class BasePersonFragment (layoutId:Int
 
     protected fun setupPersonRv(rv:RecyclerView,personadapter:PersonAdapter,scrollListener: RecyclerView.OnScrollListener)
     {
+        val customDecoration= CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,false)
         rv.apply {
             adapter=personadapter
             layoutManager=LinearLayoutManager(requireContext())
             itemAnimator=null
             addOnScrollListener(scrollListener)
+            addItemDecoration(customDecoration)
         }
 
     }

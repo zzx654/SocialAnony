@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -17,6 +18,7 @@ import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
+import com.example.appportfolio.adapters.DividerAdapter
 import com.example.appportfolio.adapters.HorizontalAdapter
 import com.example.appportfolio.adapters.PostPreviewAdapter
 import com.example.appportfolio.adapters.TextHeaderAdapter
@@ -27,6 +29,7 @@ import com.example.appportfolio.databinding.FragmentHotBinding
 import com.example.appportfolio.other.Constants.AUDIOCONTENT
 import com.example.appportfolio.other.Constants.IMAGECONTENT
 import com.example.appportfolio.other.Constants.VOTECONTENT
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
@@ -119,8 +122,8 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             hotPostsHeaderAdapter.title="인기게시물"
             hotAudioHeaderAdapter.title="인기 음성게시물"
             hotVoteHeaderAdapter.title="인기 투표게시물"
-            concatAdapter=ConcatAdapter(hotpersonHeaderAdapter,hotpersonAdapter,hotImagesHeaderAdapter,hotImagesAdapter,
-                hotAudioHeaderAdapter,hotAudioAdapter,hotVoteHeaderAdapter,hotVotesAdapter,hotPostsHeaderAdapter,hotPostsAdapter)
+            concatAdapter=ConcatAdapter(hotpersonHeaderAdapter,hotpersonAdapter,DividerAdapter(),hotImagesHeaderAdapter,hotImagesAdapter,DividerAdapter(),
+                hotAudioHeaderAdapter,hotAudioAdapter,DividerAdapter(),hotVoteHeaderAdapter,hotVotesAdapter,DividerAdapter(),hotPostsHeaderAdapter,hotPostsAdapter)
             binding.srLayout.setOnRefreshListener {
                 hotPersonViewModel.getHotUsers(null,null,api)
             }
@@ -138,17 +141,12 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     binding.retry.visibility=View.GONE
                     hotPersonViewModel.getHotUsers(null,null,api)
                 }
-
             }
-
             mRootView=binding.root
         }
         subscribeToObserver()
-
-
         return mRootView
     }
-
     private fun showwarn(){
         binding.srLayout.visibility=View.GONE
         binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
@@ -156,10 +154,13 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
         binding.retry.visibility=View.VISIBLE
     }
     private fun setupRecyclerView(){
+        val customDecoration=CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),20f,true)
         binding.rvHot.apply {
             adapter=concatAdapter
             layoutManager= LinearLayoutManager(requireContext())
             itemAnimator=null
+            addItemDecoration(customDecoration)
         }
     }
     private fun subscribeToObserver()
@@ -171,7 +172,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                     requireContext(),
                     (activity as MainActivity).isConnected!!,
                     it,
-
                 )
             }
         ){
@@ -210,7 +210,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                 (activity as MainActivity).isConnected!!,
                 it
             )
-
         }
     ){
         loadingDialog.dismiss()
@@ -348,8 +347,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
 
             }
         })
-
-
         vmHotPosts.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
 
             onError={
@@ -380,7 +377,4 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             }
         })
     }
-
-
-
 }

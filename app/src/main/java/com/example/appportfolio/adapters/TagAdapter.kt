@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.ItemTagBinding
+import com.example.appportfolio.other.Constants.ITEM
 import com.example.appportfolio.other.Constants.NONE_HEADER
 
 
@@ -32,6 +33,9 @@ class TagAdapter: ListAdapter<TagResult,RecyclerView.ViewHolder>(diffUtil) {
     }
 
 
+    override fun getItemViewType(position: Int): Int {
+        return ITEM
+    }
 
     override fun getItemCount(): Int {
         return currentList.size

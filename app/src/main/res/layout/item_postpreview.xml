@@ -9,8 +9,7 @@
 
 <androidx.constraintlayout.widget.ConstraintLayout
     android:background="@color/skin"
-
-
+    android:paddingBottom="14dp"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -149,17 +148,7 @@
         app:layout_constraintTop_toTopOf="@id/postImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <View
-        android:layout_marginTop="14dp"
-        android:id="@+id/line"
-        android:layout_width="0dp"
-        android:layout_height="0.05dp"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
-        android:background="#CDD1D5"
-        app:layout_constraintTop_toBottomOf="@+id/linear"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

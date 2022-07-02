@@ -100,13 +100,7 @@
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-    <View
-        android:id="@+id/line"
-        app:layout_constraintTop_toBottomOf="@+id/item"
-        android:layout_width="match_parent"
-        android:layout_height="0.003dp"
 
-        android:background="#AFA9A9" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

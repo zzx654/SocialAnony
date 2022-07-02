@@ -9,6 +9,7 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.databinding.FragmentPostdetailsBinding
 import com.example.appportfolio.databinding.ItemTextheaderBinding
+import com.example.appportfolio.other.Constants.HEADER
 
 class TextHeaderAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -28,6 +29,10 @@ class TextHeaderAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun getItemCount()=1
+
+    override fun getItemViewType(position: Int): Int {
+        return HEADER
+    }
 
     inner class TextViewHolder(val binding:ItemTextheaderBinding):RecyclerView.ViewHolder(binding.root) {
         fun onbind()

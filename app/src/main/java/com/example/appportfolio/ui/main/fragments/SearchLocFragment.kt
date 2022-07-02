@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -22,6 +23,7 @@ import com.example.appportfolio.adapters.SearchRecyclerAdapter
 import com.example.appportfolio.api.build.RetrofitLoc
 import com.example.appportfolio.data.entities.*
 import com.example.appportfolio.databinding.FragmentSearchlocBinding
+import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.LocationActivity
@@ -99,10 +101,13 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         return super.onOptionsItemSelected(item)
     }
     private fun setupRecyclerView()=binding.rv.apply{
+        val customDecoration= CustomDecoration(
+            ContextCompat.getDrawable(requireContext(), R.drawable.divider),0f,false)
         adapter=searchadapter
         layoutManager= LinearLayoutManager(requireContext())
         itemAnimator=null
         addOnScrollListener(scrollListener)
+        addItemDecoration(customDecoration)
 
     }
     val scrollListener= object: RecyclerView.OnScrollListener(){

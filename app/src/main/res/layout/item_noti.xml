@@ -11,7 +11,7 @@
     android:layout_height="wrap_content"
     android:clickable="true"
     android:background="?attr/selectableItemBackground"
-
+android:paddingBottom="10dp"
     android:paddingTop="10dp"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -45,14 +45,7 @@
         app:isread="@{noti.isread}"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
-    <View
-        app:layout_constraintTop_toBottomOf="@+id/tvtime"
-        android:layout_marginTop="10dp"
-        android:background="#CDD1D5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_width="match_parent"
-        android:layout_height="0.003dp"/>
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,6 +12,7 @@ import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.ItemPostBinding
 import com.example.appportfolio.databinding.ItemPostpreviewBinding
+import com.example.appportfolio.other.Constants.ITEM
 
 class PostPreviewAdapter: ListAdapter<Post, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -32,6 +33,10 @@ class PostPreviewAdapter: ListAdapter<Post, RecyclerView.ViewHolder>(diffUtil) {
 
     override fun getItemCount(): Int {
         return currentList.size
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return ITEM
     }
     inner class postViewHolder(val binding:ItemPostpreviewBinding):RecyclerView.ViewHolder(binding.root){
         fun onbind(post:Post)
