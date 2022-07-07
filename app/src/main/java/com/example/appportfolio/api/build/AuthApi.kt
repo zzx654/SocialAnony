@@ -69,12 +69,15 @@ AuthApi {
     @POST("/register")
     suspend fun register(
         @Field("email")email : String,
-        @Field("password")password :String
-    ): RegisterResponse
+        @Field("password")password :String,
+        @Field("code")code:String,
+        @Field("phone")phone: String
+    ): intResponse
 
     @FormUrlEncoded
     @POST("/authcomplete")
     suspend fun authcomplete(
+        @Field("profileimage")profileimage:String?,
         @Field("nickname")nickname : String,
         @Field("gender")gender :String,
         @Field("age")age:String

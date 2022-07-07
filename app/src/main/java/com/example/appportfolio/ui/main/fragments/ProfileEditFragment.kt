@@ -27,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.appportfolio.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -259,7 +260,12 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     {
         vmEdit.checknickResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
@@ -283,7 +289,12 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             },
             onError = {
                 binding.editprogressbar.visibility=View.GONE
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
 
             }
         ){
@@ -292,8 +303,6 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                 if (it.resultCode == 200) {
                     Toast.makeText(requireContext(), "변경이 완료되었습니다", Toast.LENGTH_SHORT).show()
                     parentFragmentManager.popBackStack()
-                } else {
-                    snackbar("서버오류 발생")
                 }
             }
         })
@@ -311,7 +320,12 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             },
             onError = {
                 binding.editprogressbar.visibility=View.GONE
-                snackbar(it)
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
             }
         ){
             binding.editprogressbar.visibility=View.GONE
@@ -321,8 +335,6 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                     binding.edtnick.text.toString()
                     //프로필에디트함수호출
                     vmEdit.editprofile(it.imageUri, binding.edtnick.text.toString(), api)
-                } else {
-                    snackbar("서버오류 발생")
                 }
             }
         })

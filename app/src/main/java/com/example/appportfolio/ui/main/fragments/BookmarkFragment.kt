@@ -109,7 +109,7 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_posts) {
         val curPosts=postAdapter.currentList
         if(!refresh)
         {
-            if(!curPosts.isNullOrEmpty())
+            if(!curPosts.isEmpty())
             {
                 val lastPost=curPosts.last()
                 lastpostnum=lastPost.postnum

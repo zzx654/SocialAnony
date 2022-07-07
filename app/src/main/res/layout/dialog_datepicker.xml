@@ -54,7 +54,7 @@ android:backgroundTint="@color/skin"
 
          android:includeFontPadding="false"
          android:id="@+id/save_button_datepicker"
-         android:backgroundTint="@color/positive"
+         android:backgroundTint="@color/skin"
          android:textColor="@color/black"
          android:text="확인"
          android:layout_width="0dp"

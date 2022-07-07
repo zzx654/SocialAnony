@@ -37,11 +37,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.auth.activity.AuthCompleteActivity" android:screenOrientation="portrait" android:exported="true"/>
+        <activity android:name=".ui.auth.activity.FillProfileActivity" android:screenOrientation="portrait" android:exported="true"/>
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" android:exported="true"/>
         <activity android:name=".ui.main.activity.MainActivity" android:screenOrientation="portrait" android:launchMode="singleTop" android:windowSoftInputMode="adjustResize" android:exported="true"/>
-        <activity android:name=".ui.auth.activity.AuthActivity" android:screenOrientation="portrait"  android:exported="true"/>
+        <activity android:name=".ui.auth.activity.AuthActivity" android:screenOrientation="portrait"  android:exported="true" android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".ui.main.activity.LocationActivity" android:screenOrientation="portrait" android:exported="true"/>
 
 
