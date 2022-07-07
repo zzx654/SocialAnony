@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -15,42 +16,44 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.appportfolio.*
-import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
+import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.SignManager
 import com.example.appportfolio.auth.Status
 import com.example.appportfolio.auth.UserPreferences
-import com.example.appportfolio.databinding.FragmentLoginBinding
+import com.example.appportfolio.databinding.FragmentLoginstartBinding
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.ui.auth.activity.AuthCompleteActivity
+import com.example.appportfolio.snackbar
+import com.example.appportfolio.ui.auth.activity.AuthActivity
+import com.example.appportfolio.ui.auth.activity.FillProfileActivity
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @AndroidEntryPoint
-class LoginFragment: Fragment(R.layout.fragment_login) {
-    lateinit var fcmToken:String
+class LoginStartFragment: Fragment(R.layout.fragment_loginstart) {
+
+    lateinit var binding:FragmentLoginstartBinding
     private lateinit var viewModel: AuthViewModel
-    lateinit var binding:FragmentLoginBinding
-    lateinit var api: AuthApi
     @Inject
     lateinit var signManager: SignManager
     @Inject
+    lateinit var loadingDialog: LoadingDialog
+    @Inject
     lateinit var userPreferences: UserPreferences
-    lateinit var curplatform:String
-    lateinit var curaccount:String
-
+    lateinit var api: AuthApi
     lateinit var mGoogleSignInClient: GoogleSignInClient
     val resultListener=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
         if(result.resultCode== AppCompatActivity.RESULT_OK)
@@ -64,40 +67,31 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding=DataBindingUtil.inflate<FragmentLoginBinding>(inflater,
-            R.layout.fragment_login,container,false)
-        viewModel=ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
-        checklogout()
-        binding.register.setOnClickListener {
-            if(findNavController().previousBackStackEntry!=null){
-                findNavController().popBackStack()
-            }else
-                findNavController().navigate(
-                    LoginFragmentDirections.actionLoginFragmentToRegisterFragment()
-                )
+        binding= DataBindingUtil.inflate<FragmentLoginstartBinding>(inflater,
+            R.layout.fragment_loginstart,container,false)
 
-        }
+        checklogout()
         initGoogleSignResource()
         api= RemoteDataSource().buildApi(AuthApi::class.java)
-        binding.signGeneral.setOnClickListener {
-            viewModel.login(binding.etEmail.text.toString(),binding.etPassword.text.toString(),fcmToken,api)
-        }
-        val tvgoogle=binding.signGoogle.getChildAt(0) as TextView
-        tvgoogle.text="Sign in with Google"
+        viewModel=ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
 
         binding.signGoogle.setOnClickListener {
             resultListener.launch(mGoogleSignInClient.signInIntent)
         }
-        binding.tvfindpassword.setOnClickListener {
-            findNavController().navigate(LoginFragmentDirections.actionGlobalFindPwFragment())
+        binding.mailStart.onSingleClick {
+            if(findNavController().previousBackStackEntry!=null){
+                findNavController().popBackStack()
+            }else
+                findNavController().navigate(
+                    LoginStartFragmentDirections.actionLoginStartFragmentToEmailLoginFragment()
+                )
         }
-        getFirebaseToken()
         subscribeToObserver()
         return binding.root
     }
     fun checklogout(deletetoken:Boolean=true)
     {
-        var applyresult:(Status, String?, String?)->Unit={ status,str1,str2->
+        var applyresult:(Status, String?, String?)->Unit={ status, str1, str2->
         }
         signManager.signout(applyresult)
     }
@@ -106,14 +100,15 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
         val gso= GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .build()
-        mGoogleSignInClient=GoogleSignIn.getClient(requireContext(),gso)
+        mGoogleSignInClient= GoogleSignIn.getClient(requireContext(),gso)
     }
-
     private fun handleSignInResult(completedTask: Task<GoogleSignInAccount>){
         try{
             val account=
                 completedTask.getResult(ApiException::class.java)
-            account.id?.let { viewModel.signWithSocial("GOOGLE", it,fcmToken,api) }
+            (activity as AuthActivity).fcmToken?.let{ fcmtoken->
+                account.id?.let { id-> viewModel.signWithSocial("GOOGLE", id,fcmtoken,api) }
+            }
 
         }catch (e: ApiException){
             snackbar(e.message!!)
@@ -121,44 +116,19 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
     }
     private fun subscribeToObserver()
     {
-        viewModel.fcmToken.observe(viewLifecycleOwner){
-            fcmToken=it
-        }
-
-        viewModel.loginResponse.observe(viewLifecycleOwner, Event.EventObserver(
-            onError={
-                binding.loginProgressBar.isVisible=false
-                snackbar(it)
-            },
-            onLoading = {
-                binding.loginProgressBar.isVisible=true
-            }
-
-        ){
-
-            if(it.restoken.equals("")){
-                snackbar(it.message)
-                binding.loginProgressBar.isVisible=false
-            }
-            else{
-                lifecycleScope.launch {
-                    userPreferences.saveAuthToken(it.restoken)
-                }
-                api= RemoteDataSource().buildApi(AuthApi::class.java,it.restoken)
-                viewModel.checkProfile(api)
-            }
-        })
         viewModel.SocialSignResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
-                      Log.d("socialSignErr",it)
-                binding.loginProgressBar.isVisible=false
+                Log.d("socialSignErr",it)
+                loadingDialog.dismiss()
                 snackbar(it)
             },
             onLoading = {
-                binding.loginProgressBar.isVisible=true
+                loadingDialog.show()
             }
         ){
+
             if(it.restoken.equals("")){
+                loadingDialog.dismiss()
                 snackbar(it.message)
             }
             else{
@@ -172,35 +142,24 @@ class LoginFragment: Fragment(R.layout.fragment_login) {
 
         viewModel.checkProfileResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onError = {
-                binding.loginProgressBar.isVisible=false
+                loadingDialog.dismiss()
                 snackbar(it)
-            },
-            onLoading = {
-
             }
         ) {
-            binding.loginProgressBar.isVisible=false
-            handleResponse(requireContext(),it.resultCode){
+            loadingDialog.dismiss()
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
                 if (it.resultCode == 200) {//프로필 완료된거
-                    Intent(requireContext(), MainActivity::class.java).apply{
+                    Intent(requireContext(), MainActivity::class.java).apply {
                         startActivity(this)
                         requireActivity().finish()
                     }
                 } else {//프로필완료안된거
-                    Intent(requireContext(), AuthCompleteActivity::class.java).apply{
+                    Intent(requireContext(), FillProfileActivity::class.java).apply {
                         startActivity(this)
                         requireActivity().finish()
                     }
                 }
             }
-
         })
-    }
-    private fun getFirebaseToken(){
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                viewModel.setfcmtoken(task.result!!)
-            }
-        }
     }
 }

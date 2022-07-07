@@ -124,21 +124,23 @@ class AuthRepository{
     suspend fun register(
         email:String,
         password:String,
+        code:String,
+        phone:String,
         api: AuthApi
     )= withContext(Dispatchers.IO) {
         safeCall{
-            Resource.Success(api.register(email,password).message)
+            Resource.Success(api.register(email,password,code,phone))
         }
     }
     suspend fun AuthComplete(
-
+        profileimage:String?,
         nickname:String,
         gender:String,
         age:String,
         api: AuthApi
     )= withContext(Dispatchers.IO){
         safeCall{
-            Resource.Success(api.authcomplete(nickname,gender,age).message)
+            Resource.Success(api.authcomplete(profileimage,nickname,gender,age).message)
         }
     }
     suspend fun signWithSocial(

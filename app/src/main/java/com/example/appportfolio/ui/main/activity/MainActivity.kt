@@ -62,7 +62,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var signManager: SignManager
     lateinit var chatRooms:List<ChatData>
-    lateinit var curReceivedChat: ReceivedChat
     lateinit var mSocket: Socket
     private lateinit var vmAuth:AuthViewModel
     private lateinit var vmNoti:NotiViewModel
@@ -463,11 +462,8 @@ class MainActivity : AppCompatActivity() {
         if(backStack.last()=="main")
         {
             setupToolBarMenu(currentTab!!)
-            if(currentTab== TAG_HOME)
-            {
-                binding.toolbar.visibility=View.GONE
-                binding.linetop.visibility=View.GONE
-            }
+            binding.toolbar.visibility=if(currentTab== TAG_HOME) View.GONE else View.VISIBLE
+            binding.linetop.visibility=if(currentTab== TAG_HOME) View.GONE else View.VISIBLE
             binding.bottomNavigationView.visibility=View.VISIBLE
             binding.linebottom.visibility=View.VISIBLE
             binding.flFragmentContainer.setPadding(0,0,0,58.dp)

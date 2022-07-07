@@ -41,12 +41,8 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
 
     private val _checkfcmresponse = MutableLiveData<Event<Resource<intResponse>>>()
     val checkfcmresponse: LiveData<Event<Resource<intResponse>>> = _checkfcmresponse
-    private val _nicknameResponse = MutableLiveData<Event<Resource<NicknameResponse>>>()
-    val nicknameResponse: LiveData<Event<Resource<NicknameResponse>>> = _nicknameResponse
-    private val _verified = MutableLiveData<Boolean?>()
-    val verified: LiveData<Boolean?> = _verified
-    private val _emailChecked = MutableLiveData<Boolean>()
-    val emailChecked: LiveData<Boolean> = _emailChecked
+
+
     private val _timerString = MutableLiveData<String>()
     val timerString: LiveData<String> = _timerString
 
@@ -64,17 +60,11 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     private val _verifyCode = MutableLiveData<String>()
     val verifyCode: LiveData<String> = _verifyCode
 
-    private val _emailVerifyResponse = MutableLiveData<Event<Resource<VerifyResponse>>>()
-    val emailVerifyResponse: LiveData<Event<Resource<VerifyResponse>>> = _emailVerifyResponse
 
-    private val _codeResponse = MutableLiveData<Event<Resource<VerifyResponse>>>()
-    val codeResponse: LiveData<Event<Resource<VerifyResponse>>> = _codeResponse
 
     private val _verifyResponse = MutableLiveData<Event<Resource<VerifyResponse>>>()
     val verifyResponse: LiveData<Event<Resource<VerifyResponse>>> = _verifyResponse
 
-    private val _getAccountResponse = MutableLiveData<Event<Resource<accountResponse>>>()
-    val getAccountResponse: LiveData<Event<Resource<accountResponse>>> = _getAccountResponse
 
     private val _SocialSignResponse = MutableLiveData<Event<Resource<LoginResponse>>>()
     val SocialSignResponse: LiveData<Event<Resource<LoginResponse>>> = _SocialSignResponse
@@ -82,23 +72,18 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     private val _authCompleteResponse = MutableLiveData<Event<Resource<String>>>()
     val authCompleteResponse: LiveData<Event<Resource<String>>> = _authCompleteResponse
 
-    private val _registerResponse = MutableLiveData<Event<Resource<String>>>()
-    val registerResponse: LiveData<Event<Resource<String>>> = _registerResponse
+    private val _registerResponse = MutableLiveData<Event<Resource<intResponse>>>()
+    val registerResponse: LiveData<Event<Resource<intResponse>>> = _registerResponse
 
     private val _loginResponse = MutableLiveData<Event<Resource<LoginResponse>>>()
     val loginResponse: LiveData<Event<Resource<LoginResponse>>> = _loginResponse
 
-    private val _nicknameChecked = MutableLiveData<Boolean>()
-    val nicknameChecked: LiveData<Boolean> = _nicknameChecked
     private val _fcmToken = MutableLiveData<String>()
     val fcmToken: LiveData<String> = _fcmToken
 
     private val _accessToken = MutableLiveData<String?>()
     val accessToken: LiveData<String?> = _accessToken
 
-
-    private val _curGender = MutableLiveData<String?>()
-    val curGender: LiveData<String?> = _curGender
 
     private val _autologinResponse = MutableLiveData<Event<Resource<checkProfileResponse>>>()
     val autologinResponse: LiveData<Event<Resource<checkProfileResponse>>> = _autologinResponse
@@ -110,21 +95,11 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     val checkProfileResponse: LiveData<Event<Resource<checkProfileResponse>>> =
         _checkProfileResponse
 
-
     fun setPlatform(platform:String){
         _platform.postValue(platform)
     }
     fun setCurBirth(birth: String) {
         _curBirth.postValue(birth)
-    }
-    fun setNicknameChecked(b: Boolean) {
-        _nicknameChecked.postValue(b)
-    }
-    fun setverified(verified: Boolean?) {
-        _verified.postValue(verified)
-    }
-    fun setemailChecked(checked: Boolean?) {
-        _emailChecked.postValue(checked!!)
     }
     fun timerStart() {
         if (::a.isInitialized) a.cancel()
@@ -153,13 +128,7 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     fun timerStop() {
         if (::a.isInitialized) a.cancel()
     }
-    fun setverifyCode(code: String) {
-        _verifyCode.postValue(code)
-    }
 
-    fun setCurGender(gender: String) {
-        _curGender.postValue(gender)
-    }
 
     fun setAccessToken(accessToken: String?) {
         _accessToken.postValue(accessToken)
@@ -244,19 +213,6 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
         }
 
     }
-
-    fun verifycode(
-        phone:String,
-        code:String,
-        api:AuthApi
-    )
-    {
-        _codeResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch(dispatcher) {
-            val result=authRepository.verifycode(phone,code,api)
-            _codeResponse.postValue(Event(result))
-        }
-    }
     fun login(
         email: String,
         password: String,
@@ -277,11 +233,13 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     fun register(
         email: String,
         password: String,
+        code:String,
+        phone:String,
         api: AuthApi
     ) {
         _registerResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch {
-            val result = authRepository.register(email, password, api)
+            val result = authRepository.register(email, password,code,phone, api)
             _registerResponse.postValue(Event(result))
         }
     }
@@ -295,22 +253,15 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
         }
     }
     fun AuthComplete(
+        profileimage:String?,
         nickname: String,
         gender: String,
         age: String,
         api: AuthApi
     ) {
-        val error = if (nickname.isEmpty() || gender.isEmpty() || age.isEmpty()) {
-            applicationContext.getString(R.string.error_input_empty)
-        } else null
-
-        error?.let {
-            _authCompleteResponse.postValue(Event(Resource.Error(it)))
-            return
-        }
         _authCompleteResponse.postValue(Event(Resource.Loading()))
         viewModelScope.launch {
-            val result = authRepository.AuthComplete(nickname, gender, age, api)
+            val result = authRepository.AuthComplete(profileimage,nickname, gender, age, api)
             _authCompleteResponse.postValue(Event(result))
         }
     }
@@ -333,27 +284,8 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
             _logoutResponse.postValue(Event(result))
         }
     }
-    fun getcurAccountInfo(api: AuthApi) {
-        _getAccountResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch {
-            val result = authRepository.getcurAccountInfo(api)
-            _getAccountResponse.postValue(Event(result))
-        }
-    }
-    fun requestEmail(email: String, api: AuthApi) {
-        _emailVerifyResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch {
-            val result = authRepository.requestEmail(email, api)
-            _emailVerifyResponse.postValue(Event(result))
-        }
-    }
-    fun checkNickname(nickname: String, api: AuthApi) {
-        _nicknameResponse.postValue(Event(Resource.Loading()))
-        viewModelScope.launch {
-            val result = authRepository.checkNickname(nickname, api)
-            _nicknameResponse.postValue(Event(result))
-        }
-    }
+
+
     fun checkfcmtoken(fcmtoken: String,api: AuthApi)
     {
         _checkfcmresponse.postValue(Event(Resource.Loading()))

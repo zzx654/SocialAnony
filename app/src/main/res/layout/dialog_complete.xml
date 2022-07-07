@@ -86,7 +86,7 @@
 
           />
         <Button
-            android:backgroundTint="@color/positive"
+            android:backgroundTint="@color/skin"
             android:insetTop="0dp"
             android:insetBottom="0dp"
             android:includeFontPadding="false"

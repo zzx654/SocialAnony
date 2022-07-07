@@ -129,7 +129,7 @@ class InitActivity: AppCompatActivity() {
                 {
                     val intent = Intent(
                         this,
-                        AuthCompleteActivity::class.java
+                        FillProfileActivity::class.java
                     ).apply {
                         startActivity(this)
                         finish()
