@@ -18,15 +18,15 @@ import com.example.appportfolio.ui.main.activity.MainActivity
 
 class settingpreFragment:PreferenceFragmentCompat() {
     lateinit var vmAuth: AuthViewModel
-    lateinit var prefs:SharedPreferences
-    var bookmarkPreference: Preference? = null
-    var mypostPreference:Preference? = null
-    var blockPreference:Preference? = null
-    var chatonoffPreference:Preference?=null
-    var pushonoffPreference:Preference?=null
-    var logoffPreference:Preference?=null
-    var outPreference:Preference?=null
-    var changepwPreference:Preference?=null
+    private lateinit var prefs:SharedPreferences
+    private var bookmarkPreference: Preference? = null
+    private var mypostPreference:Preference? = null
+    private var blockPreference:Preference? = null
+    private var chatonoffPreference:Preference?=null
+    private var pushonoffPreference:Preference?=null
+    private var logoffPreference:Preference?=null
+    private var outPreference:Preference?=null
+    private var changepwPreference:Preference?=null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listView.overScrollMode=View.OVER_SCROLL_NEVER
