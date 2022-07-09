@@ -199,7 +199,6 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
         })
         vmHotPosts.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
         onLoading={
-            println("여기엘 왜안오는거노")
             loadingDialog.show()
         },
         onError={

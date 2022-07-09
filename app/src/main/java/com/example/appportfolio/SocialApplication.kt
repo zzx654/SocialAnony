@@ -202,16 +202,13 @@ class SocialApplication: Application(),LifecycleEventObserver {
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when(event){
             Lifecycle.Event.ON_PAUSE -> {
-                println("onpause")
                 isForeground=false
             }
             Lifecycle.Event.ON_DESTROY-> {
-                println("ondestroy")
                 isForeground=false
                 isDestroyed=true
             }
             Lifecycle.Event.ON_RESUME-> {
-                println("onresume")
                 isDestroyed=false
                 isForeground=true
             }
