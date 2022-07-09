@@ -18,24 +18,21 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.showError
 import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.databinding.FragmentUsersBinding
-import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
 import com.example.appportfolio.ui.main.viewmodel.HotPersonViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
+open class HotUsersFragment:BasePersonFragment(R.layout.fragment_users) {
     lateinit var binding:FragmentUsersBinding
     private var mRootView: View?=null
     private lateinit var hotusersAdapter: PersonAdapter
     private var firstLoad=true
     override val basePersonViewModel: BasePersonViewModel
-        get(){
-            val vm= ViewModelProvider(requireActivity()).get(HotPersonViewModel::class.java)
-            return vm
+        get() {
+            return ViewModelProvider(requireActivity())[HotPersonViewModel::class.java]
         }
     protected val viewModel: HotPersonViewModel
         get() = basePersonViewModel as HotPersonViewModel

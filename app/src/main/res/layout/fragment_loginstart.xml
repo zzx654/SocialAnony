@@ -32,7 +32,7 @@
 
     <com.google.android.material.button.MaterialButton
         app:rippleColor="@color/gray"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="5dp"
         app:layout_constraintBottom_toTopOf="@id/mailStart"
         android:id="@+id/sign_google"
         app:cornerRadius="5dp"

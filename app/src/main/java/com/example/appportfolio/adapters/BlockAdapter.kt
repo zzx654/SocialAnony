@@ -3,13 +3,11 @@ package com.example.appportfolio.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.data.entities.Block
-import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.databinding.ItemBlockBinding
 
 class BlockAdapter: ListAdapter<Block, RecyclerView.ViewHolder>(diffUtil) {

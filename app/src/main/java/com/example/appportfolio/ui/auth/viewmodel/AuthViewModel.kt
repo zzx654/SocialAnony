@@ -1,11 +1,11 @@
-package com.example.appportfolio
+package com.example.appportfolio.ui.auth.viewmodel
 
 import android.content.Context
-import android.util.Patterns
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.appportfolio.R
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.responses.*
 import com.example.appportfolio.other.Event
@@ -14,7 +14,6 @@ import com.example.appportfolio.repositories.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import javax.inject.Inject
-import kotlin.concurrent.timer
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(private val authRepository: AuthRepository,
@@ -56,11 +55,6 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
     val userid: LiveData<Int> = _userid
 
     private val _timerCount = MutableLiveData<Int>()
-
-    private val _verifyCode = MutableLiveData<String>()
-    val verifyCode: LiveData<String> = _verifyCode
-
-
 
     private val _verifyResponse = MutableLiveData<Event<Resource<VerifyResponse>>>()
     val verifyResponse: LiveData<Event<Resource<VerifyResponse>>> = _verifyResponse
@@ -113,17 +107,16 @@ class AuthViewModel @Inject constructor(private val authRepository: AuthReposito
             }
         }
     }
-    fun timertoString(timer: Int) {
-        var m: String
-        m = (timer!! / 60).toString()
-        var s: String
-        var sec = (timer % 60)
-        if (sec < 10)
-            s = "0" + sec.toString()
+    private fun timertoString(timer: Int) {
+        val m: String = (timer / 60).toString()
+        val s: String
+        val sec = (timer % 60)
+        s = if (sec < 10)
+            "0$sec"
         else
-            s = sec.toString()
+            sec.toString()
 
-        _timerString.postValue(m + ":" + s)
+        _timerString.postValue("$m:$s")
     }
     fun timerStop() {
         if (::a.isInitialized) a.cancel()

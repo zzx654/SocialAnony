@@ -1,6 +1,5 @@
 package com.example.appportfolio.data.entities
 
-import android.graphics.Bitmap
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 

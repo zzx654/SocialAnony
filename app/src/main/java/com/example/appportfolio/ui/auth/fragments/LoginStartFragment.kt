@@ -6,17 +6,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
-import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -54,8 +51,8 @@ class LoginStartFragment: Fragment(R.layout.fragment_loginstart) {
     @Inject
     lateinit var userPreferences: UserPreferences
     lateinit var api: AuthApi
-    lateinit var mGoogleSignInClient: GoogleSignInClient
-    val resultListener=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private val resultListener=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result->
         if(result.resultCode== AppCompatActivity.RESULT_OK)
         {
             val task= GoogleSignIn.getSignedInAccountFromIntent(result.data)
@@ -66,14 +63,14 @@ class LoginStartFragment: Fragment(R.layout.fragment_loginstart) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<FragmentLoginstartBinding>(inflater,
             R.layout.fragment_loginstart,container,false)
 
         checklogout()
         initGoogleSignResource()
         api= RemoteDataSource().buildApi(AuthApi::class.java)
-        viewModel=ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
+        viewModel= ViewModelProvider(requireActivity())[AuthViewModel::class.java]
 
         binding.signGoogle.setOnClickListener {
             resultListener.launch(mGoogleSignInClient.signInIntent)
@@ -89,9 +86,9 @@ class LoginStartFragment: Fragment(R.layout.fragment_loginstart) {
         subscribeToObserver()
         return binding.root
     }
-    fun checklogout(deletetoken:Boolean=true)
+    private fun checklogout(deletetoken:Boolean=true)
     {
-        var applyresult:(Status, String?, String?)->Unit={ status, str1, str2->
+        val applyresult:(Status, String?, String?)->Unit={ status, str1, str2->
         }
         signManager.signout(applyresult)
     }
@@ -127,7 +124,7 @@ class LoginStartFragment: Fragment(R.layout.fragment_loginstart) {
             }
         ){
 
-            if(it.restoken.equals("")){
+            if(it.restoken == ""){
                 loadingDialog.dismiss()
                 snackbar(it.message)
             }

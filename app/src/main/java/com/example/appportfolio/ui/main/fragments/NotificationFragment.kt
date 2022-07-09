@@ -9,16 +9,14 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SimpleItemAnimator
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -29,7 +27,6 @@ import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.data.entities.Noti
-import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentNotificationBinding
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.COMMENTLIKED
@@ -52,10 +49,10 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     lateinit var binding: FragmentNotificationBinding
     private lateinit var vmNoti: NotiViewModel
     private var mRootView:View?=null
-    lateinit var vmAuth:AuthViewModel
+    lateinit var vmAuth: AuthViewModel
     lateinit var api: MainApi
-    lateinit var selectedNoti:Noti
-    lateinit var selectedComment:Comment
+    private lateinit var selectedNoti:Noti
+    private lateinit var selectedComment:Comment
     private var isScrolling=false
     private var isLast=false
     private var isLoading=false
@@ -82,8 +79,8 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             }
             (activity as MainActivity).checkunreadnoti()
             activity?.run{
-                vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
-                vmNoti= ViewModelProvider(this).get(NotiViewModel::class.java)
+                vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
+                vmNoti= ViewModelProvider(this)[NotiViewModel::class.java]
             }
             binding.retry.onSingleClick {
                 if((activity as MainActivity).isConnected!!)
@@ -124,7 +121,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
 
         return mRootView
     }
-    val scrollListener= object: RecyclerView.OnScrollListener(){
+    private val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             val lastVisibleItemPosition = (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
@@ -160,7 +157,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
 
-                    var templist=vmNoti.curnotis.value!!
+                    val templist=vmNoti.curnotis.value!!
                     for(i in templist)
                             i.isread=1
                     vmNoti.setNotis(templist)
@@ -311,7 +308,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     }
 
 
-                    var templist=vmNoti.curnotis.value!!
+                    val templist=vmNoti.curnotis.value!!
                     val selectedindex=templist.indexOf(selectedNoti)
                     templist[selectedindex].isread=1
                     vmNoti.setNotis(templist)
@@ -331,7 +328,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                     else{
                         if(notiAdapter.currentList.isNotEmpty())
                         {
-                            var templist=notiAdapter.currentList.toList()
+                            val templist= notiAdapter.currentList.toList().toMutableList().toMutableList()
                             templist+=listOf(
                                 Noti(null,0,"","","",null,null,0)
                             )
@@ -363,26 +360,25 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
                 }
                 if(!binding.srLayout.isRefreshing&&notiAdapter.currentList.isNotEmpty())
                 {
-                        var currentllist=notiAdapter.currentList.toMutableList()
-                        currentllist.removeLast()
-                        notiAdapter.submitList(currentllist)
+                        val currentlist=notiAdapter.currentList.toMutableList()
+                        notiAdapter.submitList(currentlist.filter { noti-> noti.notiid!=null })
 
                 }
 
             }
         ){
             isLoading = false
-            var currentllist=notiAdapter.currentList.toMutableList()
+            val currentlist=notiAdapter.currentList.toMutableList()
             if(!binding.srLayout.isRefreshing)
             {
                 if(notiAdapter.currentList.isEmpty())
                     binding.loadProgressBar.visibility=View.GONE
                 else if(notiAdapter.currentList.size>=20) {
-                    currentllist.removeLast()
+                    currentlist.removeLast()
                 }
             }
             handleResponse(requireContext(),it.resultCode) {
-                var notis=currentllist.toList()
+                var notis=currentlist.toList()
                 if(it.resultCode==200) {
                     if(binding.srLayout.isRefreshing)
                     {
@@ -412,11 +408,11 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         vmNoti.curnotis.observe(viewLifecycleOwner){
             //val list=it
             //notiAdapter.submitList(null)
-                  notiAdapter.submitList(it.toMutableList())
+                  notiAdapter.submitList(it.toMutableList().filter{ noti-> noti.notiid!=null})
             notiAdapter.notifyDataSetChanged()
         }
     }
-    fun showReadAll()
+    private fun showReadAll()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -441,7 +437,7 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         dialog.create()
         dialog.show()
     }
-    fun showDeleteAll()
+    private fun showDeleteAll()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())

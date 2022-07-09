@@ -1,7 +1,10 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -33,7 +36,7 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View{
         binding= DataBindingUtil.inflate<FragmentMapBinding>(inflater,
             R.layout.fragment_map,container,false)
         (activity as MainActivity).setToolBarVisible("mapFragment")

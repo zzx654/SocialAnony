@@ -31,7 +31,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -59,7 +59,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -67,8 +66,8 @@ import javax.inject.Inject
 class UploadFragment : Fragment(R.layout.fragment_upload){
 
     var postService: UploadService?=null
-    lateinit var inputMethodManager: InputMethodManager
-    var connection=object: ServiceConnection {
+    private lateinit var inputMethodManager: InputMethodManager
+    private var connection=object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as UploadService.mBinder
             postService=binder.getService()
@@ -80,16 +79,16 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     private var gpsAllowed:Boolean?=null
     private var recordedPath:String?=null
     private var anonymous:Boolean=false
-    var curplatform:String?=null
-    var curaccount:String?=null
+    private var curplatform:String?=null
+    private var curaccount:String?=null
     //@Inject
-    lateinit var postimageAdapter: PostImageAdapter
+    private lateinit var postimageAdapter: PostImageAdapter
     @Inject
     lateinit var progressDialog: UploadProgressDialog
     @Inject
     lateinit var gpsTracker: GpsTracker
     lateinit var binding: FragmentUploadBinding
-    val PERMISSION_REQUEST_CODE=26
+    private val PERMISSION_REQUEST_CODE=26
     lateinit var api: MainApi
     private lateinit var vmUpload: UploadViewModel
     private lateinit var vmAuth: AuthViewModel
@@ -98,7 +97,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     private var mIsFirstLoad=false
     private val getContent =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
-            var selectedImages:MutableList<Uri> = mutableListOf()
+            val selectedImages:MutableList<Uri> = mutableListOf()
             if(result.data?.clipData!=null)
             {//사진 여러개 선택한 경우
                 val count=result.data?.clipData!!.itemCount
@@ -137,12 +136,12 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     ): View? {
 
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
-        vmUpload=ViewModelProvider(requireActivity()).get(UploadViewModel::class.java)
+        vmUpload= ViewModelProvider(requireActivity())[UploadViewModel::class.java]
         (activity as MainActivity).setToolBarVisible("uploadFragment")
         if(mRootView==null){
-            binding= DataBindingUtil.inflate<FragmentUploadBinding>(inflater,
+            binding= DataBindingUtil.inflate(inflater,
                 R.layout.fragment_upload,container,false)
             mRootView=binding.root
             mIsFirstLoad=true
@@ -159,10 +158,10 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             job=lifecycleScope.launch {
                 delay(Constants.SEARCH_TIME_DELAY)
                 editable?.let{
-                    if(!binding.edtTag.text.toString().trim().isEmpty())
+                    if(binding.edtTag.text.toString().trim().isNotEmpty())
                     {
-                        if(!it.toString().equals("#")) {
-                            var tag=it.toString()
+                        if(it.toString() != "#") {
+                            val tag=it.toString()
                             if(tag.contains("#"))
                             {
                                 tag.replace("#","")
@@ -276,16 +275,16 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         }
         return super.onOptionsItemSelected(item)
     }
-    fun serviceBind()
+    private fun serviceBind()
     {
-        var intent= Intent(requireContext(), UploadService::class.java)
+        val intent= Intent(requireContext(), UploadService::class.java)
         activity?.bindService(intent,connection, Context.BIND_AUTO_CREATE)
     }
-    fun serviceUnbind()
+    private fun serviceUnbind()
     {
         activity?.unbindService(connection)
     }
-    fun initGeo()
+    private fun initGeo()
     {
         if(SocialApplication.checkGeoPermission(requireContext()))
         {
@@ -318,7 +317,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     {
         if(recordedPath.isNullOrEmpty())
         {
-            val recordDialog: RecordFragment = RecordFragment {
+            val recordDialog = RecordFragment {
                 binding.imgrecorded.visibility= View.VISIBLE
                 vmUpload.setRecordedPath(it)
             }
@@ -330,7 +329,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             showDeleteRecordWarn()
         }
     }
-    fun showDeleteRecordWarn()
+    private fun showDeleteRecordWarn()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -457,7 +456,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         }
         return tags
     }
-    fun showCancel()
+    private fun showCancel()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -507,7 +506,8 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                 )
             }
         ){
-            if(it.equals("200"))
+            if(it == "200"
+            )
             {
                 progressDialog.dismiss()
                 parentFragmentManager.popBackStack()
@@ -569,13 +569,13 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                 binding.cgSearched.visibility = View.VISIBLE
                 binding.tvTag.visibility = View.VISIBLE
                 if (it.resultCode == 100) { //검색결과 연관태그가 없을시
-                    var tagstr = binding.edtTag.text.toString()
+                    val tagstr = binding.edtTag.text.toString()
                     var changedtag = tagstr
                     if (tagstr.contains("#")) {
                         changedtag = tagstr.replace("#", "")
                     }
                     val chip = Chip(requireContext()).apply {
-                        text = changedtag + "(0)"
+                        text = "$changedtag(0)"
                         chipStrokeWidth = 1f
                         setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -585,7 +585,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                             setTextColor(ContextCompat.getColor(requireContext(), R.color.chiptext))
                         }
                         setOnClickListener {
-                            binding.edtTag.setText(null)
+                            binding.edtTag.text = null
                             hideKeyboard()
                             genSelectedChip(this.text.toString())
                         }
@@ -605,15 +605,15 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
     }
     private fun genSelectedChip(tag:String)
     {
-        var exist:Boolean=false
+        var exist =false
         binding.cgselected.visibility= View.VISIBLE
-        var token=tag.split('(')
+        val token=tag.split('(')
         val selectedTag=token[0]
         for(i in 0 until binding.cgselected.childCount)
         {
             val chip=binding.cgselected.getChildAt(i) as Chip
             val chiptext=chip.text.toString()
-            if(chiptext.equals("#"+selectedTag))
+            if(chiptext == "#$selectedTag")
             {
                 exist=true
             }
@@ -621,7 +621,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         if(!exist)
         {
             val chip= Chip(requireContext()).apply {
-                text="#"+selectedTag
+                text= "#$selectedTag"
                 isCloseIconVisible=true
                 setOnCloseIconClickListener {
                     binding.cgselected.removeView(this)
@@ -630,7 +630,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             binding.cgselected.addView(chip)
         }
     }
-    fun hideKeyboard() {
+    private fun hideKeyboard() {
         if (::inputMethodManager.isInitialized.not()) {
             inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         }
@@ -651,7 +651,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
                     setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
                 }
                 setOnClickListener {
-                    binding.edtTag.setText(null)
+                    binding.edtTag.text = null
                     hideKeyboard()
                     genSelectedChip(this.text.toString())
                 }
@@ -659,7 +659,7 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             binding.cgSearched.addView(chip)
         }
     }
-    fun <T> List<T>.random() : T {
+    private fun <T> List<T>.random() : T {
         val random = Random().nextInt((size))
         return get(random)
     }

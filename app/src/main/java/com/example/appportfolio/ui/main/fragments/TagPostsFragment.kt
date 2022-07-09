@@ -7,21 +7,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
-import com.example.appportfolio.adapters.*
+import com.example.appportfolio.adapters.TAGHOT_INDEX
+import com.example.appportfolio.adapters.TAGNEW_INDEX
+import com.example.appportfolio.adapters.TagPagerAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentTagpostsBinding
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.TagViewModel
@@ -47,14 +45,14 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentTagpostsBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_tagposts,container,false)
         (activity as MainActivity).setToolBarVisible("tagPostsFragment")
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
-        vmTag=ViewModelProvider(requireActivity()).get(TagViewModel::class.java)
+        vmTag= ViewModelProvider(requireActivity())[TagViewModel::class.java]
         mainapi= RemoteDataSource().buildApi(MainApi::class.java,
             runBlocking { preferences.authToken.first() })
         vmTag.getTagLiked(tagname!!,mainapi)
@@ -106,14 +104,14 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
     {
         parentFragmentManager.popBackStack()
     }
-    fun toggleLike()
+    private fun toggleLike()
     {
         if(vmTag.isLiked.value==1)
             showToggleDialog()
         else
             vmTag.toggleLikeTag(tagname!!,0,vmTag.isLiked.value!!,mainapi)
     }
-    fun showToggleDialog()
+    private fun showToggleDialog()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog:LayoutInflater= LayoutInflater.from(requireContext())
@@ -140,9 +138,7 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         vmTag.isLiked.observe(viewLifecycleOwner){
             activity?.invalidateOptionsMenu()
         }
-        vmTag.getisLikedResponse.observe(viewLifecycleOwner,Event.EventObserver(
-
-        ){
+        vmTag.getisLikedResponse.observe(viewLifecycleOwner,Event.EventObserver {
             handleResponse(requireContext(),it.resultCode) {
                 vmTag.setisLiked(it.value)
             }

@@ -5,42 +5,40 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
 import android.os.Environment
-import android.util.Base64
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.accessibility.AccessibilityEventCompat.setAction
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.example.appportfolio.data.entities.LocationLatLngEntity
-import com.example.appportfolio.other.AppLifecycleManager
 import com.example.appportfolio.other.OnSingleClickListener
 import com.example.appportfolio.ui.auth.activity.AuthActivity
-import com.example.appportfolio.ui.main.activity.MainActivity
 import com.google.android.material.snackbar.Snackbar
 import com.kakao.sdk.common.KakaoSdk
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 
 @HiltAndroidApp
-class SocialApplication: Application() {
+class SocialApplication: Application(),LifecycleEventObserver {
     override fun onCreate() {
         super.onCreate()
-        ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleManager)
+        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
         KakaoSdk.init(this, "22b8fb238964b0aac0bf46d8bfd21a6b")
     }
     init{
@@ -50,6 +48,9 @@ class SocialApplication: Application() {
     companion object{
         lateinit var instance: SocialApplication
 
+        var isDestroyed=true
+        var isForeground=false
+
         fun imageExternalSave(context: Context, bitmap: Bitmap, path: String): Boolean {
             val state = Environment.getExternalStorageState()
             if (Environment.MEDIA_MOUNTED == state) {
@@ -57,7 +58,7 @@ class SocialApplication: Application() {
                 val rootPath =
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
                         .toString()
-                val dirName = "/" + path
+                val dirName = "/$path"
                 val fileName = System.currentTimeMillis().toString() + ".png"
                 val savePath = File(rootPath + dirName)
                 savePath.mkdirs()
@@ -74,7 +75,7 @@ class SocialApplication: Application() {
                     context.sendBroadcast(
                         Intent(
                             Intent.ACTION_MEDIA_SCANNER_SCAN_FILE,
-                            Uri.parse("file://" + rootPath+"/"+dirName+"/"+fileName)
+                            Uri.parse("file://$rootPath/$dirName/$fileName")
                         )
                     )
                     return true
@@ -104,26 +105,22 @@ class SocialApplication: Application() {
 
         fun checkGeoPermission(context:Context):Boolean
         {
-            var permission:Boolean=false
+            var permission =false
             permission = !(ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                     && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
             return permission
         }
         fun checkIOstoragePermission(context:Context):Boolean
         {
-            var permission:Boolean=false
+            var permission =false
             permission= !(ContextCompat.checkSelfPermission(context,Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                     &&ContextCompat.checkSelfPermission(context,Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
             return permission
         }
         fun getLocation(lat:Double,lon:Double):String?{
 
-            val curloc= LocationLatLngEntity(
-                lat.toFloat(),
-                lon.toFloat()
-            )
 
-            var mGeoCoder =  Geocoder(instance.applicationContext, Locale.KOREAN)
+            val mGeoCoder =  Geocoder(instance.applicationContext, Locale.KOREAN)
             var mResultList: List<Address>? = null
             try{
                 mResultList = mGeoCoder.getFromLocation(
@@ -132,7 +129,7 @@ class SocialApplication: Application() {
             }catch(e: IOException){
                 e.printStackTrace()
             }
-            if(mResultList != null&&mResultList.size>0){
+            if(mResultList != null&& mResultList.isNotEmpty()){
                 return mResultList[0].getAddressLine(0)
 
             }
@@ -150,29 +147,25 @@ class SocialApplication: Application() {
             val year=cal.get(Calendar.YEAR).toString()
             return year.toInt()-birthyear+1
         }
-        fun getTodayString(format: SimpleDateFormat):String
-        {
-            var today= Calendar.getInstance()
-            var todaystr= datetostr(today.time,format)
+        fun getTodayString(format: SimpleDateFormat): String {
+            val today = Calendar.getInstance()
 
-            return todaystr
+            return datetostr(today.time, format)
         }
         fun datetostr(date: Date, format: SimpleDateFormat):String
         {
             return format.format(date)
         }
-        fun strtodate(data:String,format:SimpleDateFormat):Date
-        {
-            var date=format.parse(data)
-            return date
+        fun strtodate(data: String, format: SimpleDateFormat): Date? {
+            return format.parse(data)
 
         }
         fun showError(view:View,context: Context,isConnected:Boolean,msg:String,actiontext:String?="확인",action:(() -> Unit)?=null){
-            var error=""
-            if(!isConnected)
-                error= context.getString(R.string.networkdisdconnected)
-            else
-                error=msg+"\n 잠시후 다시 시도해주세요"
+            val error: String = if(!isConnected) {
+                context.getString(R.string.networkdisdconnected)
+            } else {
+                "$msg\n 잠시후 다시 시도해주세요"
+            }
             Snackbar.make(view,error,Snackbar.LENGTH_INDEFINITE).apply {
                 setAction(actiontext){
                     action?.let{  act->
@@ -182,7 +175,48 @@ class SocialApplication: Application() {
                 show()
             }
         }
+        fun showAlert(context:Context,text:String,action:(()->Unit)?=null)
+        {
+            val dialog= AlertDialog.Builder(context).create()
+            val edialog: LayoutInflater = LayoutInflater.from(context)
+            val mView: View =edialog.inflate(R.layout.dialog_alert,null)
+            val cancel: Button =mView.findViewById(R.id.cancel)
+            val positive: Button =mView.findViewById(R.id.positive)
+            val alertText: TextView =mView.findViewById(R.id.tvWarn)
+            alertText.text=text
+            cancel.visibility=View.GONE
+            positive.setOnClickListener {
+                dialog.dismiss()
+                dialog.cancel()
+                action?.let{ act->
+                    act()
+                }
+            }
+            dialog.setView(mView)
+            dialog.create()
+            dialog.show()
+        }
 
+    }
+
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        when(event){
+            Lifecycle.Event.ON_PAUSE -> {
+                println("onpause")
+                isForeground=false
+            }
+            Lifecycle.Event.ON_DESTROY-> {
+                println("ondestroy")
+                isForeground=false
+                isDestroyed=true
+            }
+            Lifecycle.Event.ON_RESUME-> {
+                println("onresume")
+                isDestroyed=false
+                isForeground=true
+            }
+            else -> Log.d("AppMain", "onStateChanged(): event=$event")
+        }
     }
 
 }

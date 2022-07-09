@@ -19,7 +19,7 @@ import retrofit2.Response
 import javax.inject.Inject
 
 @HiltViewModel
-class LocViewModel@Inject constructor(val locRepository: LocRepository, private val dispatcher: CoroutineDispatcher = Dispatchers.Main): ViewModel(){
+class LocViewModel@Inject constructor(private val locRepository: LocRepository, private val dispatcher: CoroutineDispatcher = Dispatchers.Main): ViewModel(){
 
     private val _curloc=MutableLiveData<LocationLatLngEntity>()
     val curloc: LiveData<LocationLatLngEntity> = _curloc

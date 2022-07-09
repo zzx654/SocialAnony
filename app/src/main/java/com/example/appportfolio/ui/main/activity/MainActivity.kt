@@ -1,20 +1,15 @@
 package com.example.appportfolio.ui.main.activity
 
+
 import android.annotation.SuppressLint
-import android.content.Context
-import androidx.appcompat.app.AppCompatActivity
-import android.os.Bundle
-
-
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
-import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -22,21 +17,22 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
-import com.example.appportfolio.*
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
+import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
-import com.example.appportfolio.databinding.ActivityMainBinding
-import com.example.appportfolio.other.Event
 import com.example.appportfolio.auth.SignManager
 import com.example.appportfolio.auth.Status
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.*
+import com.example.appportfolio.databinding.ActivityMainBinding
 import com.example.appportfolio.other.Constants.TAG_CHAT
 import com.example.appportfolio.other.Constants.TAG_HOME
 import com.example.appportfolio.other.Constants.TAG_MYPAGE
 import com.example.appportfolio.other.Constants.TAG_NOTI
+import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.NetworkConnection
 import com.example.appportfolio.ui.auth.activity.AuthActivity
 import com.example.appportfolio.ui.main.fragments.*
@@ -44,7 +40,6 @@ import com.example.appportfolio.ui.main.viewmodel.ChatViewModel
 import com.example.appportfolio.ui.main.viewmodel.NotiViewModel
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
-
 import dagger.hilt.android.AndroidEntryPoint
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -53,33 +48,33 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import java.net.URISyntaxException
 import javax.inject.Inject
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     var isConnected:Boolean?=null
-    lateinit var sharedPreferences:SharedPreferences
-    lateinit var prefEditor:SharedPreferences.Editor
+    private lateinit var sharedPreferences:SharedPreferences
+    private lateinit var prefEditor:SharedPreferences.Editor
     @Inject
     lateinit var signManager: SignManager
-    lateinit var chatRooms:List<ChatData>
+    private lateinit var chatRooms:List<ChatData>
     lateinit var mSocket: Socket
-    private lateinit var vmAuth:AuthViewModel
+    private lateinit var vmAuth: AuthViewModel
     private lateinit var vmNoti:NotiViewModel
     private lateinit var vmChat:ChatViewModel
     lateinit var binding: ActivityMainBinding
     private lateinit var curchatrequests:List<ChatRequests>
-    lateinit var applyresult:(Status, String?, String?)->Unit
+    private lateinit var applyresult:(Status, String?, String?)->Unit
     lateinit var authapi: AuthApi
     lateinit var mainapi:MainApi
-    lateinit var fcmToken:String
+    private lateinit var fcmToken:String
     private var roomProfiles:MutableList<RoomProfile> = mutableListOf()
     var platform:String?=null
     var account:String?=null
-    var token:String?=null
+    private var token:String?=null
     private val backStack: ArrayDeque<String> = ArrayDeque()
     private var getChats: LiveData<List<ChatData>>?=null
     private var gson: Gson = Gson()
-    //val connection = NetworkConnection(this)
     private var currentTab:String?=null
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -97,10 +92,10 @@ class MainActivity : AppCompatActivity() {
         binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
         setSupportActionBar(binding.toolbar)
         binding.flFragmentContainer.setPadding(0,0,0,58.dp)
-        vmAuth = ViewModelProvider(this).get(AuthViewModel::class.java)
-        vmChat = ViewModelProvider(this).get(ChatViewModel::class.java)
+        vmAuth = ViewModelProvider(this)[AuthViewModel::class.java]
+        vmChat = ViewModelProvider(this)[ChatViewModel::class.java]
 
-        vmNoti=ViewModelProvider(this).get(NotiViewModel::class.java)
+        vmNoti= ViewModelProvider(this)[NotiViewModel::class.java]
         setAccessToken()
 
 
@@ -116,7 +111,6 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             setOnItemReselectedListener {
-                Unit
             }
             menu.getItem(4).isCheckable=false
             menu.getItem(4).setOnMenuItemClickListener {
@@ -155,12 +149,12 @@ class MainActivity : AppCompatActivity() {
     private fun setChatRooms(){
         var newchatrooms:List<Chatroom> = listOf()
         chatRooms.map{ room->
-            val profile=roomProfiles.find{profile-> profile.roomid.equals(room.roomid)}
+            val profile=roomProfiles.find{profile-> profile.roomid == room.roomid }
             profile?.let{ roomprofile->
                 val profileimage=if(roomprofile.profileimage==null) "none" else roomprofile.profileimage
                 val ismy=if(room.senderid==vmAuth.userid.value!!)1 else 0
-                val chatroom=Chatroom(if(room.type.equals("EXIT"))0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
-                    if(room.type.equals("EXIT")) "비공개" else roomprofile.gender,if(room.type.equals("EXIT")) "대화상대없음" else roomprofile.nickname,
+                val chatroom=Chatroom(if(room.type == "EXIT")0 else roomprofile.userid,if(room.type.equals("EXIT")) "none" else profileimage,
+                    if(room.type == "EXIT") "비공개" else roomprofile.gender,if(room.type == "EXIT") "대화상대없음" else roomprofile.nickname,
                     ismy,room.senderid!!,room.roomid,room.date,
                     room.type,room.content,room.isread!!)
                 newchatrooms+=chatroom
@@ -179,9 +173,10 @@ class MainActivity : AppCompatActivity() {
             }
         ){
             handleResponse(this,it.resultCode){
-                var oldNotis=vmNoti.curnotis.value
-                if(it.notis.isNotEmpty()&&(oldNotis==null||oldNotis.isEmpty()||(oldNotis[0].notiid!=it.notis[0].notiid))){
-                    vmNoti.setNotis(it.notis)
+                val oldNotis=vmNoti.curnotis.value
+                oldNotis?.let{ notis->
+                    if(notis.isNotEmpty()&&it.notis.isNotEmpty()&&(notis[0].notiid!=it.notis[0].notiid))
+                        vmNoti.setNotis(it.notis)
                 }
             }
         })
@@ -222,8 +217,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-        vmChat.getchatrequestsResponse.observe(this,Event.EventObserver(
-        ){
+        vmChat.getchatrequestsResponse.observe(this,Event.EventObserver {
             handleResponse(this,it.resultCode){
                 if(it.resultCode==200)
                 {
@@ -245,7 +239,7 @@ class MainActivity : AppCompatActivity() {
                         chatroom.isread==0
                     }){
                     //안읽은메시지가없다면
-                    if(requests.size==0)
+                    if(requests.isEmpty())
                         hidechatbadge()
                     else
                         showchatbadge()
@@ -301,7 +295,7 @@ class MainActivity : AppCompatActivity() {
         vmNoti.checkNotiUnreadResponse.observe(this,Event.EventObserver(
 
             onError={
-                Toast.makeText(this,"알림 요청중 에러발생",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this,"알림 에러발생",Toast.LENGTH_SHORT).show()
             }
         ){
             handleResponse(this,it.resultCode){
@@ -325,10 +319,10 @@ class MainActivity : AppCompatActivity() {
                     vmAuth.setPlatform(it.platform)
                     try{
                         mSocket= IO.socket("https://socialanony.herokuapp.com")
-                        Log.d("SOCKET", "Connection success : " + mSocket.id());
+                        Log.d("SOCKET", "Connection success : " + mSocket.id())
 
                     }catch (e: URISyntaxException){
-                        e.printStackTrace();
+                        e.printStackTrace()
                     }
                     mSocket.connect()
 
@@ -425,31 +419,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
     }
-    fun updatechatroom(chatdata:ChatData,profileimage:String,gender:String,nickname:String,isread:Int,opponentid:Int)
-    {
-        var oldChatlist= vmChat.mychats.value!!
-        var newChatlist:List<Chatroom>
-        val ismy=if(chatdata.senderid==vmAuth.userid.value!!)1 else 0
-        val foundchat=oldChatlist.find{chatroom-> chatroom.roomid.equals(chatdata.roomid)}
-        if(foundchat==null)
-        {
-            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
-                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
-                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
-        }
-        else
-        {
-            oldChatlist-=foundchat
-            newChatlist=listOf(Chatroom(if(chatdata.type.equals("EXIT")) 0 else opponentid,if(chatdata.type.equals("EXIT")) "none" else profileimage,
-                if(chatdata.type.equals("EXIT")) "비공개" else gender,if(chatdata.type.equals("EXIT")) "대화상대없음" else nickname,ismy,chatdata.senderid!!,chatdata.roomid,
-                chatdata.date,chatdata.type,chatdata.content,isread))+oldChatlist
-        }
-        vmChat.setChats(newChatlist)
-    }
     fun deleteroom(roomid:String)
     {
         var Chatlist=vmChat.mychats.value!!
-        val foundchat=Chatlist.find{chatroom-> chatroom.roomid.equals(roomid)}
+        val foundchat=Chatlist.find{chatroom-> chatroom.roomid == roomid }
         foundchat?.let{
             Chatlist-=it
         }
@@ -517,19 +490,18 @@ class MainActivity : AppCompatActivity() {
             this.window.statusBarColor=ContextCompat.getColor(this, R.color.black)
         backStack.addLast(tag)
 
-        val frag=fragment
         bundle?.let{
-            frag.arguments=bundle
+            fragment.arguments = bundle
         }
         binding.flFragmentContainer.setPadding(0,0,0,0)
         val ft: FragmentTransaction = supportFragmentManager.beginTransaction()
         ft.addToBackStack(null)
-            .replace(R.id.navHostFragment,frag)
+            .replace(R.id.navHostFragment, fragment)
             .commitAllowingStateLoss()
         binding.bottomNavigationView.visibility=View.INVISIBLE
         binding.linebottom.visibility=View.INVISIBLE
     }
-    fun changeFragment(tag:String,fragment: Fragment)
+    private fun changeFragment(tag:String, fragment: Fragment)
     {
         setupToolBarMenu(tag)
         if(tag==TAG_HOME)
@@ -590,21 +562,21 @@ class MainActivity : AppCompatActivity() {
     {
         vmAuth.getmyprofile(authapi)
     }
-    fun shownotibadge()
+    private fun shownotibadge()
     {
         binding.bottomNavigationView.getOrCreateBadge(R.id.notificationFragment).apply{
             clearNumber()
             isVisible=true
         }
     }
-    fun showchatbadge()
+    private fun showchatbadge()
     {
         binding.bottomNavigationView.getOrCreateBadge(R.id.chatroomFragment).apply{
             clearNumber()
             isVisible=true
         }
     }
-    fun hidechatbadge(){
+    private fun hidechatbadge(){
         binding.bottomNavigationView.getOrCreateBadge(R.id.chatroomFragment).apply{
             clearNumber()
             isVisible=false
@@ -628,15 +600,14 @@ class MainActivity : AppCompatActivity() {
     }
     fun toggleChatReceive(toggle:Boolean)
     {
-        var toggleparam:Int
-        if(toggle)toggleparam=1
+        val toggleparam:Int = if(toggle) 1
         else
-            toggleparam=0
+            0
         vmAuth.togglechat(toggleparam,authapi)
     }
 
 
-    val Int.dp:Int
+    private val Int.dp:Int
         get() {
             val metrics=resources.displayMetrics
             return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,this.toFloat(),metrics).toInt()
@@ -652,7 +623,7 @@ class MainActivity : AppCompatActivity() {
                 vmAuth.withdrawal(authapi)
             }
             else{
-                Toast.makeText(this,"로그아웃 실패"+str1,Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "로그아웃 실패$str1",Toast.LENGTH_SHORT).show()
             }
         }
         signManager.signout(applyresult)
@@ -666,7 +637,7 @@ class MainActivity : AppCompatActivity() {
                 vmAuth.logout(authapi)
             }
             else{
-                Toast.makeText(this,"로그아웃 실패"+str1,Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "로그아웃 실패$str1",Toast.LENGTH_SHORT).show()
             }
         }
         signManager.signout(applyresult)

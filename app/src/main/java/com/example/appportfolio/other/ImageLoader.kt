@@ -8,7 +8,7 @@ import java.net.URL
 
 object ImageLoader {
 
-    suspend fun loadImage(imageUrl:String): Bitmap? {
+    fun loadImage(imageUrl:String): Bitmap? {
         val bmp:Bitmap? = null
         try{
             val url = URL(imageUrl)

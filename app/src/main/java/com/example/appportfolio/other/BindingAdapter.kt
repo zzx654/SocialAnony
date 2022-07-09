@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
-import android.util.TypedValue
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
@@ -22,11 +20,10 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getLocation
 import com.example.appportfolio.other.Constants.COMMENTADDED
 import com.example.appportfolio.other.Constants.REPLYADDED
-
 import org.json.JSONArray
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.*
+import kotlin.math.round
 
 object BindingAdapter {
 
@@ -65,7 +62,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindvoteImage(view:ImageView,vote:String)
     {
-        if(vote.equals("none"))
+        if(vote == "none")
             view.visibility=View.GONE
         else
             view.visibility=View.VISIBLE
@@ -74,7 +71,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindvoteImage(view:TextView,vote:String,votecount:Int)
     {
-        if(vote.equals("none"))
+        if(vote == "none")
             view.visibility=View.GONE
         else
         {
@@ -104,7 +101,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindtext(view:TextView,type:String,nickname:String?,content: String){
 
-        if(type.equals("EXIT"))
+        if(type == "EXIT")
             view.text="${nickname}님이 나갔습니다"
         else
             view.text=content
@@ -121,7 +118,7 @@ object BindingAdapter {
     @BindingAdapter("location")
     @JvmStatic
     fun bindlocation(view:TextView,location:String){
-        var token=location.split('&')
+        val token=location.split('&')
         val lat=token[0].toDouble()
         val lon=token[1].toDouble()
 
@@ -220,7 +217,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindtime(view:TextView,time:String)
     {
-        var resdate=SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(time)
+        val resdate=SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(time)
         val resfinaldate=SimpleDateFormat("a h:mm").format(resdate!!)
         view.text=resfinaldate
     }
@@ -231,37 +228,37 @@ object BindingAdapter {
         val todayformat=SimpleDateFormat("a h:mm")
         val thisyearformat=SimpleDateFormat("M월 d일")
         val notthisyearformat=SimpleDateFormat("yyyy.M.d")
-        var today= Calendar.getInstance()
-        var yesterday= Calendar.getInstance()
+        val today= Calendar.getInstance()
+        val yesterday= Calendar.getInstance()
         yesterday.add(Calendar.DAY_OF_YEAR,-1)
 
-        var todaydate=SimpleDateFormat("yyyy-MM-dd").format(today.time)
-        var yesterdaydate=SimpleDateFormat("yyyy-MM-dd").format(yesterday.time)
+        val todaydate=SimpleDateFormat("yyyy-MM-dd").format(today.time)
+        val yesterdaydate=SimpleDateFormat("yyyy-MM-dd").format(yesterday.time)
 
         val resdate=SimpleDateFormat("yyyy-MM-dd h:mm:ss").parse(time)
-        val resfinaldate=SimpleDateFormat("yyyy-MM-dd").format(resdate)
-        val resfinalyear=SimpleDateFormat("yyyy").format(resdate)
+        val resfinaldate= resdate?.let { SimpleDateFormat("yyyy-MM-dd").format(it) }
+        val resfinalyear= resdate?.let { SimpleDateFormat("yyyy").format(it) }
         val todayYear=SimpleDateFormat("yyyy").format(today.time)
 
         if(!resfinalyear.equals(todayYear))
-            view.text=notthisyearformat.format(resdate)
+            view.text= resdate?.let { notthisyearformat.format(it) }
         else{
             if(todaydate.equals(resfinaldate))
-                view.text=todayformat.format(resdate)
+                view.text= resdate?.let { todayformat.format(it) }
             else if(yesterdaydate.equals(resfinaldate))
                 view.text="어제"
             else
-                view.text=thisyearformat.format(resdate)
+                view.text= resdate?.let { thisyearformat.format(it) }
         }
     }
     @BindingAdapter("anony","nickname")
     @JvmStatic
     fun bindNick(view: TextView, anony: String?,nickname: String) {
         var nick=""
-        if(anony!=null)
-            nick="익명[${anony}]"
+        nick = if(anony!=null)
+            "익명[${anony}]"
         else
-            nick=nickname
+            nickname
         view.text=nick
     }
     @SuppressLint("ResourceAsColor")
@@ -270,10 +267,10 @@ object BindingAdapter {
     fun bindlike(view: TextView, isliked:Int,likecount: Int) {
 
         var liketext=""
-        if(likecount!=0)
-            liketext="좋아요 ${likecount}"
+        liketext = if(likecount!=0)
+            "좋아요 $likecount"
         else
-            liketext="좋아요"
+            "좋아요"
         if(isliked==1)
             view.setTextColor(ContextCompat.getColor(view.context,R.color.black))
         else
@@ -283,21 +280,19 @@ object BindingAdapter {
     @BindingAdapter("ismy","isread","content","type")
     @JvmStatic
     fun bindchatroomcontent(view: TextView, ismy:Int,isread: Int,content:String,type:String) {
-        if(type.equals("IMAGE"))
-            view.text="사진을 보냈습니다."
-        else if(type.equals("LOCATION"))
-            view.text="(위치정보)"
-        else if(type.equals("EXIT"))
-            view.text="상대방이 대화방을 나갔습니다"
-        else
-            view.text=content
-        if(ismy==0&&isread==0&&!type.equals("EXIT"))
+        when (type) {
+            "IMAGE" -> view.text="사진을 보냈습니다."
+            "LOCATION" -> view.text="(위치정보)"
+            "EXIT" -> view.text="상대방이 대화방을 나갔습니다"
+            else -> view.text=content
+        }
+        if(ismy==0&&isread==0&& type != "EXIT")
             view.setTextColor(ContextCompat.getColor(view.context,R.color.black))
     }
     @BindingAdapter("ismy","isread","type")
     @JvmStatic
     fun bindchatroomread(view: ImageView, ismy:Int,isread: Int,type: String) {
-        if(ismy==0&&isread==0&&!type.equals("EXIT"))
+        if(ismy==0&&isread==0&& type != "EXIT")
             view.visibility=View.VISIBLE
         else
             view.visibility=View.INVISIBLE
@@ -360,7 +355,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindFollowerNum(view: TextView, follow:Int?)
     {
-        var str="팔로워 ${follow}명"
+        val str="팔로워 ${follow}명"
         view.text=str
 
     }
@@ -449,7 +444,7 @@ object BindingAdapter {
                 }
             }
         }
-        view.text=nickstr+" · "+diffstr
+        "$nickstr · $diffstr".also { view.text = it }
     }
     @BindingAdapter("distance")
     @JvmStatic
@@ -488,7 +483,7 @@ object BindingAdapter {
     @JvmStatic
     fun bindtagname(view:TextView,tagname:String)
     {
-        view.text="#"+tagname
+        "#$tagname".also { view.text = it }
     }
     @BindingAdapter("tagcount")
     @JvmStatic
@@ -498,7 +493,7 @@ object BindingAdapter {
             view.visibility=View.GONE
         else{
             view.visibility=View.VISIBLE
-            view.text="스토리"+tagcount
+            view.text= "스토리$tagcount"
         }
     }
     @BindingAdapter("tagLiked")

@@ -11,38 +11,30 @@ import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.PersonAdapter
-import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.FragmentSearchpersonBinding
-import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
 import com.example.appportfolio.ui.main.viewmodel.MyFollowingViewModel
-import com.example.appportfolio.ui.main.viewmodel.SearchPersonViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     lateinit var binding: FragmentSearchpersonBinding
-    lateinit var searchedadapter: PersonAdapter
+    private lateinit var searchedadapter: PersonAdapter
     lateinit var followingadapter:PersonAdapter
     private var firstLoad=true
     private var mRootView:View?=null
     override val basePersonViewModel: BasePersonViewModel
         get() {
-            val vm= ViewModelProvider(requireActivity()).get(MyFollowingViewModel::class.java)
-        return vm
-    }
+            return ViewModelProvider(requireActivity())[MyFollowingViewModel::class.java]
+        }
     override val searchedAdapter: PersonAdapter
         get() = searchedadapter
 
@@ -53,7 +45,7 @@ class MyFollowingFragment:BasePersonFragment(R.layout.fragment_searchperson) {
     override val rootView: View
         get() = binding.root
 
-    protected val viewModel: MyFollowingViewModel
+    private val viewModel: MyFollowingViewModel
         get() = basePersonViewModel as MyFollowingViewModel
 
     private var followlast=false

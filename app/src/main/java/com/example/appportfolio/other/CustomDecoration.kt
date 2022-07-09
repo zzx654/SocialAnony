@@ -5,7 +5,6 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.view.View
-import androidx.annotation.ColorInt
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.other.Constants.ITEM
 
@@ -16,11 +15,6 @@ class CustomDecoration(
     private val concat:Boolean
 ) : RecyclerView.ItemDecoration() {
 
-    private val paint = Paint()
-
-    init {
-        //paint.color = color
-    }
 
     override fun onDrawOver(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
         val left = parent.paddingStart+padding

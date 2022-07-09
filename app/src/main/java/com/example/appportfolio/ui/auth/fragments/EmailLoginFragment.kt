@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -46,11 +46,11 @@ class EmailLoginFragment: Fragment(R.layout.fragment_emaillogin) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View{
         binding= DataBindingUtil.inflate<FragmentEmailloginBinding>(inflater,
             R.layout.fragment_emaillogin,container,false)
         api= RemoteDataSource().buildApi(AuthApi::class.java)
-        viewModel=ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
+        viewModel= ViewModelProvider(requireActivity())[AuthViewModel::class.java]
         binding.goback.onSingleClick {
             toLoginStart()
         }
@@ -136,7 +136,7 @@ class EmailLoginFragment: Fragment(R.layout.fragment_emaillogin) {
             }
 
         ){
-            if(it.restoken.equals("")){
+            if(it.restoken == ""){
                 binding.tilPassword.apply{
                     isErrorEnabled=true
                     error="비밀번호가 일치하지 않습니다"

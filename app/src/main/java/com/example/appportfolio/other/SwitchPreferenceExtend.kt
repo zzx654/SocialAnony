@@ -2,9 +2,7 @@ package com.example.appportfolio.other
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.Switch
-import androidx.appcompat.widget.SwitchCompat
 import androidx.preference.PreferenceViewHolder
 import androidx.preference.SwitchPreference
 import com.example.appportfolio.R

@@ -10,7 +10,6 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
@@ -18,7 +17,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
@@ -30,7 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class BookmarkFragment :BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
-    lateinit var bookmarkAdapter: PostAdapter
+    private lateinit var bookmarkAdapter: PostAdapter
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
@@ -50,7 +48,7 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_posts) {
         get() = binding.retry
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: BookmarkViewModel
+    private val viewModel: BookmarkViewModel
         get() = basePostViewModel as BookmarkViewModel
     private var mRootView:View?=null
     @RequiresApi(Build.VERSION_CODES.M)
@@ -60,7 +58,7 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_posts) {
         savedInstanceState: Bundle?
     ): View? {
         if(mRootView==null) {
-            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
+            binding = DataBindingUtil.inflate(
                 inflater,
                 R.layout.fragment_posts, container, false
             )
@@ -109,7 +107,7 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_posts) {
         val curPosts=postAdapter.currentList
         if(!refresh)
         {
-            if(!curPosts.isEmpty())
+            if(curPosts.isNotEmpty())
             {
                 val lastPost=curPosts.last()
                 lastpostnum=lastPost.postnum

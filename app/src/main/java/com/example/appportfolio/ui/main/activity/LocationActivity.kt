@@ -17,7 +17,7 @@ class LocationActivity: AppCompatActivity() {
 
         super.onCreate(savedInstanceState)
         binding= DataBindingUtil.setContentView(this, R.layout.activity_location)
-        vmLoc= ViewModelProvider(this).get(LocViewModel::class.java)
+        vmLoc= ViewModelProvider(this)[LocViewModel::class.java]
         setSupportActionBar(binding.toolbar)
     }
     override fun onBackPressed() {

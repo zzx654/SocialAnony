@@ -3,8 +3,6 @@ package com.example.appportfolio.repositories
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.safeCall
-import dagger.Provides
-import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -70,15 +68,7 @@ class AuthRepository{
             Resource.Success(api.checkfcmtoken( fcmtoken))
         }
     }
-    suspend fun verifycode(
-        phone: String,
-        code:String,
-        api:AuthApi
-    )= withContext(Dispatchers.IO){
-        safeCall {
-            Resource.Success(api.verifycode(phone,code))
-        }
-    }
+
     suspend fun requestVerify(
         phone:String,
         api:AuthApi
@@ -87,15 +77,7 @@ class AuthRepository{
             Resource.Success(api.requestVerify(phone))
         }
     }
-    suspend fun requestEmail(
-        email:String,
-        api:AuthApi
-    )= withContext(Dispatchers.IO){
 
-        safeCall {
-            Resource.Success(api.requestEmail(email))
-        }
-    }
     suspend fun autologin(
         api: AuthApi
     )= withContext(Dispatchers.IO){
@@ -153,27 +135,13 @@ class AuthRepository{
             Resource.Success(api.signWithSocial(platform,account,fcmtoken))
         }
     }
-    suspend fun getcurAccountInfo(
-        api: AuthApi
-    )=withContext(Dispatchers.IO){
-        safeCall{
-            Resource.Success(api.getcurAccountInfo())
-        }
-    }
+
     suspend fun logout(
         api: AuthApi
     )=withContext(Dispatchers.IO){
         safeCall{
             Resource.Success(api.logout())
         }
-    }
-
-    suspend fun checkNickname(
-        nickname: String,
-        api:AuthApi)= withContext(Dispatchers.IO){
-            safeCall{
-                Resource.Success(api.checkNickname(nickname))
-            }
     }
 
 }

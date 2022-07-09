@@ -1,19 +1,11 @@
 package com.example.appportfolio.repositories
 
-import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.MainApi
-import com.example.appportfolio.api.responses.blocksResponse
-import com.example.appportfolio.api.responses.commentResponse
-import com.example.appportfolio.api.responses.intResponse
-import com.example.appportfolio.api.responses.uploadImageResponse
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.safeCall
-import com.google.android.datatransport.cct.StringMerger
-import dagger.hilt.android.scopes.ActivityScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
-import retrofit2.http.*
 
 class MainRepository {
     suspend fun getHotUsers(

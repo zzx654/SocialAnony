@@ -25,17 +25,19 @@ import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.adapters.PostDetailsAdapter
 import com.example.appportfolio.auth.UserPreferences
-import com.example.appportfolio.data.entities.*
+import com.example.appportfolio.data.entities.Comment
+import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentPostBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.services.AudioService
-import com.example.appportfolio.ui.main.viewmodel.*
+import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
+import com.example.appportfolio.ui.main.viewmodel.CommentViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+
 @AndroidEntryPoint
 class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     override val baseCommentViewModel: BaseCommentViewModel
@@ -43,7 +45,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             val vm: CommentViewModel by viewModels()
             return vm
         }
-    protected val vmComment: CommentViewModel
+    private val vmComment: CommentViewModel
         get() = baseCommentViewModel as CommentViewModel
     override val srLayout: SwipeRefreshLayout
         get() = binding.srLayout
@@ -62,20 +64,20 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
 
     override val commentAdapter:CommentAdapter
         get() = commentadapter
-    override val postAdapter: PostDetailsAdapter?
+    override val postAdapter: PostDetailsAdapter
         get() = postadapter
 
     @Inject
     lateinit var preferences: UserPreferences
 
-    lateinit var commentadapter: CommentAdapter
+    private lateinit var commentadapter: CommentAdapter
 
     lateinit var postadapter:PostDetailsAdapter
     lateinit var binding:FragmentPostBinding
-    lateinit var concatAdapter:ConcatAdapter
+    private lateinit var concatAdapter:ConcatAdapter
     var aService:AudioService?=null
 
-    var connection=object: ServiceConnection {
+    private var connection=object: ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as AudioService.mBinder
             aService=binder.getService()
@@ -201,7 +203,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     override fun loadNewComments()
     {
         val curComments=commentAdapter.currentList
-        if(!curComments.isEmpty())
+        if(curComments.isNotEmpty())
         {
             val lastComment=curComments.last()
             lastComment.commentid?.let{
@@ -234,12 +236,12 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
             }
         }
     }
-    fun toggleLike()
+    private fun toggleLike()
     {
-        var togglemy=post.userid==vmAuth.userid.value!!
+        val togglemy=post.userid==vmAuth.userid.value!!
         vmInteract.toggleLikePost(togglemy,post.userid,post.postid!!,post.isLiked!!,api)
     }
-    fun toggleBookmark()
+    private fun toggleBookmark()
     {
         vmInteract.toggleBookmarkPost(post.postid!!,post.bookmarked!!,api)
     }
@@ -261,17 +263,16 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         super.onResume()
     }
     override fun postComment(anony: String) {
-        var postuserid:Int?
-        if(post.userid==vmAuth.userid.value!!)
-            postuserid=null
+        val postuserid:Int? = if(post.userid==vmAuth.userid.value!!)
+            null
         else
-            postuserid=post.userid
+            post.userid
         vmComment.postComment(postuserid,post.postid!!,anony,edtComment.text.toString(),api)
     }
 
     override fun fixtotop(postedcomment: Comment) {
-        var oldcomments=commentAdapter.currentList.toList()
-        var newcomments = listOf(postedcomment)+oldcomments
+        val oldcomments=commentAdapter.currentList.toList()
+        val newcomments = listOf(postedcomment)+oldcomments
         applyList(newcomments)
     }
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -284,7 +285,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         //bindvote()
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+        when(item.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
             }
@@ -327,14 +328,14 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         dialog.show()
     }
     override fun blockcommentuser(selectedComment: Comment) {
-        var anonymous:Boolean=false
+        var anonymous =false
         anonymous= selectedComment.anonymous!=""
         blockingid=selectedComment.userid
         vmInteract.blockcommentuser(anonymous,selectedComment.userid,selectedComment.platform==post.platform&&selectedComment.account==post.account,api)
     }
 
     override fun blockpostuser() {
-        var anonymous:Boolean=false
+        var anonymous =false
         anonymous= post.anonymous!=""
         blockingid=post.userid
         vmInteract.blockpostuser(anonymous,post.userid,api)
@@ -643,9 +644,7 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
                 (it as PostDetailsAdapter.postViewHolder).binding.progressMedia.max=max
             }
         }
-        AudioService.curpos.observe(viewLifecycleOwner,Event.EventObserver(
-
-        ){ progress->
+        AudioService.curpos.observe(viewLifecycleOwner,Event.EventObserver { progress->
             postadapter.progressMediaProgress=progress
             rvComments.findViewHolderForAdapterPosition(0)?.let {
                 (it as PostDetailsAdapter.postViewHolder).binding.progressMedia.progress=progress
@@ -654,16 +653,16 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     }
     private fun servicebind()
     {
-        var intent=Intent(requireContext(), AudioService::class.java)
+        val intent=Intent(requireContext(), AudioService::class.java)
 
         activity?.bindService(intent,connection, Context.BIND_AUTO_CREATE)
     }
-    fun serviceUnbind()
+    private fun serviceUnbind()
     {
         activity?.unbindService(connection)
     }
     override fun onDestroy() {
-        if(!post.audio.equals("NONE")) {
+        if(post.audio != "NONE") {
             serviceUnbind()
             postadapter.progressMediaProgress=0
             postadapter.notifyItemChanged(0)

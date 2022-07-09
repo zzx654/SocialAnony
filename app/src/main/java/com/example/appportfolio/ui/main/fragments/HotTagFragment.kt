@@ -26,7 +26,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
-    lateinit var hotpostAdapter: PostAdapter
+    private lateinit var hotpostAdapter: PostAdapter
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
@@ -47,7 +47,7 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
     private lateinit var vmTag: TagViewModel
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: hotPostViewModel
+    private val viewModel: hotPostViewModel
         get() = basePostViewModel as hotPostViewModel
     private var mRootView:View?=null
     @RequiresApi(Build.VERSION_CODES.M)
@@ -62,7 +62,7 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
                 R.layout.fragment_posts, container, false
             )
             hotpostAdapter = PostAdapter()
-            vmTag= ViewModelProvider(requireActivity()).get(TagViewModel::class.java)
+            vmTag= ViewModelProvider(requireActivity())[TagViewModel::class.java]
             setView()
             refreshPosts()
             mRootView=binding.root

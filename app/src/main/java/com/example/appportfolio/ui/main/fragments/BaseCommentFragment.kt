@@ -15,12 +15,11 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
-
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.bumptech.glide.Glide
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -44,7 +43,6 @@ import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.interactViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -67,12 +65,12 @@ abstract class BaseCommentFragment (layoutId:Int
     protected abstract val postcommentprogress:ProgressBar
 
     var isScrolling=false
-    var anonymousnick:String?=null
+    private var anonymousnick:String?=null
     var curdeletingcomm:Comment?=null
     var isLoading=false
     var selecteduserid=0
     lateinit var api: MainApi
-    lateinit var inputMethodManager: InputMethodManager
+    private lateinit var inputMethodManager: InputMethodManager
     @Inject
     lateinit var userPreferences: UserPreferences
     @Inject
@@ -132,7 +130,7 @@ abstract class BaseCommentFragment (layoutId:Int
             {
                 ismine=true
             }
-            val interactionDialog: InteractionDialog = InteractionDialog(ismine){
+            val interactionDialog = InteractionDialog(ismine){
                 when(it)
                 {
                     BLOCK->{
@@ -176,7 +174,7 @@ abstract class BaseCommentFragment (layoutId:Int
         }
         inputMethodManager.hideSoftInputFromWindow(edtComment.windowToken, 0)
     }
-    fun showdeletecomment(comment:Comment){
+    private fun showdeletecomment(comment:Comment){
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
         val mView: View =edialog.inflate(R.layout.dialog_alert,null)
@@ -249,12 +247,12 @@ abstract class BaseCommentFragment (layoutId:Int
     protected fun sendComment()
     {
         var anony=""
-        if(!cbAnony.isChecked)
-            anony="NONE"
+        anony = if(!cbAnony.isChecked)
+            "NONE"
         else
-            anony=anonymousnick!!
+            anonymousnick!!
         postComment(anony)
-        edtComment.setText(null)
+        edtComment.text = null
     }
     abstract fun scrollRefresh()
     abstract fun loadNewComments()
@@ -263,7 +261,7 @@ abstract class BaseCommentFragment (layoutId:Int
     protected fun init()
     {
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
         api= RemoteDataSource().buildApi(MainApi::class.java, runBlocking { userPreferences.authToken.first() })
         getMyAnony()
@@ -296,8 +294,8 @@ abstract class BaseCommentFragment (layoutId:Int
         val profileimg:ImageView=mView.findViewById(R.id.imgProfile)
         if(anonymous)
         {
-            nickText.text="익명["+nickname+"]"
-            agegenderText.text="비공개 · ${gender}"
+            nickText.text= "익명[$nickname]"
+            agegenderText.text="비공개 · $gender"
             when(gender)
             {
                 "남자"->profileimg.setImageResource(R.drawable.icon_male)
@@ -309,7 +307,7 @@ abstract class BaseCommentFragment (layoutId:Int
         {
 
             nickText.text=nickname
-            agegenderText.text="${getAge(age!!)} · ${gender}"
+            agegenderText.text="${getAge(age!!)} · $gender"
             //익명이 아닌경우
             if(profileimage==null)
             {
@@ -501,10 +499,10 @@ abstract class BaseCommentFragment (layoutId:Int
                     400-> Toast.makeText(requireContext(),"해당 게시물에 댓글을 게시할수 없습니다.",Toast.LENGTH_SHORT).show()
                     500->Toast.makeText(requireContext(),"해당 댓글에 답글을 게시할수 없습니다",Toast.LENGTH_SHORT).show()
                     else-> {
-                        var postcontent=postcontents
+                        val postcontent=postcontents
                         postcontent.commentcount+=1
                         postcontents=postcontent
-                        var postedcomment=it.comments[0]
+                        val postedcomment=it.comments[0]
                         postedcomment.topfixed=true
                         fixtotop(it.comments[0])
                     }
@@ -514,7 +512,7 @@ abstract class BaseCommentFragment (layoutId:Int
         baseCommentViewModel.getCommentResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading={
                 isLoading=true
-                var templist=commentAdapter.currentList.toMutableList()
+                val templist=commentAdapter.currentList.toMutableList()
                 templist+=listOf(Comment(false,null,"",0,"",0,"",
                     0,"","","","","",0,"",0,0,0))
                 commentAdapter.submitList(templist.toList())

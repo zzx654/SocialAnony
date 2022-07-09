@@ -8,27 +8,24 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.other.Constants.RG_HEADER
-import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.nearPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
+
 @AndroidEntryPoint
 class NearFragment:BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
-    lateinit var nearpostAdapter: PostAdapter
+    private lateinit var nearpostAdapter: PostAdapter
     private var mRootView:View?=null
     override val basePostViewModel: BasePostViewModel
         get() {
@@ -37,7 +34,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
         }
     override val postAdapter: PostAdapter
         get() = nearpostAdapter
-    protected val viewModel:nearPostViewModel
+    private val viewModel:nearPostViewModel
     get() = basePostViewModel as nearPostViewModel
 
     override val scrollTool: FloatingActionButton
@@ -106,7 +103,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
             val curPosts=postAdapter.currentList
             if(!refresh)
             {
-                if(!curPosts.isNullOrEmpty())
+                if(curPosts.isNotEmpty())
                 {
                     val lastPost=curPosts.last()
                     lastpostnum=lastPost.postnum
@@ -131,6 +128,7 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
         {
             if(srLayout.isRefreshing)
                 srLayout.isRefreshing=false
+            binding.tvWarn.text=requireContext().getString(R.string.gpsdisabled)
             binding.tvWarn.visibility=View.VISIBLE
         }
     }

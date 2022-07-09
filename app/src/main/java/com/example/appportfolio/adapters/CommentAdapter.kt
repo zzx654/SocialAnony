@@ -2,11 +2,15 @@ package com.example.appportfolio.adapters
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.*
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Comment
-import com.example.appportfolio.databinding.*
+import com.example.appportfolio.databinding.ItemCommentBinding
+import com.example.appportfolio.databinding.ItemReplyBinding
+import com.example.appportfolio.databinding.NetworkStateItemBinding
 import com.example.appportfolio.other.Constants.COMMENT_VIEW_TYPE
 import com.example.appportfolio.other.Constants.LOADING_VIEW_TYPE
 import com.example.appportfolio.other.Constants.REPLY_VIEW_TYPE

@@ -34,15 +34,15 @@ class RecordService:LifecycleService() {
     @Inject
     @Named("recordNoti")
     lateinit var baseNotificationBuilder: NotificationCompat.Builder
-    lateinit var curNotificationBuilder: NotificationCompat.Builder
+    private lateinit var curNotificationBuilder: NotificationCompat.Builder
 
     private var audioRecorder: AudioRecord? = null
-    var mediaPlayer: MediaPlayer? = null
-    lateinit var recordingjob: Job
-    lateinit var timerJob: Job
-    lateinit var progressJob: Job
-    var isFirstRun: Boolean? = null
-    lateinit var buffer:ByteArray
+    private var mediaPlayer: MediaPlayer? = null
+    private lateinit var recordingjob: Job
+    private lateinit var timerJob: Job
+    private lateinit var progressJob: Job
+    private var isFirstRun: Boolean? = null
+    private lateinit var buffer:ByteArray
 
     companion object {
         val isRecording = MutableLiveData<Boolean>()
@@ -68,23 +68,21 @@ class RecordService:LifecycleService() {
         super.onCreate()
         postInitialValues()
         curNotificationBuilder=baseNotificationBuilder
-        elapsedStr.observe(this, androidx.lifecycle.Observer {
+        elapsedStr.observe(this) {
             if (isRecording.value!!) {
-                updateNoti("녹음중",it)
+                updateNoti("녹음중", it)
             }
             if (isPlaying.value!!) {
-                updateNoti("재생중",it)
+                updateNoti("재생중", it)
             }
-        })
-        isPlaying.observe(this, androidx.lifecycle.Observer {
-            if(!it)
-            {
-                if(isRecorded.value!!)
-                {
-                    updateNoti("녹음완료",timetoString(duration.value!!))
+        }
+        isPlaying.observe(this) {
+            if (!it) {
+                if (isRecorded.value!!) {
+                    updateNoti("녹음완료", timetoString(duration.value!!))
                 }
             }
-        })
+        }
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         intent?.let {
@@ -103,7 +101,7 @@ class RecordService:LifecycleService() {
         }
         return super.onStartCommand(intent, flags, startId)
     }
-    fun record_play() {
+    private fun record_play() {
         if (isRecording.value!!) {
             stopSetTime()
             stopRecording()
@@ -157,7 +155,7 @@ class RecordService:LifecycleService() {
         mediaPlayer?.release()
         mediaPlayer = null
     }
-    fun setElapsedTime() {
+    private fun setElapsedTime() {
         if (::timerJob.isInitialized) timerJob.cancel()
         elapsed.postValue(0)
         curpos.value=0
@@ -183,19 +181,19 @@ class RecordService:LifecycleService() {
             }
         }
     }
-    fun stopSetTime() {
+    private fun stopSetTime() {
         if (::timerJob.isInitialized) timerJob.cancel()
         elapsed.postValue(duration.value!!)
         timetoString(duration.value!!)
     }
-    fun timetoString(time: Int) :String{
+    private fun timetoString(time: Int) :String{
         val m=time/60
         val s=time%60
         val timetxt="%d:%02d".format(m,s)
         elapsedStr.postValue(timetxt)
         return "%d:%02d".format(m,s)
     }
-    fun setPlaybackElapsed() {
+    private fun setPlaybackElapsed() {
         if (::timerJob.isInitialized) timerJob.cancel()
         timerJob = CoroutineScope(Dispatchers.Main).launch {
             while (elapsed.value!! > 0) {
@@ -205,7 +203,7 @@ class RecordService:LifecycleService() {
             }
         }
     }
-    fun startPlayback() {
+    private fun startPlayback() {
         if (::progressJob.isInitialized) progressJob.cancel()
         curpos.postValue(0)
         progressJob = CoroutineScope(Dispatchers.Main).launch {
@@ -215,11 +213,11 @@ class RecordService:LifecycleService() {
             }
         }
     }
-    fun stopPlayback() {
+    private fun stopPlayback() {
         if (::progressJob.isInitialized) progressJob.cancel()
         curpos.postValue(0)
     }
-    fun startRecording() {
+    private fun startRecording() {
         audioRecorder=createAudioRecord()
         audioRecorder?.let{
             val timeStamp = SimpleDateFormat("yyyyMMDD_HHmmss").format(Date())
@@ -232,7 +230,7 @@ class RecordService:LifecycleService() {
             recordingjob= CoroutineScope(Dispatchers.Default).launch {
                 while(isRecording.value!!)
                 {
-                    val size = it.read(buffer, 0, buffer.size);
+                    val size = it.read(buffer, 0, buffer.size)
                     processCapture(os!!,buffer,size)
                 }
                 try {
@@ -289,7 +287,7 @@ class RecordService:LifecycleService() {
             }
         }
     }
-    fun writeWavHeader(out:FileOutputStream,channels:Short,sampleRate:Int,bitDepth:Short)
+    private fun writeWavHeader(out:FileOutputStream, channels:Short, sampleRate:Int, bitDepth:Short)
     {
         val littleBytes: ByteArray = ByteBuffer
             .allocate(14)
@@ -318,7 +316,7 @@ class RecordService:LifecycleService() {
             )
         )
     }
-    fun createAudioRecord(): AudioRecord?
+    private fun createAudioRecord(): AudioRecord?
     {
         val sample_rate_canditates = arrayOf(8000,16000,11025,22050,44100)
         for(sampleRate in sample_rate_canditates)

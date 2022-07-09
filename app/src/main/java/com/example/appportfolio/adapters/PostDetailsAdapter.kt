@@ -193,7 +193,7 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
 
             for (tag in tags) {
                 val chip = Chip(context).apply {
-                    text = "#" + tag
+                    text = "#$tag"
                     chipStrokeWidth = 0f
                     setTextSize(TypedValue.COMPLEX_UNIT_DIP, 16f)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -209,7 +209,7 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
                                 R.color.chiptext
                             )
                         )
-                        setTextSize(12f)
+                        textSize = 12f
                     }
                     setOnClickListener {
                         tagClickListener?.let { click ->
@@ -237,7 +237,7 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
         fun bindNickname(anony:String?,nickname:String)
         {
             if(anony!="")
-                binding.tvNick.text="익명["+anony+"]"
+                binding.tvNick.text= "익명[$anony]"
             else
                 binding.tvNick.text=nickname
         }
@@ -307,7 +307,7 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
         }
         private fun bindImages()
         {
-            if(!post!!.image.equals("NONE"))
+            if(post!!.image != "NONE")
             {
                 binding.vpimg.visibility= View.VISIBLE
                 var lst:List<String> = listOf()
@@ -330,9 +330,9 @@ class PostDetailsAdapter(val context: Context): RecyclerView.Adapter<RecyclerVie
             )
             params.setMargins(6,20,6,8)
 
-            for(i in 0..count-1)
+            for(i in 0 until count)
             {
-                var indicator= ImageView(context)
+                val indicator= ImageView(context)
                 indicator.setImageDrawable(
                     ContextCompat.getDrawable(context,
                     R.drawable.bg_indicator_inactive))

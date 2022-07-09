@@ -1,6 +1,9 @@
 package com.example.appportfolio.ui.main.services
 
-import android.app.*
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
@@ -19,7 +22,6 @@ import com.example.appportfolio.other.Constants.NOTIFICATION_ID
 import com.example.appportfolio.other.Constants.TOGGLE_PLAY
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
-
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -31,12 +33,12 @@ class AudioService:LifecycleService() {
     @Inject
     @Named("mediaNoti")
     lateinit var baseNotificationBuilder: NotificationCompat.Builder
-    lateinit var curNotificationBuilder: NotificationCompat.Builder
-    var isFirstRun=true
-    var isPlaying=false
+    private lateinit var curNotificationBuilder: NotificationCompat.Builder
+    private var isFirstRun=true
+    private var isPlaying=false
     //var mediaPlayer: MediaPlayer? = null
-    var mediaposition:Int?=0
-    lateinit var progressJob: Job
+    private var mediaposition:Int?=0
+    private lateinit var progressJob: Job
     lateinit var rviews:RemoteViews
     companion object{
         val mediaPlayer=MutableLiveData<MediaPlayer?>()
@@ -45,7 +47,7 @@ class AudioService:LifecycleService() {
         val curpos = MutableLiveData<Event<Resource<Int>>>()
         val mediamax = MutableLiveData<Int>()
     }
-    fun initialvalues()
+    private fun initialvalues()
     {
         mediaPlayer.value?.let{
             it.stop()
@@ -67,8 +69,8 @@ class AudioService:LifecycleService() {
         stopSelf()
         return super.onUnbind(intent)
     }
-    var binder=mBinder()
-    override fun onBind(intent: Intent): IBinder? {
+    private var binder=mBinder()
+    override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         return binder
     }
@@ -132,17 +134,16 @@ class AudioService:LifecycleService() {
     fun setMedia(path:String,nickname:String)
     {
         nicknameText.value=nickname+"님의 음성"
-        if(isFirstRun!!) {
+        if(isFirstRun) {
             isFirstRun = false
             rviews=createRemoteView(R.layout.notification_player)
             rviews.setTextViewText(R.id.txt_title, nicknameText.value!!)
             startForegroundService()
         }
-        var audiosource=path
         mediaPlayer.value = MediaPlayer()
             .apply {
                 reset()
-                setDataSource(audiosource)
+                setDataSource(path)
                 prepare() // 재생 할 수 있는 상태 (큰 파일 또는 네트워크로 가져올 때는 prepareAsync() )
             }
         mediaPlayer.value?.setOnCompletionListener {
@@ -162,7 +163,7 @@ class AudioService:LifecycleService() {
         }
         mediamax.value=mediaPlayer.value!!.duration
     }
-    fun startPlayback() {
+    private fun startPlayback() {
         if (::progressJob.isInitialized) progressJob.cancel()
         var a=0
         curpos.postValue(Event(Resource.Success(mediaposition!!)))
@@ -183,7 +184,7 @@ class AudioService:LifecycleService() {
             }
         }
     }
-    fun stopPlayback()
+    private fun stopPlayback()
     {
         if (::progressJob.isInitialized) progressJob.cancel()
     }

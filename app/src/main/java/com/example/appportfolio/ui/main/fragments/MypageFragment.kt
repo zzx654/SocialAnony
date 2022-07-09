@@ -5,14 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.Glide
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -23,8 +21,6 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.databinding.FragmentMypageBinding
 import com.example.appportfolio.other.Constants.FOLLOWER
-import com.example.appportfolio.other.Constants.FOLLOWING
-
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -35,14 +31,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MypageFragment: Fragment(R.layout.fragment_mypage) {
     lateinit var vmAuth: AuthViewModel
-    lateinit var prefs: SharedPreferences
+    private lateinit var prefs: SharedPreferences
     lateinit var binding: FragmentMypageBinding
     private var mRootView:View?=null
-    lateinit var profileContainerAdapter: ProfileContainerAdapter
+    private lateinit var profileContainerAdapter: ProfileContainerAdapter
     lateinit var api: MainApi
     lateinit var authapi: AuthApi
     lateinit var gender:String
-    var curtoggle:Boolean?=null
+    private var curtoggle:Boolean?=null
     var error=false
     @Inject
     lateinit var loadingDialog: LoadingDialog
@@ -54,7 +50,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         if(mRootView==null)
         {
             activity?.run{
-                vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+                vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
             }
             binding= DataBindingUtil.inflate<FragmentMypageBinding>(inflater,
                 R.layout.fragment_mypage,container,false)
@@ -93,7 +89,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
         }
         return mRootView
     }
-    val prefListener =
+    private val prefListener =
         SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences: SharedPreferences?, key: String? ->
             when (key) {
                 "chatonoff" -> {
@@ -166,7 +162,7 @@ class MypageFragment: Fragment(R.layout.fragment_mypage) {
 
                 }
                 else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+                    snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
             }
         ){
             if(binding.srLayout.isRefreshing)

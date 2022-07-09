@@ -8,7 +8,6 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.responses.NicknameResponse
 import com.example.appportfolio.api.responses.commentResponse
 import com.example.appportfolio.api.responses.intResponse
-import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.Resource
 import com.example.appportfolio.repositories.MainRepository

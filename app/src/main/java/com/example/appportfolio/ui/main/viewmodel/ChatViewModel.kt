@@ -19,7 +19,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
-import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,9 +35,6 @@ class ChatViewModel@Inject constructor(
 
     private val _mychats= MutableLiveData<List<Chatroom>>()
     val mychats: LiveData<List<Chatroom>> = _mychats
-
-    private val _usernickname= MutableLiveData<String>()
-    val usernickname: LiveData<String> = _usernickname
 
     private val _acceptchatResponse= MutableLiveData<Event<Resource<getchatrequestsResponse>>>()
     val acceptchatResponse: LiveData<Event<Resource<getchatrequestsResponse>>> = _acceptchatResponse

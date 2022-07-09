@@ -1,12 +1,8 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.Manifest
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,8 +10,6 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.imageExternalSave
@@ -26,12 +20,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 
 class ImageFragment: Fragment(R.layout.fragment_img) {
     lateinit var binding: FragmentImgBinding
-    val PERMISSION_REQUEST_CODE=26
+    private val PERMISSION_REQUEST_CODE=26
     private var bitmap:Bitmap?=null
     private val imageurl:String
         get(){
@@ -42,7 +34,7 @@ class ImageFragment: Fragment(R.layout.fragment_img) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View{
         binding= DataBindingUtil.inflate<FragmentImgBinding>(inflater,
             R.layout.fragment_img,container,false)
 

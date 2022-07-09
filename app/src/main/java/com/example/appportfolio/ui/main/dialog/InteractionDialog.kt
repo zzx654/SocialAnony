@@ -13,7 +13,7 @@ import com.example.appportfolio.other.Constants.DELETE
 import com.example.appportfolio.other.Constants.REPORT
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
-class InteractionDialog(val isMine:Boolean,val itemClick:(String)->Unit): BottomSheetDialogFragment() {
+class InteractionDialog(private val isMine:Boolean, val itemClick:(String)->Unit): BottomSheetDialogFragment() {
 
     //신고,차단,대화요청,삭제
     lateinit var binding: DialogInteractionBinding
@@ -22,7 +22,7 @@ class InteractionDialog(val isMine:Boolean,val itemClick:(String)->Unit): Bottom
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<DialogInteractionBinding>(inflater,
             R.layout.dialog_interaction,container,false)
         if(isMine)

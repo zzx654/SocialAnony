@@ -2,7 +2,6 @@ package com.example.appportfolio.ui.main.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.responses.getpersonResponse

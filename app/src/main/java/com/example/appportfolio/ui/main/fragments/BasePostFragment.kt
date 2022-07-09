@@ -2,20 +2,19 @@ package com.example.appportfolio.ui.main.fragments
 
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.*
+import android.widget.AbsListView
+import android.widget.ProgressBar
+import android.widget.TextView
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -23,11 +22,9 @@ import com.example.appportfolio.adapters.PostAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
-import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.other.Resource
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -169,7 +166,7 @@ abstract class BasePostFragment(
     {
         gpsTracker= GpsTracker(requireContext())
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
         api= RemoteDataSource().buildApi(
             MainApi::class.java,
@@ -244,13 +241,13 @@ abstract class BasePostFragment(
                     }
                 }
                 else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+                    snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
                 if(!srLayout.isRefreshing)
                 {
                     if(postAdapter.currentList.isEmpty())
                         loadProgressBar.visibility=View.GONE
                     else{
-                        var currentllist=postAdapter.currentList.toList()
+                        val currentllist=postAdapter.currentList.toList()
                         postAdapter.submitList(currentllist.filter { post-> post.postid!=null })
                     }
 
@@ -259,7 +256,7 @@ abstract class BasePostFragment(
                     srLayout.isRefreshing=false
             }
         ){
-            var currentllist=postAdapter.currentList.toMutableList()
+            val currentllist=postAdapter.currentList.toMutableList()
             if(!srLayout.isRefreshing&&postAdapter.currentList.isEmpty())
                     loadProgressBar.visibility=View.GONE
 

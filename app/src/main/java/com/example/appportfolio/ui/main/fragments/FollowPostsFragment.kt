@@ -8,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +15,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.followingPostViewModel
@@ -25,7 +23,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class FollowPostsFragment: BasePostFragment(R.layout.fragment_posts) {
-    lateinit var followpostAdapter: PostAdapter
+    private lateinit var followpostAdapter: PostAdapter
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
@@ -41,7 +39,7 @@ class FollowPostsFragment: BasePostFragment(R.layout.fragment_posts) {
         get() = followpostAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: followingPostViewModel
+    private val viewModel: followingPostViewModel
         get() = basePostViewModel as followingPostViewModel
 
     override val tvWarn: TextView

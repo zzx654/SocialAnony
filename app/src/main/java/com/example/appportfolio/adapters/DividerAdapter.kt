@@ -1,14 +1,11 @@
 package com.example.appportfolio.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
-import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.databinding.ItemDividerBinding
-
 import com.example.appportfolio.other.Constants
 
 class DividerAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -32,6 +29,5 @@ class DividerAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun getItemViewType(position: Int): Int {
         return Constants.DIVIDER
     }
-    inner class DividerViewHolder(val binding: ItemDividerBinding): RecyclerView.ViewHolder(binding.root) {
-    }
+    inner class DividerViewHolder(val binding: ItemDividerBinding): RecyclerView.ViewHolder(binding.root)
 }

@@ -4,7 +4,6 @@ import android.net.Uri
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -63,7 +62,7 @@ class PostImageAdapter: ListAdapter<Uri, RecyclerView.ViewHolder>(diffUtil) {
         return currentList.size
     }
 
-    var deleteClickListener:((Uri)->Unit)?=null
+    private var deleteClickListener:((Uri)->Unit)?=null
 
     fun setOnDeleteClickListener(listener:(Uri)->Unit){
         deleteClickListener=listener

@@ -7,7 +7,6 @@ import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
-import com.example.appportfolio.databinding.FragmentPostdetailsBinding
 import com.example.appportfolio.databinding.ItemTextheaderBinding
 import com.example.appportfolio.other.Constants.HEADER
 

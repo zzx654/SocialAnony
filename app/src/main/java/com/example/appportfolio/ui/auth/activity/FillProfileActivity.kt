@@ -19,9 +19,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.viewModels
 import com.bumptech.glide.Glide
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -32,7 +31,6 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.ActivityFillprofileBinding
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.other.NetworkConnection
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.ProfileEditViewModel
@@ -56,7 +54,7 @@ class FillProfileActivity: AppCompatActivity() {
     @Inject
     lateinit var loadingDialog: LoadingDialog
     var isConnected:Boolean?=null
-    var curBirth:String?=null
+    private var curBirth:String?=null
     lateinit var binding: ActivityFillprofileBinding
     private val viewModel: AuthViewModel by viewModels()
     private val vmEdit: ProfileEditViewModel by viewModels()
@@ -155,10 +153,9 @@ class FillProfileActivity: AppCompatActivity() {
             save.setOnClickListener {
 
 
-                var birth:String
-                birth=(year.value).toString()
+                val birth:String = (year.value).toString()
                 viewModel.setCurBirth(birth)
-                binding.etBirth.setText("출생 년도("+birth+")")
+                binding.etBirth.setText("출생 년도($birth)")
                 if(binding.rgGender.checkedRadioButtonId!=-1&&binding.etNickname.text.toString().trim().isNotEmpty()&&binding.tilNickname.error==null)
                     activebutton()
 
@@ -194,7 +191,7 @@ class FillProfileActivity: AppCompatActivity() {
 
             tvNick.text="닉네임:"+binding.etNickname.text.toString()
             tvGender.text="성별:"+curgender!!
-            tvBirth.text="출생:"+curBirth
+            tvBirth.text= "출생:$curBirth"
             cancel.setOnClickListener {
                 dialog.dismiss()
                 dialog.cancel()
@@ -239,7 +236,7 @@ class FillProfileActivity: AppCompatActivity() {
             }
         ){
             loadingDialog.dismiss()
-            if(it.equals("저장 완료")){
+            if(it == "저장 완료"){
                 Toast.makeText(this,"완료되었습니다", Toast.LENGTH_SHORT).show()
                 Intent(this, MainActivity::class.java).also{
                     startActivity(it)
@@ -363,10 +360,10 @@ class FillProfileActivity: AppCompatActivity() {
     }
     private fun uploadImages(imageUri: Uri, context: Context)
     {
-        var requestImage: MultipartBody.Part
+        val requestImage: MultipartBody.Part
         val file= File(getRealPathFromURI(imageUri,context))
         val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
-        var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
+        val body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
         requestImage=body
         vmEdit.uploadimg(requestImage,mainapi)
     }

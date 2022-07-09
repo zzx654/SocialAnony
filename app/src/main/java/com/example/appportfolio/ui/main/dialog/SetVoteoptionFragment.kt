@@ -11,8 +11,6 @@ import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
 import com.example.appportfolio.adapters.VoteOptionAdapter
@@ -24,20 +22,20 @@ import com.example.appportfolio.ui.main.viewmodel.UploadViewModel
 
 class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
     lateinit var binding: FragmentSetvoteBinding
-    lateinit var voteoptionadapter: VoteOptionAdapter
+    private lateinit var voteoptionadapter: VoteOptionAdapter
 
     private var voteoptions:Voteoptions?=null
 
     private lateinit var vmUpload:UploadViewModel
-    lateinit var inputMethodManager: InputMethodManager
+    private lateinit var inputMethodManager: InputMethodManager
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentSetvoteBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_setvote,container,false)
-        vmUpload=ViewModelProvider(requireActivity()).get(UploadViewModel::class.java)
+        vmUpload= ViewModelProvider(requireActivity())[UploadViewModel::class.java]
         voteoptions=arguments?.getParcelable("voteoptions")
         (activity as MainActivity).setToolBarVisible("setVoteOptionFragment")
         voteoptionadapter= VoteOptionAdapter()
@@ -61,11 +59,11 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
     }
     private fun addoption()
     {
-        var templist=voteoptionadapter.currentList.toList()
+        val templist= voteoptionadapter.currentList.toList().toMutableList()
         templist+=Voteoption("",(voteoptionadapter.currentList.size+1).toString())
         voteoptionadapter.submitList(templist)
         binding.scrollview.post(Runnable{
-            binding.scrollview.fling(0);
+            binding.scrollview.fling(0)
             binding.scrollview.fullScroll(NestedScrollView.FOCUS_DOWN)
         })
     }
@@ -142,7 +140,7 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
         super.onStop()
         hideKeyboard()
     }
-    fun hideKeyboard() {
+    private fun hideKeyboard() {
         if (::inputMethodManager.isInitialized.not()) {
             inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         }

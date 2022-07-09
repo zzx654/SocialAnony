@@ -4,12 +4,11 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
-import com.example.appportfolio.*
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
+import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
@@ -29,7 +28,7 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class InitActivity: AppCompatActivity() {
-    var fcmToken:String=""
+    private var fcmToken:String=""
     lateinit var binding: ActivityInitBinding
     private val viewModel: AuthViewModel by viewModels()
     @Inject
@@ -38,8 +37,8 @@ class InitActivity: AppCompatActivity() {
     @Inject
     lateinit var userPreferences: UserPreferences
     private var isConnected=false
-    lateinit var applyResult:(Status, String?, String?)->Unit
-    var token:String?=null
+    private lateinit var applyResult:(Status, String?, String?)->Unit
+    private var token:String?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,19 +61,19 @@ class InitActivity: AppCompatActivity() {
     private fun loginCheck(){
         binding.initprogressbar.visibility=View.VISIBLE
         applyResult={ status: Status, resultdata1: String?, resultdata2: String? ->
-            if(status== Status.NOTFOUND) {//sns로그인이 안되어있는경우
-                viewModel.autologin(api)//이메일로 자동로그인시도
-            }
-            else if(status== Status.ERROR)
-            {
-                Intent(this, AuthActivity::class.java).apply{
-                    startActivity(this)
-                    finish()
+            when (status) {
+                Status.NOTFOUND -> {//sns로그인이 안되어있는경우
+                    viewModel.autologin(api)//이메일로 자동로그인시도
                 }
-            }
-            else
-            {
-                viewModel.autologin(api)
+                Status.ERROR -> {
+                    Intent(this, AuthActivity::class.java).apply{
+                        startActivity(this)
+                        finish()
+                    }
+                }
+                else -> {
+                    viewModel.autologin(api)
+                }
             }
         }
         signManager.getCurAccountInfo(applyResult)
@@ -91,11 +90,10 @@ class InitActivity: AppCompatActivity() {
         }
         viewModel.autologinResponse.observe(this, Event.EventObserver(
             onError = {
-                var message:String
-                if(!isConnected)
-                   message="네트워크 연결상태를 확인 후 다시 시도해주세요"
+                val message:String = if(!isConnected)
+                    "네트워크 연결상태를 확인 후 다시 시도해주세요"
                 else
-                    message=it
+                    it
                 binding.initprogressbar.visibility=View.GONE
                 Snackbar.make(binding.root,message,Snackbar.LENGTH_INDEFINITE).apply {
                     setAction("다시시도"){
@@ -107,32 +105,33 @@ class InitActivity: AppCompatActivity() {
         ) {
             binding.initprogressbar.visibility=View.GONE
             handleResponse(this,it.resultCode){
-                if (it.resultCode == 200) {//프로필 완료된거
-                    val intent = Intent(
-                        this,
-                        MainActivity::class.java
-                    ).apply {
-                        startActivity(this)
-                        finish()
+                when (it.resultCode) {
+                    200 -> {//프로필 완료된거
+                        val intent = Intent(
+                            this,
+                            MainActivity::class.java
+                        ).apply {
+                            startActivity(this)
+                            finish()
+                        }
                     }
-                }
-                else if(it.resultCode==401){
-                    val intent = Intent(
-                        this,
-                        AuthActivity::class.java
-                    ).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        startActivity(this)
+                    401 -> {
+                        val intent = Intent(
+                            this,
+                            AuthActivity::class.java
+                        ).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            startActivity(this)
+                        }
                     }
-                }
-                else
-                {
-                    val intent = Intent(
-                        this,
-                        FillProfileActivity::class.java
-                    ).apply {
-                        startActivity(this)
-                        finish()
+                    else -> {
+                        val intent = Intent(
+                            this,
+                            FillProfileActivity::class.java
+                        ).apply {
+                            startActivity(this)
+                            finish()
+                        }
                     }
                 }
             }

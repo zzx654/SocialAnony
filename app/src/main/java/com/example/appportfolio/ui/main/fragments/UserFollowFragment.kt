@@ -20,14 +20,13 @@ import com.example.appportfolio.adapters.PersonAdapter
 import com.example.appportfolio.databinding.FragmentUsersBinding
 import com.example.appportfolio.other.Constants.FOLLOWING
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
 import com.example.appportfolio.ui.main.viewmodel.UserFollowPersonViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
+open class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
     lateinit var binding:FragmentUsersBinding
     private var mRootView: View?=null
     private lateinit var usersAdapter: PersonAdapter
@@ -36,9 +35,8 @@ class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
     private val getInfoType
     get() = arguments?.getInt("getInfoType")
     override val basePersonViewModel: BasePersonViewModel
-        get(){
-            val vm= ViewModelProvider(requireActivity()).get(UserFollowPersonViewModel::class.java)
-            return vm
+        get() {
+            return ViewModelProvider(requireActivity())[UserFollowPersonViewModel::class.java]
         }
     protected val viewModel: UserFollowPersonViewModel
         get() = basePersonViewModel as UserFollowPersonViewModel
@@ -182,7 +180,7 @@ class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
         (activity as MainActivity).setupTopBottom()
     }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+        when(item.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
             }

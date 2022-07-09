@@ -4,7 +4,7 @@ import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 
 fun Fragment.snackbar(text:String,confirm:Boolean?=false,txt:String?=null,action:(()->Unit)?=null):Snackbar{
-    var sbarLength=if(confirm!!) Snackbar.LENGTH_INDEFINITE else Snackbar.LENGTH_LONG
+    val sbarLength=if(confirm!!) Snackbar.LENGTH_INDEFINITE else Snackbar.LENGTH_LONG
     return Snackbar.make(
         requireView(),
         text,

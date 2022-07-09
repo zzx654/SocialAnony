@@ -428,19 +428,6 @@ interface MainApi {
     ): getPostResponse
 
 
-    @FormUrlEncoded
-    @POST("/postContents")
-    suspend fun postContents(
-        @Field("postid")postid : String,
-        @Field("anonymous")anonymous:String,
-        @Field("text")text:String,
-        @Field("tags")tags:String?,
-        @Field("latitude")latitude:Double?,
-        @Field("longitude")longitude:Double?,
-        @Field("image")image:String,
-        @Field("audio")audio:String
-    ): String
-
     @Multipart
     @POST("/uploadmultiple")
     suspend fun uploadImageRequest(

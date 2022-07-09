@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Post
-import com.example.appportfolio.databinding.ItemPostBinding
 import com.example.appportfolio.databinding.ItemPostpreviewBinding
 import com.example.appportfolio.other.Constants.ITEM
 

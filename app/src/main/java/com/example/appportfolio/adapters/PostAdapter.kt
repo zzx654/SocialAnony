@@ -5,35 +5,25 @@ import android.os.Build
 import android.util.Log
 import android.util.TypedValue
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
-import android.widget.HorizontalScrollView
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.recyclerview.widget.AsyncListDiffer
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.example.appportfolio.R
-import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.SocialApplication.Companion.onSingleClick
-import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.data.entities.Post
-import com.example.appportfolio.databinding.ContainerProfileBinding
 import com.example.appportfolio.databinding.ItemPostBinding
 import com.example.appportfolio.databinding.NearpostsRgBinding
 import com.example.appportfolio.databinding.NetworkStateItemBinding
 import com.example.appportfolio.other.Constants.NONE_HEADER
-import com.example.appportfolio.other.Constants.RG_HEADER
 import com.google.android.material.chip.Chip
 
 class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
     private var HEADER_TYPE=NONE_HEADER
     private val POST_VIEW_TYPE=0
-    private val PROFILE_VIEW_TYPE=1
     private val RADIOGROUP_VIEW_TYPE=2
     private val LOADING_VIEW_TYPE=3
 
@@ -95,17 +85,14 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
 
     override fun getItemViewType(position: Int): Int {
         val minusoffset=if(HEADER_TYPE== NONE_HEADER) 0 else 1
-        if(position==0)
-        {
-            when(HEADER_TYPE)
-            {
-                NONE_HEADER->return POST_VIEW_TYPE
-                else->return RADIOGROUP_VIEW_TYPE
+        return if(position==0) {
+            when(HEADER_TYPE) {
+                NONE_HEADER-> POST_VIEW_TYPE
+                else-> RADIOGROUP_VIEW_TYPE
             }
 
-        }
-        else
-            return if(currentList[position-minusoffset].postid==null) LOADING_VIEW_TYPE else POST_VIEW_TYPE
+        } else
+            if(currentList[position-minusoffset].postid==null) LOADING_VIEW_TYPE else POST_VIEW_TYPE
 
 
 
@@ -138,7 +125,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
                 for(tag in tags)
                 {
                     val chip= Chip(binding.cgTag.context).apply{
-                        text="#"+tag
+                        text= "#$tag"
                         chipStrokeWidth=0f
                         setTextSize(TypedValue.COMPLEX_UNIT_DIP , 16f)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -146,7 +133,7 @@ class PostAdapter: ListAdapter<Post,RecyclerView.ViewHolder>(diffUtil) {
                                 AppCompatResources.getColorStateList(binding.cgTag.context, R.color.chipback)
                             setChipStrokeColorResource(R.color.black)
                             setTextColor(ContextCompat.getColor(binding.cgTag.context, R.color.chiptext))
-                            setTextSize(12f)
+                            textSize = 12f
                         }
                         setOnClickListener {
                             tagClickListener?.let{ click->

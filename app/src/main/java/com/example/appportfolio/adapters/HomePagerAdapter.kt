@@ -5,7 +5,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.example.appportfolio.ui.main.fragments.*
-import java.lang.IndexOutOfBoundsException
 
 const val NEAR_INDEX=0
 const val HOT_INDEX=1

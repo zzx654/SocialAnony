@@ -8,20 +8,15 @@ import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
-import com.example.appportfolio.ui.main.viewmodel.nearPostViewModel
 import com.example.appportfolio.ui.main.viewmodel.newPostViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +24,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class NewFragment: BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding:FragmentPostsBinding
-    lateinit var newpostAdapter: PostAdapter
+    private lateinit var newpostAdapter: PostAdapter
     override val scrollTool: FloatingActionButton
         get() = binding.fbScrollTool
     override val rvPosts: RecyclerView
@@ -45,7 +40,7 @@ class NewFragment: BasePostFragment(R.layout.fragment_posts) {
         get() = newpostAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: newPostViewModel
+    private val viewModel: newPostViewModel
         get() = basePostViewModel as newPostViewModel
     private var mRootView:View?=null
     override val tvWarn: TextView

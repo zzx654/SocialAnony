@@ -12,18 +12,16 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.adapters.PostAdapter
-import com.example.appportfolio.adapters.ProfileContainerAdapter
 import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
-import com.example.appportfolio.ui.main.viewmodel.*
+import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
+import com.example.appportfolio.ui.main.viewmodel.OthersProfileViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -32,7 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class UserPostsFragment:BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
     private var mRootView: View?=null
-    lateinit var userpostAdapter: PostAdapter
+    private lateinit var userpostAdapter: PostAdapter
     private val userid:Int
         get() = arguments?.getInt("userid",0)!!
     override val scrollTool: FloatingActionButton
@@ -54,7 +52,7 @@ class UserPostsFragment:BasePostFragment(R.layout.fragment_posts) {
         get() = userpostAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: OthersProfileViewModel
+    private val viewModel: OthersProfileViewModel
         get() = basePostViewModel as OthersProfileViewModel
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -66,7 +64,7 @@ class UserPostsFragment:BasePostFragment(R.layout.fragment_posts) {
         if(mRootView==null)
         {
 
-            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
+            binding= DataBindingUtil.inflate(inflater,
                 R.layout.fragment_posts,container,false)
             userpostAdapter=PostAdapter()
             (activity as MainActivity).setToolBarVisible("userPostsFragment")

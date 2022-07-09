@@ -7,7 +7,6 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
@@ -34,9 +33,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
     lateinit var binding: FragmentSearchlocBinding
-    lateinit var searchadapter: SearchRecyclerAdapter
-    lateinit var inputMethodManager: InputMethodManager
-    lateinit var vmLoc: LocViewModel
+    private lateinit var searchadapter: SearchRecyclerAdapter
+    private lateinit var inputMethodManager: InputMethodManager
+    private lateinit var vmLoc: LocViewModel
     private var isLast=false
     private var isLoading=false
     private var itemclicked=false
@@ -45,7 +44,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<FragmentSearchlocBinding>(inflater,
             R.layout.fragment_searchloc,container,false)
         activity?.run{
@@ -110,7 +109,7 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         addItemDecoration(customDecoration)
 
     }
-    val scrollListener= object: RecyclerView.OnScrollListener(){
+    private val scrollListener= object: RecyclerView.OnScrollListener(){
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
             recyclerView.adapter ?: return
@@ -180,13 +179,13 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
                     (activity as MainActivity).isConnected!!,
                     it
                 )
-                var currentlist=searchadapter.currentList.toMutableList()
+                val currentlist=searchadapter.currentList.toMutableList()
                 currentlist.removeLast()
                 searchadapter.submitList(currentlist)
             }
         ){
             isLoading=false
-            var currentlist=searchadapter.currentList.toMutableList()
+            val currentlist=searchadapter.currentList.toMutableList()
             if(!firstLoading)
             {
                 currentlist.removeLast()

@@ -2,7 +2,10 @@ package com.example.appportfolio.di
 
 import android.content.Context
 import com.example.appportfolio.db.ChatDatabase
-import com.example.appportfolio.repositories.*
+import com.example.appportfolio.repositories.AuthRepository
+import com.example.appportfolio.repositories.ChatRepository
+import com.example.appportfolio.repositories.LocRepository
+import com.example.appportfolio.repositories.MainRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +14,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Singleton
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {

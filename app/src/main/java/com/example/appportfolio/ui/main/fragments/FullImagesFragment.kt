@@ -9,8 +9,6 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.appportfolio.R
@@ -46,7 +44,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<FragmentFullimagesBinding>(inflater,
             R.layout.fragment_fullimages,container,false)
         (activity as MainActivity).setToolBarVisible("fullImagesFragment")
@@ -119,7 +117,7 @@ class FullImagesFragment: Fragment(R.layout.fragment_fullimages) {
     {
         val resdate= SimpleDateFormat("yyyy-MM-dd h:mm:ss").parse(time)
 
-        var fm=SimpleDateFormat("yyyy.M.d")
+        val fm=SimpleDateFormat("yyyy.M.d")
         binding.tvDate.text=fm.format(resdate)
 
     }

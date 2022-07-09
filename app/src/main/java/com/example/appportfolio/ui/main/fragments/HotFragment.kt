@@ -14,7 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
@@ -31,7 +31,6 @@ import com.example.appportfolio.other.Constants.IMAGECONTENT
 import com.example.appportfolio.other.Constants.VOTECONTENT
 import com.example.appportfolio.other.CustomDecoration
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
@@ -47,17 +46,17 @@ import javax.inject.Inject
 class HotFragment: Fragment(R.layout.fragment_hot) {
     lateinit var binding: FragmentHotBinding
     lateinit var vmAuth: AuthViewModel
-    lateinit var concatAdapter: ConcatAdapter
-    lateinit var hotpersonAdapter:HorizontalAdapter
-    lateinit var hotpersonHeaderAdapter: TextHeaderAdapter
-    lateinit var hotImagesAdapter:PostPreviewAdapter
-    lateinit var hotAudioAdapter:PostPreviewAdapter
-    lateinit var hotPostsAdapter:PostPreviewAdapter
-    lateinit var hotVotesAdapter: PostPreviewAdapter
-    lateinit var hotImagesHeaderAdapter:TextHeaderAdapter
-    lateinit var hotAudioHeaderAdapter: TextHeaderAdapter
-    lateinit var hotPostsHeaderAdapter:TextHeaderAdapter
-    lateinit var hotVoteHeaderAdapter: TextHeaderAdapter
+    private lateinit var concatAdapter: ConcatAdapter
+    private lateinit var hotpersonAdapter:HorizontalAdapter
+    private lateinit var hotpersonHeaderAdapter: TextHeaderAdapter
+    private lateinit var hotImagesAdapter:PostPreviewAdapter
+    private lateinit var hotAudioAdapter:PostPreviewAdapter
+    private lateinit var hotPostsAdapter:PostPreviewAdapter
+    private lateinit var hotVotesAdapter: PostPreviewAdapter
+    private lateinit var hotImagesHeaderAdapter:TextHeaderAdapter
+    private lateinit var hotAudioHeaderAdapter: TextHeaderAdapter
+    private lateinit var hotPostsHeaderAdapter:TextHeaderAdapter
+    private lateinit var hotVoteHeaderAdapter: TextHeaderAdapter
     private val hotPersonViewModel: HotPersonViewModel by viewModels()
     private val vmHotContents: hotContentsViewModel by viewModels()
     private val vmHotPosts:hotPostViewModel by viewModels()
@@ -84,7 +83,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
                 MainApi::class.java,
                 runBlocking { userPreferences.authToken.first() })
             activity?.run{
-                vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+                vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
             }
             gpsTracker= GpsTracker(requireContext())
             hotpersonAdapter= HorizontalAdapter(requireContext())
@@ -98,16 +97,16 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
             hotAudioAdapter= PostPreviewAdapter()
             hotVotesAdapter= PostPreviewAdapter()
             hotImagesAdapter.setOnPostClickLitener { post->
-                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+                vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotPostsAdapter.setOnPostClickLitener { post->
                 vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotAudioAdapter.setOnPostClickLitener { post->
-                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+                vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotVotesAdapter.setOnPostClickLitener { post->
-                vmHotContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+                vmHotPosts.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             hotpersonAdapter.hotpersonAdapter.setOnPersonClickListener { person->
                 if(person.userid!=vmAuth.userid.value!!)
@@ -200,6 +199,7 @@ class HotFragment: Fragment(R.layout.fragment_hot) {
         })
         vmHotPosts.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
         onLoading={
+            println("여기엘 왜안오는거노")
             loadingDialog.show()
         },
         onError={

@@ -7,34 +7,28 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.bumptech.glide.Glide
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
-import com.example.appportfolio.SocialApplication.Companion.getAge
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
-import com.example.appportfolio.SocialApplication.Companion.onSingleClick
-import com.example.appportfolio.adapters.*
+import com.example.appportfolio.adapters.DividerAdapter
+import com.example.appportfolio.adapters.PostPreviewAdapter
+import com.example.appportfolio.adapters.ProfileContainerAdapter
+import com.example.appportfolio.adapters.TextHeaderAdapter
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
-
-import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.databinding.FragmentUserprofileBinding
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.CustomDecoration
@@ -44,7 +38,6 @@ import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.*
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -66,14 +59,14 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
     lateinit var gpsTracker: GpsTracker
     @Inject
     lateinit var loadingDialog: LoadingDialog
-    lateinit var ImagesHeaderAdapter: TextHeaderAdapter
-    lateinit var AudioHeaderAdapter: TextHeaderAdapter
-    lateinit var VoteHeaderAdapter: TextHeaderAdapter
-    lateinit var EveryHeaderAdapter:TextHeaderAdapter
-    lateinit var ImagesAdapter: PostPreviewAdapter
-    lateinit var AudioAdapter: PostPreviewAdapter
-    lateinit var VotesAdapter: PostPreviewAdapter
-    lateinit var EveryAdapter:PostPreviewAdapter
+    private lateinit var ImagesHeaderAdapter: TextHeaderAdapter
+    private lateinit var AudioHeaderAdapter: TextHeaderAdapter
+    private lateinit var VoteHeaderAdapter: TextHeaderAdapter
+    private lateinit var EveryHeaderAdapter:TextHeaderAdapter
+    private lateinit var ImagesAdapter: PostPreviewAdapter
+    private lateinit var AudioAdapter: PostPreviewAdapter
+    private lateinit var VotesAdapter: PostPreviewAdapter
+    private lateinit var EveryAdapter:PostPreviewAdapter
     private val vmUserProfile:OthersProfileViewModel by viewModels()
     private val vmUserContents:UserContentsViewModel by viewModels()
     private lateinit var vmPerson:BasePersonViewModel
@@ -88,15 +81,15 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
     ): View? {
         if(mRootView==null)
         {
-            vmToggle=ViewModelProvider(requireActivity()).get(applyFollowViewModel::class.java)
+            vmToggle= ViewModelProvider(requireActivity())[applyFollowViewModel::class.java]
             api= RemoteDataSource().buildApi(
                 MainApi::class.java,
                 runBlocking { userPreferences.authToken.first() })
             gpsTracker= GpsTracker(requireContext())
-            if(from=="searchPersonFragment")
-                vmPerson=ViewModelProvider(requireActivity()).get(SearchPersonViewModel::class.java)
+            vmPerson = if(from=="searchPersonFragment")
+                ViewModelProvider(requireActivity())[SearchPersonViewModel::class.java]
             else
-                vmPerson=ViewModelProvider(requireActivity()).get(MyFollowingViewModel::class.java)
+                ViewModelProvider(requireActivity())[MyFollowingViewModel::class.java]
             binding= DataBindingUtil.inflate(inflater,
                 R.layout.fragment_userprofile,container,false)
             profileAdapter= ProfileContainerAdapter()
@@ -225,7 +218,7 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
 
                 }
                 else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+                    snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
             }
         ){
             handleResponse(requireContext(),it.resultCode) {
@@ -270,140 +263,142 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
                 }
             }
         })
-        vmUserContents.getUserImagesResponse.observe(viewLifecycleOwner,Event.EventObserver(
-            onError={
-                loadingDialog.dismiss()
-                binding.srLayout.isRefreshing=false
-                if(!(activity as MainActivity).isConnected!!){
+        with(vmUserContents) {
+            getUserImagesResponse.observe(viewLifecycleOwner,Event.EventObserver(
+                onError={
+                    loadingDialog.dismiss()
+                    binding.srLayout.isRefreshing=false
+                    if(!(activity as MainActivity).isConnected!!){
 
-                    binding.srLayout.visibility=View.GONE
-                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
-                    binding.tvWarn.visibility=View.VISIBLE
-                    binding.retry.visibility=View.VISIBLE
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
 
+                    }
+                    else
+                        snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
                 }
-                else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
-            }
-        ){
-            SocialApplication.handleResponse(requireContext(), it.resultCode) {
-                vmUserContents.getUserAudio(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
-                when(it.resultCode)
-                {
+            ){
+                handleResponse(requireContext(), it.resultCode) {
+                    getUserAudio(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                    when(it.resultCode)
+                    {
 
-                    200->{
-                        ImagesHeaderAdapter.tvContainerVis=false
-                        ImagesHeaderAdapter.loadmoreVis=true
-                        ImagesHeaderAdapter.setloadmoreClickListener {
-                            val bundle=Bundle()
-                            bundle.putInt("contenttype", Constants.IMAGECONTENT)
-                            bundle.putInt("userid",userid)
-                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                        200->{
+                            ImagesHeaderAdapter.tvContainerVis=false
+                            ImagesHeaderAdapter.loadmoreVis=true
+                            ImagesHeaderAdapter.setloadmoreClickListener {
+                                val bundle=Bundle()
+                                bundle.putInt("contenttype", Constants.IMAGECONTENT)
+                                bundle.putInt("userid",userid)
+                                (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                            }
+                            ImagesAdapter.submitList(it.posts)
                         }
-                        ImagesAdapter.submitList(it.posts)
-                    }
-                    100->{
-                        ImagesHeaderAdapter.loadmoreVis=false
-                        ImagesHeaderAdapter.tvContainerVis=true
-                        ImagesHeaderAdapter.guideText="닉네임을 공개한 사진게시물이 없습니다"
-                    }
-                    else->{
-
-                        binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                    }
-                }
-
-            }
-        })
-        vmUserContents.getUserAudioResponse.observe(viewLifecycleOwner,Event.EventObserver(
-            onError={
-                binding.srLayout.isRefreshing=false
-                loadingDialog.dismiss()
-                if(!(activity as MainActivity).isConnected!!){
-
-                    binding.srLayout.visibility=View.GONE
-                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
-                    binding.tvWarn.visibility=View.VISIBLE
-                    binding.retry.visibility=View.VISIBLE
-
-                }
-                else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
-            }
-        ){
-            SocialApplication.handleResponse(requireContext(), it.resultCode) {
-                vmUserContents.getUserVotes(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
-                when(it.resultCode)
-                {
-                    200->{
-                        AudioHeaderAdapter.tvContainerVis=false
-                        AudioHeaderAdapter.loadmoreVis=true
-                        AudioHeaderAdapter.setloadmoreClickListener {
-                            val bundle=Bundle()
-                            bundle.putInt("contenttype", Constants.AUDIOCONTENT)
-                            bundle.putInt("userid",userid)
-                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                        100->{
+                            ImagesHeaderAdapter.loadmoreVis=false
+                            ImagesHeaderAdapter.tvContainerVis=true
+                            ImagesHeaderAdapter.guideText="닉네임을 공개한 사진게시물이 없습니다"
                         }
-                        AudioAdapter.submitList(it.posts)
-                    }
-                    100->{
-                        AudioHeaderAdapter.loadmoreVis=false
-                        AudioHeaderAdapter.tvContainerVis=true
-                        AudioHeaderAdapter.guideText="닉네임을 공개한 음성게시물이 없습니다"
-                    }
-                    else->{
-                        binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                    }
-                }
+                        else->{
 
-            }
-        })
-        vmUserContents.getUserVoteResponse.observe(viewLifecycleOwner,Event.EventObserver(
-            onError={
-                binding.srLayout.isRefreshing=false
-                loadingDialog.dismiss()
-                if(!(activity as MainActivity).isConnected!!){
-
-                    binding.srLayout.visibility=View.GONE
-                    binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
-                    binding.tvWarn.visibility=View.VISIBLE
-                    binding.retry.visibility=View.VISIBLE
-
-                }
-                else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
-            }
-        ){
-            SocialApplication.handleResponse(requireContext(), it.resultCode) {
-                vmUserProfile.getuserPosts(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
-                when(it.resultCode)
-                {
-                    200->{
-                        VoteHeaderAdapter.tvContainerVis=false
-                        VoteHeaderAdapter.loadmoreVis=true
-                        VoteHeaderAdapter.setloadmoreClickListener {
-                            val bundle=Bundle()
-                            bundle.putInt("contenttype", Constants.VOTECONTENT)
-                            bundle.putInt("userid",userid)
-                            (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                            binding.srLayout.isRefreshing=false
+                            Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
                         }
-                        VotesAdapter.submitList(it.posts)
                     }
-                    100->{
-                        VoteHeaderAdapter.tvContainerVis=true
-                        VoteHeaderAdapter.loadmoreVis=false
-                        VoteHeaderAdapter.guideText="닉네임을 공개한 투표게시물이 없습니다"
-                    }
-                    else->{
-                        binding.srLayout.isRefreshing=false
-                        Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
-                    }
-                }
 
-            }
-        })
+                }
+            })
+            getUserAudioResponse.observe(viewLifecycleOwner,Event.EventObserver(
+                onError={
+                    binding.srLayout.isRefreshing=false
+                    loadingDialog.dismiss()
+                    if(!(activity as MainActivity).isConnected!!){
+
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
+
+                    }
+                    else
+                        snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
+                }
+            ){
+                handleResponse(requireContext(), it.resultCode) {
+                    getUserVotes(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,api)
+                    when(it.resultCode)
+                    {
+                        200->{
+                            AudioHeaderAdapter.tvContainerVis=false
+                            AudioHeaderAdapter.loadmoreVis=true
+                            AudioHeaderAdapter.setloadmoreClickListener {
+                                val bundle=Bundle()
+                                bundle.putInt("contenttype", Constants.AUDIOCONTENT)
+                                bundle.putInt("userid",userid)
+                                (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                            }
+                            AudioAdapter.submitList(it.posts)
+                        }
+                        100->{
+                            AudioHeaderAdapter.loadmoreVis=false
+                            AudioHeaderAdapter.tvContainerVis=true
+                            AudioHeaderAdapter.guideText="닉네임을 공개한 음성게시물이 없습니다"
+                        }
+                        else->{
+                            binding.srLayout.isRefreshing=false
+                            Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                }
+            })
+            getUserVoteResponse.observe(viewLifecycleOwner,Event.EventObserver(
+                onError={
+                    binding.srLayout.isRefreshing=false
+                    loadingDialog.dismiss()
+                    if(!(activity as MainActivity).isConnected!!){
+
+                        binding.srLayout.visibility=View.GONE
+                        binding.tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
+                        binding.tvWarn.visibility=View.VISIBLE
+                        binding.retry.visibility=View.VISIBLE
+
+                    }
+                    else
+                        snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
+                }
+            ){
+                handleResponse(requireContext(), it.resultCode) {
+                    vmUserProfile.getuserPosts(userid,null,null,gpsTracker.latitude,gpsTracker.longitude,10,api)
+                    when(it.resultCode)
+                    {
+                        200->{
+                            VoteHeaderAdapter.tvContainerVis=false
+                            VoteHeaderAdapter.loadmoreVis=true
+                            VoteHeaderAdapter.setloadmoreClickListener {
+                                val bundle=Bundle()
+                                bundle.putInt("contenttype", Constants.VOTECONTENT)
+                                bundle.putInt("userid",userid)
+                                (activity as MainActivity).replaceFragment("userContentsFragment",UserContentsFragment(),bundle)
+                            }
+                            VotesAdapter.submitList(it.posts)
+                        }
+                        100->{
+                            VoteHeaderAdapter.tvContainerVis=true
+                            VoteHeaderAdapter.loadmoreVis=false
+                            VoteHeaderAdapter.guideText="닉네임을 공개한 투표게시물이 없습니다"
+                        }
+                        else->{
+                            binding.srLayout.isRefreshing=false
+                            Toast.makeText(requireContext(),"서버오류가 발생했습니다", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
+                }
+            })
+        }
         vmUserProfile.getPostsResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 if(!(activity as MainActivity).isConnected!!){
@@ -415,7 +410,7 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
 
                 }
                 else
-                    snackbar(it+"\n 잠시후 다시 시도해주세요",true,"확인")
+                    snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
                 loadingDialog.dismiss()
             }
         ){
@@ -423,7 +418,7 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
                 binding.srLayout.isRefreshing=false
             loadingDialog.dismiss()
             binding.rvProfile.visibility=View.VISIBLE
-            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+            handleResponse(requireContext(), it.resultCode) {
                 when(it.resultCode)
                 {
                     200->{

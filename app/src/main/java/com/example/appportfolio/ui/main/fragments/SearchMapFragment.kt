@@ -34,13 +34,12 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallback {
     lateinit var binding: FragmentSearchmapBinding
-    lateinit var vmLoc: LocViewModel
+    private lateinit var vmLoc: LocViewModel
     private val permissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION,
         Manifest.permission.ACCESS_COARSE_LOCATION)
     private lateinit var map: GoogleMap
     private var currentSelectMarker: Marker? = null
     private lateinit var curloc: LocationLatLngEntity
-    private lateinit var searchResult: SearchResultEntity
     lateinit var gpsTracker: GpsTracker
 
     private val requestPermissionLauncher = registerForActivityResult( ActivityResultContracts.RequestMultiplePermissions() ) { result: Map<String, Boolean> ->
@@ -84,11 +83,11 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentSearchmapBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_searchmap,container,false)
         activity?.run{
-            vmLoc= ViewModelProvider(this).get(LocViewModel::class.java)
+            vmLoc= ViewModelProvider(this)[LocViewModel::class.java]
         }
         setupGoogleMap()
 
@@ -115,7 +114,7 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
         currentSelectMarker?.showInfoWindow()
     }
     override fun onMapReady(p0: GoogleMap) {
-        map = p0!!
+        map = p0
         map.setOnMapClickListener {
             curloc = LocationLatLngEntity(it.latitude.toFloat(), it.longitude.toFloat())
             vmLoc.setLoc(curloc)

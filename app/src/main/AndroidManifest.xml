@@ -58,11 +58,15 @@
         </activity>
         <service android:name=".ui.main.services.RecordService"
             android:foregroundServiceType="microphone"/>
-        <service android:name=".ui.main.services.UploadService" android:exported="true"></service>
-        <service android:name=".ui.main.services.AudioService" android:exported="true">
+        <service
+            android:name=".ui.main.services.UploadService"
+            android:exported="false"
+            android:permission="TODO" />
+        <service android:name=".ui.main.services.AudioService" android:exported="false"
+            android:permission="TODO">
 
             <intent-filter>
-                <action android:name="TOGGLE_PLAY"></action>
+                <action android:name="TOGGLE_PLAY" />
             </intent-filter>
 
         </service>

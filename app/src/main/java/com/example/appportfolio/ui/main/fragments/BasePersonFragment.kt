@@ -12,7 +12,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -30,7 +30,6 @@ import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.BasePersonViewModel
 import com.example.appportfolio.ui.main.viewmodel.applyFollowViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -43,7 +42,7 @@ abstract class BasePersonFragment (layoutId:Int
 ): Fragment(layoutId) {
     private lateinit var vmAuth: AuthViewModel
     private var searchingperson:String?=null
-    protected var curselectedfollowing:Int=0
+    private var curselectedfollowing:Int=0
     protected var firstloading=true
     protected var isScrolling=false
     protected var curfrag:String=""
@@ -65,7 +64,7 @@ abstract class BasePersonFragment (layoutId:Int
     protected lateinit var vmToggle:applyFollowViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        vmToggle=ViewModelProvider(requireActivity()).get(applyFollowViewModel::class.java)
+        vmToggle= ViewModelProvider(requireActivity())[applyFollowViewModel::class.java]
     }
     protected fun setView()
     {
@@ -78,7 +77,7 @@ abstract class BasePersonFragment (layoutId:Int
                     delay(Constants.SEARCH_TIME_DELAY)
 
                     editable?.let {
-                        if (!edt.text.toString().trim().isEmpty()) {
+                        if (edt.text.toString().trim().isNotEmpty()) {
 
                             if(searchingperson!=it.toString())
                             {
@@ -148,7 +147,7 @@ abstract class BasePersonFragment (layoutId:Int
                 isScrolling=true
         }
     }
-    protected fun showToggleDialog(toggleuser:Int)
+    private fun showToggleDialog(toggleuser:Int)
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -173,7 +172,7 @@ abstract class BasePersonFragment (layoutId:Int
     protected fun init()
     {
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
         api= RemoteDataSource().buildApi(
             MainApi::class.java,

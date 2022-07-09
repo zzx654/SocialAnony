@@ -7,7 +7,8 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.*
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.MutableLiveData
 import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.api.responses.uploadAudioResponse
@@ -59,7 +60,7 @@ class UploadService: LifecycleService(){
         }
     }
 
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
         return binder
     }
@@ -68,9 +69,9 @@ class UploadService: LifecycleService(){
         stopSelf()
         return super.onUnbind(intent)
     }
-    var binder=mBinder()
+    private var binder=mBinder()
 
-    fun initialValues(
+    private fun initialValues(
         imgs:List<Uri>,
         voice:String?,
         postid:String,
@@ -136,23 +137,23 @@ class UploadService: LifecycleService(){
         }
 
     }
-    fun uploadAudio(recordedPath: String)
+    private fun uploadAudio(recordedPath: String)
     {
-        var file= File(recordedPath)
+        val file= File(recordedPath)
         val requestBody=file.asRequestBody("audio/wav".toMediaTypeOrNull())
-        var body: MultipartBody.Part=
+        val body: MultipartBody.Part=
             MultipartBody.Part.createFormData("media",file.name,requestBody)
         postAudio(body,api)
     }
     private fun uploadImages(imageUris: List<Uri>, context: Context)
     {
-        var requestImages:MutableList<MultipartBody.Part> = mutableListOf()
+        val requestImages:MutableList<MultipartBody.Part> = mutableListOf()
 
         for(imageUri in imageUris)
         {
             val file= File(getRealPathFromURI(imageUri,context))
             val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
-            var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
+            val body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
             requestImages.add(body)
         }
         postImage(requestImages,api)
@@ -179,7 +180,7 @@ class UploadService: LifecycleService(){
         }
         return filePath
     }
-    fun postImage(
+    private fun postImage(
         images:List<MultipartBody.Part>,
         api:MainApi
     ){
@@ -189,7 +190,7 @@ class UploadService: LifecycleService(){
             imageResponse.postValue(Event(result))
         }
     }
-    fun postAudio(
+    private fun postAudio(
         media:MultipartBody.Part,
         api:MainApi
     ){
@@ -219,11 +220,9 @@ class UploadService: LifecycleService(){
         }
     }
 
-    fun subsribeToObserver()
+    private fun subsribeToObserver()
     {
-        Audiofile.observe(this,Event.EventObserver(
-
-        ){
+        Audiofile.observe(this,Event.EventObserver {
             if(imgs.value.isNullOrEmpty())
             {
                 imgs.value="NONE"

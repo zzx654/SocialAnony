@@ -30,7 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class HotContentsFragment: BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
-    lateinit var hotContentsAdapter: PostAdapter
+    private lateinit var hotContentsAdapter: PostAdapter
     private var contenttypeStr:String?=null
     private val contentType:Int?
         get() = arguments?.getInt("contenttype")
@@ -53,7 +53,7 @@ class HotContentsFragment: BasePostFragment(R.layout.fragment_posts) {
         get() = hotContentsAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: hotContentsViewModel
+    private val viewModel: hotContentsViewModel
         get() = basePostViewModel as hotContentsViewModel
     private var mRootView: View?=null
     @RequiresApi(Build.VERSION_CODES.M)

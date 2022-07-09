@@ -16,12 +16,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
-import com.example.appportfolio.SocialApplication.Companion.showError
 import com.example.appportfolio.adapters.TagAdapter
 import com.example.appportfolio.adapters.TextHeaderAdapter
 import com.example.appportfolio.api.build.MainApi
@@ -32,7 +31,6 @@ import com.example.appportfolio.data.entities.TagResult
 import com.example.appportfolio.databinding.FragmentTagBinding
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.CustomDecoration
-
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
@@ -57,14 +55,14 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
     private val vmTag:TagViewModel by viewModels()
     lateinit var binding:FragmentTagBinding
     lateinit var mainapi: MainApi
-    lateinit var popularAdapter:TagAdapter
-    lateinit var favoriteAdapter:TagAdapter
-    lateinit var searchedAdapter:TagAdapter
-    lateinit var FavoritePopularAdapter: ConcatAdapter
-    lateinit var SearchedAdapter:ConcatAdapter
-    lateinit var popularTextAdapter:TextHeaderAdapter
-    lateinit var searchedTextAdapter:TextHeaderAdapter
-    lateinit var favoriteTextAdapter:TextHeaderAdapter
+    private lateinit var popularAdapter:TagAdapter
+    private lateinit var favoriteAdapter:TagAdapter
+    private lateinit var searchedAdapter:TagAdapter
+    private lateinit var FavoritePopularAdapter: ConcatAdapter
+    private lateinit var SearchedAdapter:ConcatAdapter
+    private lateinit var popularTextAdapter:TextHeaderAdapter
+    private lateinit var searchedTextAdapter:TextHeaderAdapter
+    private lateinit var favoriteTextAdapter:TextHeaderAdapter
     private var mRootView:View?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,10 +88,10 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
 
             if(mRootView==null)
             {
-                binding= DataBindingUtil.inflate<FragmentTagBinding>(inflater,
+                binding= DataBindingUtil.inflate(inflater,
                     R.layout.fragment_tag,container,false)
                 activity?.run{
-                    vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+                    vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
                 }
                 var job: Job?=null
                 binding.retry.onSingleClick {
@@ -120,8 +118,8 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         editable?.let {
                             if (binding.edtTag.text.toString().trim().isNotEmpty())
                             {
-                                if(!it.toString().equals("#")) {
-                                    var tag=it.toString()
+                                if(it.toString() != "#") {
+                                    val tag=it.toString()
                                     if(tag.contains("#"))
                                     {
                                         tag.replace("#","")
@@ -209,7 +207,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
         binding.tvWarn.text=error
         binding.retry.visibility=View.VISIBLE
     }
-    fun showToggleDialog(tagname:String,count:Int,isLiked:Int)
+    private fun showToggleDialog(tagname:String, count:Int, isLiked:Int)
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog:LayoutInflater= LayoutInflater.from(requireContext())

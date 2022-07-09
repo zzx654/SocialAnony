@@ -33,7 +33,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
     lateinit var progressDialog:DownloadProgressDialog
     lateinit var binding:FragmentChatcontentsBinding
     private var chatimages:ChatImages? = null
-    val PERMISSION_REQUEST_CODE=26
+    private val PERMISSION_REQUEST_CODE=26
     private lateinit var chatContentsAdapter: ChatContentsAdapter
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,8 +43,8 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentChatcontentsBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_chatcontents,container,false)
         (activity as MainActivity).setToolBarVisible("chatContentsFragment")
         chatimages=arguments?.getParcelable("chatimages")!!
@@ -139,7 +139,7 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
             val downloadimgs=chatContentsAdapter.currentList.filter {
                 it.isChecked
             }
-            var bitmaps:List<Bitmap> = listOf()
+            val bitmaps: MutableList<Bitmap> = mutableListOf()
             progressDialog.show()
             CoroutineScope(Dispatchers.Main).launch{
                 for(i in downloadimgs)

@@ -9,17 +9,16 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
 import com.example.appportfolio.data.entities.Person
 import com.example.appportfolio.databinding.ItemPersonsquareBinding
-import com.example.appportfolio.databinding.ItemUserBinding
 
 class HotPersonAdapter: ListAdapter<Person, RecyclerView.ViewHolder>(PersonAdapter.diffUtil) {
 
     companion object{
-    val diffUtil=object: androidx.recyclerview.widget.DiffUtil.ItemCallback<com.example.appportfolio.data.entities.Person>(){
-        override fun areContentsTheSame(oldItem: com.example.appportfolio.data.entities.Person, newItem: com.example.appportfolio.data.entities.Person): kotlin.Boolean {
+    val diffUtil=object: androidx.recyclerview.widget.DiffUtil.ItemCallback<Person>(){
+        override fun areContentsTheSame(oldItem: Person, newItem: Person): Boolean {
             return oldItem.hashCode() == newItem.hashCode()
         }
 
-        override fun areItemsTheSame(oldItem: com.example.appportfolio.data.entities.Person, newItem: com.example.appportfolio.data.entities.Person): kotlin.Boolean {
+        override fun areItemsTheSame(oldItem: Person, newItem: Person): Boolean {
             return oldItem==newItem
         }
     }

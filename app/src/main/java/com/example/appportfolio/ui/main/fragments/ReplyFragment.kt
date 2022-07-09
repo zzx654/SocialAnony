@@ -16,8 +16,6 @@ import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
 import com.example.appportfolio.adapters.CommentAdapter
 import com.example.appportfolio.adapters.PostDetailsAdapter
-import com.example.appportfolio.api.build.MainApi
-import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.data.entities.Comment
 import com.example.appportfolio.data.entities.Post
 import com.example.appportfolio.databinding.FragmentReplyBinding
@@ -27,7 +25,6 @@ import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BaseCommentViewModel
 import com.example.appportfolio.ui.main.viewmodel.ReplyViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import java.text.SimpleDateFormat
 
 
 @AndroidEntryPoint
@@ -38,7 +35,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             val vm: ReplyViewModel by viewModels()
             return vm
         }
-    protected val vmReply: ReplyViewModel
+    private val vmReply: ReplyViewModel
         get() = baseCommentViewModel as ReplyViewModel
     override val commentAdapter: CommentAdapter
         get() = commentadapter
@@ -58,7 +55,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         get() = binding.sendcomment
     override val postcommentprogress: ProgressBar
         get() = binding.postcommentprogress
-    lateinit var commentadapter: CommentAdapter
+    private lateinit var commentadapter: CommentAdapter
     lateinit var comment: Comment
 
     private var mRootView:View?=null
@@ -94,7 +91,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
 
     override fun blockcommentuser(selectedComment: Comment) {
-        var anonymous=selectedComment.anonymous!=""
+        val anonymous=selectedComment.anonymous!=""
         blockingid=selectedComment.userid
         vmInteract.blockcommentuser(anonymous,selectedComment.userid,comment.platform==selectedComment.platform&&comment.account==selectedComment.account,api)
     }
@@ -104,7 +101,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
 
     override fun loadNewComments() {
         val curComments=commentAdapter.currentList
-        if(!curComments.isEmpty())
+        if(curComments.isNotEmpty())
         {
             val lastComment=curComments.last()
             vmReply.getReply(comment.ref,lastComment.commentid,lastComment.time,api)
@@ -178,7 +175,7 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
     override fun fixtotop(postedcomment: Comment) {
         var oldcomments=commentAdapter.currentList.toList()
         oldcomments-=comment//최상단 댓글제거
-        var newcomments = listOf(postedcomment)+oldcomments
+        val newcomments = listOf(postedcomment)+oldcomments
         applyList(newcomments)
     }
     override fun subscribeToObserver() {

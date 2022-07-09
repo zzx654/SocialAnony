@@ -16,7 +16,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
@@ -25,7 +24,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -35,8 +34,8 @@ import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.databinding.FragmentProfileeditBinding
 import com.example.appportfolio.other.Constants
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
 import com.example.appportfolio.ui.main.activity.MainActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.viewmodel.ProfileEditViewModel
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
@@ -58,9 +57,9 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     lateinit var binding: FragmentProfileeditBinding
-    lateinit var inputMethodManager: InputMethodManager
-    lateinit var nick:String
-    var profileurl:String?=null
+    private lateinit var inputMethodManager: InputMethodManager
+    private lateinit var nick:String
+    private var profileurl:String?=null
     private var curImageUri: Uri?=null
     private var imgdeleted=false
     private var alreadyexist=false
@@ -70,6 +69,8 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     lateinit var vmAuth: AuthViewModel
     @Inject
     lateinit var preferences: UserPreferences
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     private val cropActivityResultContract = object: ActivityResultContract<Any?, Uri?>(){
         override fun createIntent(context: Context, input: Any?): Intent {
             return CropImage.activity()
@@ -87,7 +88,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<FragmentProfileeditBinding>(inflater,
             R.layout.fragment_profileedit,container,false)
         (activity as MainActivity).setToolBarVisible("profileEditFragment")
@@ -97,7 +98,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         profileurl=arguments?.getString("profileurl")
         binding.edtnick.setText(nick)
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
         if(profileurl==null)
         {
@@ -137,8 +138,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                         binding.tvguide.visibility=View.VISIBLE
                     }
                     else
-                    {
-                        if(binding.edtnick.text.toString().equals(nick)&&curImageUri==null&&!imgdeleted)
+                        if(binding.edtnick.text.toString() == nick &&curImageUri==null&&!imgdeleted)
                         {
                             binding.tvexist.visibility=View.GONE
                             binding.tvguide.visibility=View.VISIBLE
@@ -149,7 +149,6 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                         {
                             vmEdit.checknick(binding.edtnick.text.toString(),api)
                         }
-                    }
                 }
             }
         }
@@ -165,7 +164,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         subscribeToObserver()
         return binding.root
     }
-    fun showEditprofileimage()
+    private fun showEditprofileimage()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -194,7 +193,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         dialog.create()
         dialog.show()
     }
-    fun showComplete()
+    private fun showComplete()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -285,10 +284,10 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         })
         vmEdit.profileeditResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading = {
-                binding.editprogressbar.visibility=View.VISIBLE
+                loadingDialog.show()
             },
             onError = {
-                binding.editprogressbar.visibility=View.GONE
+                loadingDialog.dismiss()
                 SocialApplication.showError(
                     binding.root,
                     requireContext(),
@@ -298,7 +297,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
 
             }
         ){
-            binding.editprogressbar.visibility=View.GONE
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     Toast.makeText(requireContext(), "변경이 완료되었습니다", Toast.LENGTH_SHORT).show()
@@ -310,16 +309,16 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
             curImageUri=it
             Glide.with(requireContext())
                 .load(it)
-                .placeholder(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
-                .error(ColorDrawable(ContextCompat.getColor(requireContext(), R.color.gray)))
+                .placeholder(ColorDrawable(getColor(requireContext(), R.color.gray)))
+                .error(ColorDrawable(getColor(requireContext(), R.color.gray)))
                 .into(binding.imgProfile)
         }
         vmEdit.uploadimgResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading = {
-                binding.editprogressbar.visibility=View.VISIBLE
+                loadingDialog.show()
             },
             onError = {
-                binding.editprogressbar.visibility=View.GONE
+               loadingDialog.dismiss()
                 SocialApplication.showError(
                     binding.root,
                     requireContext(),
@@ -328,7 +327,7 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
                 )
             }
         ){
-            binding.editprogressbar.visibility=View.GONE
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 200) {
                     it.imageUri
@@ -341,14 +340,14 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
     }
     private fun uploadImages(imageUri: Uri, context: Context)
     {
-        var requestImage:MultipartBody.Part
+        val requestImage:MultipartBody.Part
         val file= File(getRealPathFromURI(imageUri,context))
         val requestBody=file.asRequestBody("image/*".toMediaTypeOrNull())
-        var body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
+        val body : MultipartBody.Part = MultipartBody.Part.createFormData("image",file.name,requestBody)//이거
         requestImage=body
         vmEdit.uploadimg(requestImage,api)
     }
-    fun hideKeyboard() {
+    private fun hideKeyboard() {
         if (::inputMethodManager.isInitialized.not()) {
             inputMethodManager=activity?.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
         }

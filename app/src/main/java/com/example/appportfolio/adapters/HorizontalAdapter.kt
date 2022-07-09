@@ -34,7 +34,6 @@ class HorizontalAdapter(val context:Context): RecyclerView.Adapter<RecyclerView.
     }
 
     override fun getItemCount(): Int=1
-    var CONTENT_TYPE=PERSON
 
     inner class HotUserViewHolder(val binding: ItemHorizontalrvBinding):RecyclerView.ViewHolder(binding.root) {
         fun onbind()

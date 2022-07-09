@@ -5,20 +5,17 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.onSingleClick
+import com.example.appportfolio.SocialApplication.Companion.showAlert
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.databinding.FragmentSignupBinding
@@ -41,11 +38,11 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentSignupBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_signup,container,false)
         api= RemoteDataSource().buildApi(AuthApi::class.java)
-        viewModel= ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
+        viewModel= ViewModelProvider(requireActivity())[AuthViewModel::class.java]
         binding.goback.setOnClickListener {
             findNavController().popBackStack()
         }
@@ -139,35 +136,34 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
                         }
                 } 
                 else{
-                    if(binding.etReapeatPassword.text.toString()!=binding.etPassword.text.toString()&&binding.etReapeatPassword.text.toString().trim().isNotEmpty()){
-                        binding.tilReapeatPassword.apply{
+                    binding.tilPassword.apply{
+                        if(binding.etPassword.text.toString().length<6){
+                            isErrorEnabled=true
+                            error="6자리 이상의 비밀번호를 입력해주세요"
+                            inactiveSignup()
+                        }
+                        else{
+                            isErrorEnabled=false
+                            error=null
+                            if(binding.etReapeatPassword.text.toString()==binding.etPassword.text.toString()&&binding.etAuth.text.toString().trim().isNotEmpty()&&
+                                binding.tvCount.text.toString()!="0:00"&&binding.etEmail.text.toString().trim().isNotEmpty()&&binding.tilEmail.error==null)
+                                activeSignup()
+                            else
+                                inactiveSignup()
+                        }
+                    }
+                    binding.tilReapeatPassword.apply{
+                        if(binding.etReapeatPassword.text.toString()!=binding.etPassword.text.toString()&&binding.etReapeatPassword.text.toString().trim().isNotEmpty()){
+                            inactiveSignup()
                             isErrorEnabled=true
                             error="비밀번호가 일치하지 않습니다"
                         }
-                        inactiveSignup()
-                    }
-                    else
-                        binding.tilReapeatPassword.apply{
+                        else{
                             isErrorEnabled=false
                             error=null
                         }
-                        binding.tilPassword.apply {
-                            if(binding.etPassword.text.toString().length<6){
-                                isErrorEnabled=true
-                                error="6자리 이상의 비밀번호를 입력해주세요"
-                                inactiveSignup()
-                            }
-                            else{
-                                isErrorEnabled=false
-                                error=null
-                                if(binding.etReapeatPassword.text.toString()==binding.etPassword.text.toString()&&binding.etAuth.text.toString().trim().isNotEmpty()&&
-                                        binding.tvCount.text.toString()!="0:00"&&binding.etEmail.text.toString().trim().isNotEmpty()&&binding.tilEmail.error==null)
-                                    activeSignup()
-                                else
-                                    inactiveSignup()
-                            }
+                    }
 
-                        }
                 }
             }
         }
@@ -209,7 +205,7 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
                 viewModel.register(binding.etEmail.text.toString(),binding.etPassword.text.toString(),binding.etAuth.text.toString(),binding.etPhone.text.toString(),api)
             }
             else{
-                showAlert("적절한 전화번호를 입력해주세요")
+                showAlert(requireContext(),"적절한 전화번호를 입력해주세요")
             }
 
         }
@@ -273,7 +269,7 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
                     activeVerify()
                 //snackbar(requireContext().getString(R.string.verify_excess))
                 inactiveSignup()
-                showAlert(requireContext().getString(R.string.verify_excess))
+                showAlert(requireContext(),requireContext().getString(R.string.verify_excess))
                 binding.tvCount.visibility=View.INVISIBLE
             }
             binding.tvCount.text=it
@@ -294,14 +290,14 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
         ){
             when(it.resultCode){
                 500->{
-                    showAlert("이미 사용중인 계정입니다")
+                    showAlert(requireContext(),"이미 사용중인 계정입니다")
                 }
                 400->{
-                    showAlert("인증번호가 유효하지 않습니다")
+                    showAlert(requireContext(),"인증번호가 유효하지 않습니다")
                 }
                 else->{
                     viewModel.timerStop()
-                    showAlert("회원가입에 성공했습니다\n 가입된 계정으로 로그인해주세요"){
+                    showAlert(requireContext(),"회원가입에 성공했습니다\n 가입된 계정으로 로그인해주세요"){
                         findNavController().popBackStack()
                     }
                 }
@@ -309,25 +305,5 @@ class SignUpFragment:Fragment(R.layout.fragment_signup){
             loadingDialog.dismiss()
         })
     }
-    private fun showAlert(text:String,action:(()->Unit)?=null)
-    {
-        val dialog= AlertDialog.Builder(requireContext()).create()
-        val edialog: LayoutInflater = LayoutInflater.from(requireContext())
-        val mView: View =edialog.inflate(R.layout.dialog_alert,null)
-        val cancel: Button =mView.findViewById(R.id.cancel)
-        val positive: Button =mView.findViewById(R.id.positive)
-        val alertText: TextView =mView.findViewById(R.id.tvWarn)
-        alertText.text=text
-        cancel.visibility=View.GONE
-        positive.setOnClickListener {
-            dialog.dismiss()
-            dialog.cancel()
-            action?.let{ act->
-                act()
-            }
-        }
-        dialog.setView(mView)
-        dialog.create()
-        dialog.show()
-    }
+
 }

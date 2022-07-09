@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -41,20 +40,17 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
     lateinit var loadingDialog: LoadingDialog
     private lateinit var viewModel: ChatViewModel
     private lateinit var selectedRequest:ChatRequests
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentChatrequestsBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_chatrequests,container,false)
         (activity as MainActivity).setToolBarVisible("chatRequestsFragment")
         api= RemoteDataSource().buildApi(MainApi::class.java)
         activity?.run{
-            viewModel= ViewModelProvider(this).get(ChatViewModel::class.java)
+            viewModel= ViewModelProvider(this)[ChatViewModel::class.java]
         }
         chatrequestsAdapter.setOnAcceptClickListener {
             selectedRequest=it

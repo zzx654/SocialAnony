@@ -11,7 +11,6 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -23,14 +22,13 @@ import com.example.appportfolio.other.Constants
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.BasePostViewModel
 import com.example.appportfolio.ui.main.viewmodel.UserContentsViewModel
-import com.example.appportfolio.ui.main.viewmodel.hotContentsViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
     lateinit var binding: FragmentPostsBinding
-    lateinit var userContentsAdapter: PostAdapter
+    private lateinit var userContentsAdapter: PostAdapter
     private var contenttypeStr:String?=null
     private val contentType:Int?
         get() = arguments?.getInt("contenttype")
@@ -55,7 +53,7 @@ class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
         get() = userContentsAdapter
     override val srLayout: SwipeRefreshLayout
         get() = binding.sr
-    protected val viewModel: UserContentsViewModel
+    private val viewModel: UserContentsViewModel
         get() = basePostViewModel as UserContentsViewModel
     private var mRootView: View?=null
     @RequiresApi(Build.VERSION_CODES.M)
@@ -67,7 +65,7 @@ class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
         if(mRootView==null)
         {
             (activity as MainActivity).setToolBarVisible("userContentsFragment")
-            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
+            binding= DataBindingUtil.inflate(inflater,
                 R.layout.fragment_posts,container,false)
             contentType?.let{
                 contenttypeStr=when(contentType){

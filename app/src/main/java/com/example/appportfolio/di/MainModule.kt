@@ -2,17 +2,15 @@ package com.example.appportfolio.di
 
 import android.content.Context
 import com.example.appportfolio.adapters.*
-import com.example.appportfolio.repositories.AuthRepository
-
 import com.example.appportfolio.auth.SignManager
 import com.example.appportfolio.auth.UserPreferences
+import com.example.appportfolio.repositories.AuthRepository
 import com.example.appportfolio.repositories.LocRepository
 import com.example.appportfolio.repositories.MainRepository
 import com.example.appportfolio.ui.main.GpsTracker
 import com.example.appportfolio.ui.main.dialog.DownloadProgressDialog
 import com.example.appportfolio.ui.main.dialog.LoadingDialog
 import com.example.appportfolio.ui.main.dialog.UploadProgressDialog
-
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -8,25 +8,24 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.ui.main.activity.MainActivity
 
 class settingpreFragment:PreferenceFragmentCompat() {
     lateinit var vmAuth: AuthViewModel
-    lateinit var prefs:SharedPreferences
-    var bookmarkPreference: Preference? = null
-    var mypostPreference:Preference? = null
-    var blockPreference:Preference? = null
-    var chatonoffPreference:Preference?=null
-    var pushonoffPreference:Preference?=null
-    var logoffPreference:Preference?=null
-    var outPreference:Preference?=null
-    var changepwPreference:Preference?=null
+    private lateinit var prefs:SharedPreferences
+    private var bookmarkPreference: Preference? = null
+    private var mypostPreference:Preference? = null
+    private var blockPreference:Preference? = null
+    private var chatonoffPreference:Preference?=null
+    private var pushonoffPreference:Preference?=null
+    private var logoffPreference:Preference?=null
+    private var outPreference:Preference?=null
+    private var changepwPreference:Preference?=null
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listView.overScrollMode=View.OVER_SCROLL_NEVER
@@ -38,7 +37,7 @@ class settingpreFragment:PreferenceFragmentCompat() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         setPreferencesFromResource(R.xml.mysettingpreference,rootKey)
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
         if(rootKey==null)
         {
@@ -72,7 +71,7 @@ class settingpreFragment:PreferenceFragmentCompat() {
         }
 
         vmAuth.platform.value?.let {
-            if(it.equals("GOOGLE"))
+            if(it == "GOOGLE")
                 changepwPreference?.isVisible=false
         }
 

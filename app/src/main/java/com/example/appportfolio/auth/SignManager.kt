@@ -5,7 +5,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.kakao.sdk.user.UserApiClient
 
 enum class Status {
     SUCCESS,
@@ -21,9 +20,9 @@ enum class requestType {
     logout
 }
 
-class SignManager (private val context:Context){
-    lateinit var mGoogleSignInClient: GoogleSignInClient
-    var lastSignedGoogleAccount:GoogleSignInAccount?
+class SignManager (context:Context){
+    private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private var lastSignedGoogleAccount:GoogleSignInAccount?
 
     init {
         val gso= GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -48,7 +47,7 @@ class SignManager (private val context:Context){
         return lastSignedGoogleAccount!!.email
     }
     private fun isGoogleLoggedin():Boolean{
-        return if (lastSignedGoogleAccount!=null)true else false
+        return lastSignedGoogleAccount!=null
     }
     fun signout(applyResult:(Status, String?, String?)->Unit)
     {

@@ -5,45 +5,69 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
+import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
+import com.example.appportfolio.SocialApplication.Companion.showAlert
 import com.example.appportfolio.api.build.AuthApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.databinding.FragmentFindpasswordBinding
 import com.example.appportfolio.other.Event
-import com.example.appportfolio.snackbar
+import com.example.appportfolio.ui.auth.activity.AuthActivity
+import com.example.appportfolio.ui.main.dialog.LoadingDialog
+import javax.inject.Inject
 
 class FindPwFragment: Fragment(R.layout.fragment_findpassword) {
     private lateinit var viewModel: AuthViewModel
     lateinit var api: AuthApi
     lateinit var binding: FragmentFindpasswordBinding
+    @Inject
+    lateinit var loadingDialog: LoadingDialog
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentFindpasswordBinding>(inflater,
+    ): View{
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_findpassword,container,false)
         api= RemoteDataSource().buildApi(AuthApi::class.java)
-        viewModel= ViewModelProvider(requireActivity()).get(AuthViewModel::class.java)
+        viewModel= ViewModelProvider(requireActivity())[AuthViewModel::class.java]
         binding.edtmail.addTextChangedListener { editable ->
 
             editable?.let {
+
                 if (binding.edtmail.text.toString().trim().isEmpty()) {
+                    binding.tilEmail.apply{
+                        isErrorEnabled=false
+                        error=null
+                    }
                     val color = ContextCompat.getColor(requireContext(), R.color.inactive)
                     binding.btnConfirm.isClickable = false
                     binding.btnConfirm.setBackgroundColor(color)
                 }
-                else
+                else if(!Patterns.EMAIL_ADDRESS.matcher(binding.edtmail.text.toString()).matches())
                 {
+                    val color = ContextCompat.getColor(requireContext(), R.color.inactive)
+                    binding.btnConfirm.isClickable = false
+                    binding.btnConfirm.setBackgroundColor(color)
+                    binding.tilEmail.apply{
+                        isErrorEnabled=true
+                        error="올바른 이메일 주소를 입려해주세요"
+                    }
+
+                }
+                else{
+                    binding.tilEmail.apply{
+                        isErrorEnabled=false
+                        error=null
+                    }
                     val color = ContextCompat.getColor(requireContext(), R.color.skinfore)
                     binding.btnConfirm.isClickable = true
                     binding.btnConfirm.setBackgroundColor(color)
@@ -51,9 +75,6 @@ class FindPwFragment: Fragment(R.layout.fragment_findpassword) {
             }
         }
         binding.btnConfirm.setOnClickListener {
-            if(!Patterns.EMAIL_ADDRESS.matcher(binding.edtmail.text.toString()).matches())
-                snackbar("이메일 형식이 올바르지 않습니다.")
-            else
                 viewModel.findpassword(binding.edtmail.text.toString(),api)
                 //서버에 이메일 보내면서 새비번설정하기
         }
@@ -70,24 +91,29 @@ class FindPwFragment: Fragment(R.layout.fragment_findpassword) {
 
         viewModel.findpasswordResponse.observe(viewLifecycleOwner, Event.EventObserver(
             onLoading = {
-                binding.progress.visibility=View.VISIBLE
+                loadingDialog.show()
             },
             onError = {
-                binding.progress.visibility=View.GONE
-                Toast.makeText(requireContext(),it,Toast.LENGTH_SHORT).show()
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as AuthActivity).isConnected!!,
+                    it
+                )
             }
         ){
-            binding.progress.visibility=View.GONE
+            loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode){
                 if(it.resultCode==200)
                 {
-                    Toast.makeText(requireContext(),"임시비밀번호가 발급되었습니다 이메일에서 확인해주세요.",Toast.LENGTH_SHORT).show()
-                    findNavController().popBackStack()
+                    showAlert(requireContext(),"임시비밀번호가 발급되었습니다 이메일에서 확인해주세요"){
+                        findNavController().popBackStack()
+                    }
                 }
                 else
                 {
-                    Toast.makeText(requireContext(),"등록된 이메일이 아닙니다",Toast.LENGTH_SHORT).show()
-
+                    showAlert(requireContext(),"등록된 이메일이 아닙니다")
                 }
             }
 

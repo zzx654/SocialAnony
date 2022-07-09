@@ -14,12 +14,11 @@ import com.google.android.material.tabs.TabLayoutMediator
 class HomeFragment: Fragment(R.layout.fragment_posts) {
 
     lateinit var binding:FragmentHomeBinding
-    private var mRootView:View?=null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
 
         binding= DataBindingUtil.inflate<FragmentHomeBinding>(inflater,
                 R.layout.fragment_home,container,false)

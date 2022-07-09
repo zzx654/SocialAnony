@@ -97,7 +97,7 @@ class ProfileContainerAdapter: RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             binding.tvnickname.text = usernickname
 
             usergender?.let{
-                var genderstr=if(it=="남자")"♂" else if(it=="여자")"♀" else "비공개"
+                val genderstr=if(it=="남자")"♂" else if(it=="여자")"♀" else "비공개"
                 binding.tvgenderage.text = "(${genderstr} · ${userage?.let { SocialApplication.getAge(it) }}) "
             }
 

@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.appportfolio.AuthViewModel
+import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.handleResponse
@@ -46,19 +46,19 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
     lateinit var loadingDialog:LoadingDialog
     lateinit var vmAuth: AuthViewModel
     lateinit var api: MainApi
-    var curBlock:Block?=null
+    private var curBlock:Block?=null
     private val vmBlock:BlockViewModel by viewModels()
     private var snackbar: Snackbar?=null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        binding= DataBindingUtil.inflate<FragmentBlockBinding>(inflater,
+    ): View {
+        binding= DataBindingUtil.inflate(inflater,
             R.layout.fragment_block,container,false)
         (activity as MainActivity).setToolBarVisible("blockFragment")
         activity?.run{
-            vmAuth= ViewModelProvider(this).get(AuthViewModel::class.java)
+            vmAuth= ViewModelProvider(this)[AuthViewModel::class.java]
         }
 
         blockAdapter.setOnItemClickListener {
@@ -78,7 +78,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
         layoutManager= LinearLayoutManager(requireContext())
         itemAnimator=null
     }
-    fun showdelete(block:Block)
+    private fun showdelete(block:Block)
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
         val edialog: LayoutInflater = LayoutInflater.from(requireContext())
@@ -130,12 +130,11 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
             },
             onError={
                 loadingDialog.dismiss()
-                var error:String
-                if(!(activity as MainActivity).isConnected!!)
-                    error= requireContext().getString(R.string.networkdisdconnected)
+                val error:String = if(!(activity as MainActivity).isConnected!!)
+                    requireContext().getString(R.string.networkdisdconnected)
                 else
-                    error=it
-                snackbar=snackbar(error+"\n잠시후에 다시 시도해주세요",true,"다시시도"){
+                    it
+                snackbar=snackbar("$error\n잠시후에 다시 시도해주세요",true,"다시시도"){
                     vmBlock.getBlocks(api)
                 }
             }
@@ -174,7 +173,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                     snackbar("서버 오류 발생")
                 }
                 else{
-                    var templist=blockAdapter.currentList.toList()
+                    val templist= blockAdapter.currentList.toList().toMutableList()
                     templist-=curBlock
                     blockAdapter.submitList(templist)
                 }

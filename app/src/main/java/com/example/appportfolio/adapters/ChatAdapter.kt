@@ -3,91 +3,91 @@ package com.example.appportfolio.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.appportfolio.R
-import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.SocialApplication.Companion.datetostr
 import com.example.appportfolio.SocialApplication.Companion.strtodate
 import com.example.appportfolio.data.entities.MessageData
 import com.example.appportfolio.databinding.*
 import com.example.appportfolio.other.ChatType
-import java.io.File
 import java.text.SimpleDateFormat
 
 class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val layoutInflater= LayoutInflater.from(parent.context)
-        if(viewType==ChatType.LEFT_MESSAGE){
-            return DataBindingUtil.inflate<com.example.appportfolio.databinding.ChatLefttextBinding>(
-                layoutInflater,
-                R.layout.chat_lefttext,
-                parent,
-                false
-            ).let{
-                LeftTextViewHolder(it)
+        when (viewType) {
+            ChatType.LEFT_MESSAGE -> {
+                return DataBindingUtil.inflate<ChatLefttextBinding>(
+                    layoutInflater,
+                    R.layout.chat_lefttext,
+                    parent,
+                    false
+                ).let{
+                    LeftTextViewHolder(it)
+                }
             }
-        }else if(viewType==ChatType.LEFT_IMAGE){
-            return DataBindingUtil.inflate<ChatLeftImageBinding>(
-                layoutInflater,
-                R.layout.chat_left_image,
-                parent,
-                false
-            ).let{
-                LeftImageViewHolder(it)
+            ChatType.LEFT_IMAGE -> {
+                return DataBindingUtil.inflate<ChatLeftImageBinding>(
+                    layoutInflater,
+                    R.layout.chat_left_image,
+                    parent,
+                    false
+                ).let{
+                    LeftImageViewHolder(it)
+                }
             }
-        }else if(viewType==ChatType.RIGHT_MESSAGE){
-            return DataBindingUtil.inflate<ChatRighttextBinding>(
-                layoutInflater,
-                R.layout.chat_righttext,
-                parent,
-                false
-            ).let {
-                RightTextViewHolder(it)
+            ChatType.RIGHT_MESSAGE -> {
+                return DataBindingUtil.inflate<ChatRighttextBinding>(
+                    layoutInflater,
+                    R.layout.chat_righttext,
+                    parent,
+                    false
+                ).let {
+                    RightTextViewHolder(it)
+                }
             }
-        }
-        else if(viewType==ChatType.RIGHT_IMAGE){
-            return DataBindingUtil.inflate<ChatRightImageBinding>(
-                layoutInflater,
-                R.layout.chat_right_image,
-                parent,
-                false
-            ).let {
-                RightImageViewHolder(it)
+            ChatType.RIGHT_IMAGE -> {
+                return DataBindingUtil.inflate<ChatRightImageBinding>(
+                    layoutInflater,
+                    R.layout.chat_right_image,
+                    parent,
+                    false
+                ).let {
+                    RightImageViewHolder(it)
+                }
             }
-        }
-        else if(viewType==ChatType.LEFT_LOCATION){
-            return DataBindingUtil.inflate<ChatLeftLocationBinding>(
-                layoutInflater,
-                R.layout.chat_left_location,
-                parent,
-                false
-            ).let {
-                LeftLocationViewHolder(it)
+            ChatType.LEFT_LOCATION -> {
+                return DataBindingUtil.inflate<ChatLeftLocationBinding>(
+                    layoutInflater,
+                    R.layout.chat_left_location,
+                    parent,
+                    false
+                ).let {
+                    LeftLocationViewHolder(it)
+                }
             }
-        }
-        else if(viewType==ChatType.RIGHT_LOCATION){
-            return DataBindingUtil.inflate<ChatRightLocationBinding>(
-                layoutInflater,
-                R.layout.chat_right_location,
-                parent,
-                false
-            ).let {
-                RightLocationViewHolder(it)
+            ChatType.RIGHT_LOCATION -> {
+                return DataBindingUtil.inflate<ChatRightLocationBinding>(
+                    layoutInflater,
+                    R.layout.chat_right_location,
+                    parent,
+                    false
+                ).let {
+                    RightLocationViewHolder(it)
+                }
             }
-        }
-        else{
-            return DataBindingUtil.inflate<ChatCenteritemBinding>(
-                layoutInflater,
-                R.layout.chat_centeritem,
-                parent,
-                false
-            ).let{
-                CenterViewHolder(it)
+            else -> {
+                return DataBindingUtil.inflate<ChatCenteritemBinding>(
+                    layoutInflater,
+                    R.layout.chat_centeritem,
+                    parent,
+                    false
+                ).let{
+                    CenterViewHolder(it)
+                }
             }
         }
     }
@@ -121,39 +121,23 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
         return currentList.size
     }
     override fun getItemViewType(position: Int): Int {
-        if(currentList[position].type.equals("EXIT"))
-        {
-            return ChatType.CENTER
-        }
-        else if(currentList[position].type.equals("IMAGE"))
-        {
-            if(currentList[position].senderid!!.equals(myId))
-            {
-                return ChatType.RIGHT_IMAGE
+        when (currentList[position].type) {
+            "EXIT" -> return ChatType.CENTER
+            "IMAGE" -> return if(currentList[position].senderid!! == myId) {
+                ChatType.RIGHT_IMAGE
+            } else{
+                ChatType.LEFT_IMAGE
             }
-            else{
-                return ChatType.LEFT_IMAGE
+            "LOCATION" -> return if(currentList[position].senderid!! == myId) {
+                ChatType.RIGHT_LOCATION
+            } else{
+                ChatType.LEFT_LOCATION
             }
-        }
-        else if(currentList[position].type.equals("LOCATION"))
-        {
-            if(currentList[position].senderid!!.equals(myId))
-            {
-                return ChatType.RIGHT_LOCATION
+            else -> return if(currentList[position].senderid!! == myId) {
+                ChatType.RIGHT_MESSAGE
+            } else{
+                ChatType.LEFT_MESSAGE
             }
-            else{
-                return ChatType.LEFT_LOCATION
-            }
-        }
-        else {
-            if(currentList[position].senderid!!.equals(myId))
-            {
-                return ChatType.RIGHT_MESSAGE
-            }
-            else{
-                return ChatType.LEFT_MESSAGE
-            }
-
         }
     }
     inner class LeftTextViewHolder(private val binding:ChatLefttextBinding):
@@ -167,7 +151,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             }
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -190,7 +174,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             }
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -214,7 +198,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             }
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -233,7 +217,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             }
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -246,7 +230,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             binding.chat=chat
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -264,7 +248,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             }
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else
@@ -278,7 +262,7 @@ class ChatAdapter: ListAdapter<MessageData, RecyclerView.ViewHolder>(diffUtil) {
             binding.content=chat
             if(chat.dateChanged){
                 binding.layoutdate.visibility=View.VISIBLE
-                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss")),
+                binding.datesep.text=datetostr(strtodate(chat.date,SimpleDateFormat("yyyy-MM-dd HH:mm:ss"))!!,
                     SimpleDateFormat("yyyy년 M월 d일 E요일"))
             }
             else

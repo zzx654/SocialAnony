@@ -30,14 +30,14 @@ class RecordFragment(val save:(String)->Unit):BottomSheetDialogFragment() {
     private var isRecorded=false
 
 
-    var isPlaying:Boolean=false
+    private var isPlaying:Boolean=false
 
     var path:String?=null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding= DataBindingUtil.inflate<DialogRecordBinding>(inflater,
             R.layout.dialog_record,container,false)
 
@@ -132,11 +132,11 @@ class RecordFragment(val save:(String)->Unit):BottomSheetDialogFragment() {
             requireContext().startService(it)
         }
     private fun checkAudioPermission():Boolean{
-        if(ActivityCompat.checkSelfPermission(requireContext(),recordPermission)== PackageManager.PERMISSION_GRANTED){
-            return true
+        return if(ActivityCompat.checkSelfPermission(requireContext(),recordPermission)== PackageManager.PERMISSION_GRANTED){
+            true
         }else{
-            ActivityCompat.requestPermissions(requireActivity(),  arrayOf((recordPermission)), PERMISSION_CODE);
-            return false
+            ActivityCompat.requestPermissions(requireActivity(),  arrayOf((recordPermission)), PERMISSION_CODE)
+            false
         }
     }
     override fun onDestroy() {
