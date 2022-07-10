@@ -101,7 +101,18 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
             AudioAdapter= PostPreviewAdapter()
             VotesAdapter= PostPreviewAdapter()
             EveryAdapter= PostPreviewAdapter()
-
+            ImagesAdapter.setOnPostClickLitener { post->
+                vmUserContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            AudioAdapter.setOnPostClickLitener { post->
+                vmUserContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            VotesAdapter.setOnPostClickLitener { post->
+                vmUserContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
+            EveryAdapter.setOnPostClickLitener { post->
+                vmUserContents.getSelectedPost(post.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
+            }
             concatAdapter= ConcatAdapter(profileAdapter,ImagesHeaderAdapter,ImagesAdapter,DividerAdapter(),AudioHeaderAdapter,AudioAdapter,DividerAdapter(),
             VoteHeaderAdapter,VotesAdapter,DividerAdapter(),EveryHeaderAdapter,EveryAdapter)
             (activity as MainActivity).setToolBarVisible("othersProfileFragment")
@@ -121,6 +132,37 @@ class OthersProfileFragment: Fragment(R.layout.fragment_userprofile) {
     }
 
     private fun subscribeToObserver(){
+        vmUserContents.getPostResponse.observe(viewLifecycleOwner,Event.EventObserver(
+            onLoading={
+                loadingDialog.show()
+            },
+            onError={
+                loadingDialog.dismiss()
+                SocialApplication.showError(
+                    binding.root,
+                    requireContext(),
+                    (activity as MainActivity).isConnected!!,
+                    it
+                )
+            }
+        ){
+            loadingDialog.dismiss()
+            SocialApplication.handleResponse(requireContext(), it.resultCode) {
+                when (it.resultCode) {
+                    100 -> Toast.makeText(requireActivity(), "삭제된 게시물입니다", Toast.LENGTH_SHORT).show()
+                    400 -> Toast.makeText(
+                        requireActivity(),
+                        "차단당하거나 차단한 유저의 게시물입니다",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    else -> {
+                        val bundle=Bundle()
+                        bundle.putParcelable("post",it.posts[0])
+                        (activity as MainActivity).replaceFragment("postFragment",PostFragment(),bundle)
+                    }
+                }
+            }
+        })
         vmPerson.togglefollowResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onError={
                 SocialApplication.showError(
