@@ -5,8 +5,11 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
 import com.example.appportfolio.R
@@ -41,6 +44,33 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
     get() = arguments?.getString("tag","")
     private lateinit var vmAuth: AuthViewModel
     lateinit var binding: FragmentTagpostsBinding
+    private val menuprovider=object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            if(vmTag.isLiked.value==1)
+            {
+                menuInflater.inflate(R.menu.tag_likeon, menu)
+            }
+            else
+            {
+                menuInflater.inflate(R.menu.tag_likeoff, menu)
+            }
+        }
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return when (menuItem.itemId) {
+                android.R.id.home -> {
+                    goback()
+                    true
+                }
+                R.id.tagtoggle -> {
+                    vmTag.isLiked.value?.let{
+                        toggleLike()
+                    }
+                    true
+                }
+                else->false
+            }
+        }
+    }
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -67,7 +97,8 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         return binding.root
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(menuprovider,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -75,30 +106,6 @@ class TagPostsFragment: Fragment(R.layout.fragment_tagposts) {
         }
         (activity as MainActivity).binding.title.text=tagname
         super.onResume()
-    }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        if(vmTag.isLiked.value==1)
-        {
-            inflater.inflate(R.menu.tag_likeon, menu)
-        }
-        else
-        {
-            inflater.inflate(R.menu.tag_likeoff, menu)
-        }
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item!!.itemId) {
-            android.R.id.home -> {
-                goback()
-            }
-            R.id.tagtoggle -> {
-                vmTag.isLiked.value?.let{
-                    toggleLike()
-                }
-            }
-        }
-        return super.onOptionsItemSelected(item)
     }
     fun goback()
     {

@@ -2,16 +2,16 @@ package com.example.appportfolio.ui.main.fragments
 
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,7 +31,7 @@ import com.example.appportfolio.ui.main.viewmodel.LocViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
+class SearchLocFragment: Fragment(R.layout.fragment_searchloc),MenuProvider {
     lateinit var binding: FragmentSearchlocBinding
     private lateinit var searchadapter: SearchRecyclerAdapter
     private lateinit var inputMethodManager: InputMethodManager
@@ -76,7 +76,8 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         return binding.root
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -86,8 +87,10 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
         super.onResume()
 
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 if(findNavController().previousBackStackEntry!=null){
                     findNavController().popBackStack()
@@ -95,10 +98,12 @@ class SearchLocFragment: Fragment(R.layout.fragment_searchloc) {
                     findNavController().navigate(
                         SearchLocFragmentDirections.actionSearchLocFragmentToSearchMapFragment())
                 }
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
+
     private fun setupRecyclerView()=binding.rv.apply{
         val customDecoration= CustomDecoration(
             ContextCompat.getDrawable(requireContext(), R.drawable.divider),0f,false)

@@ -2,16 +2,16 @@ package com.example.appportfolio.ui.main.fragments
 
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.appportfolio.R
@@ -26,7 +26,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
+class UserContentsFragment:BasePostFragment(R.layout.fragment_posts),MenuProvider {
     lateinit var binding: FragmentPostsBinding
     private lateinit var userContentsAdapter: PostAdapter
     private var contenttypeStr:String?=null
@@ -91,7 +91,8 @@ class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
         getPosts(true)
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -106,13 +107,16 @@ class UserContentsFragment:BasePostFragment(R.layout.fragment_posts) {
         super.onResume()
 
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     fun getPosts(refresh:Boolean=false)
     {

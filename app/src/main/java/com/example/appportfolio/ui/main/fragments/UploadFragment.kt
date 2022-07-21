@@ -24,9 +24,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -63,7 +66,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class UploadFragment : Fragment(R.layout.fragment_upload){
+class UploadFragment : Fragment(R.layout.fragment_upload), MenuProvider {
 
     var postService: UploadService?=null
     private lateinit var inputMethodManager: InputMethodManager
@@ -250,7 +253,8 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
             initGeo()
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_baseline_close_24)
@@ -259,21 +263,22 @@ class UploadFragment : Fragment(R.layout.fragment_upload){
         (activity as MainActivity).binding.title.text="글 작성하기"
         super.onResume()
     }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.upload_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.upload_tools, menu)
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item!!.itemId) {
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
             android.R.id.home -> {
                 showCancel()
+                true
             }
             R.id.complete -> {
                 showComplete()
-
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     private fun serviceBind()
     {

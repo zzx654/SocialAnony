@@ -4,10 +4,7 @@ import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.TextView
@@ -17,10 +14,13 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat.getColor
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
@@ -55,7 +55,7 @@ import java.io.OutputStream
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
+class ProfileEditFragment: Fragment(R.layout.fragment_profileedit),MenuProvider {
     lateinit var binding: FragmentProfileeditBinding
     private lateinit var inputMethodManager: InputMethodManager
     private lateinit var nick:String
@@ -226,7 +226,8 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         dialog.show()
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -235,13 +236,16 @@ class ProfileEditFragment: Fragment(R.layout.fragment_profileedit) {
         (activity as MainActivity).binding.title.text="프로필 수정"
         super.onResume()
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     private fun activebutton()
     {

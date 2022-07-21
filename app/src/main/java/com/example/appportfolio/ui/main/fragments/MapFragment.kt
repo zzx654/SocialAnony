@@ -1,13 +1,13 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
 import com.example.appportfolio.data.entities.LocationLatLngEntity
@@ -23,7 +23,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 
-class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
+class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback, MenuProvider {
     lateinit var binding: FragmentMapBinding
     private val location:LocationLatLngEntity
         get(){
@@ -93,7 +93,8 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         return map.addMarker(markerOptions)!!
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -103,13 +104,16 @@ class MapFragment : Fragment(R.layout.fragment_map), OnMapReadyCallback {
         super.onResume()
 
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onDestroy() {

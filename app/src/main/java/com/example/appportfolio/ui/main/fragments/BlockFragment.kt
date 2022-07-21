@@ -1,17 +1,17 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.ui.auth.viewmodel.AuthViewModel
@@ -36,7 +36,7 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class BlockFragment: Fragment(R.layout.fragment_block) {
+class BlockFragment: Fragment(R.layout.fragment_block), MenuProvider {
     lateinit var binding: FragmentBlockBinding
     @Inject
     lateinit var blockAdapter: BlockAdapter
@@ -102,25 +102,7 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
         dialog.create()
         dialog.show()
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.goback)
-            setDisplayShowTitleEnabled(false)
-        }
-        (activity as MainActivity).binding.title.text="차단유저 관리"
-        super.onResume()
 
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
-            android.R.id.home->{
-                parentFragmentManager.popBackStack()
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
     private fun subscribeToObserver()
     {
         vmBlock.getBlockResponse.observe(viewLifecycleOwner, Event.EventObserver(
@@ -179,6 +161,28 @@ class BlockFragment: Fragment(R.layout.fragment_block) {
                 }
             }
         })
+    }
+    override fun onResume() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.goback)
+            setDisplayShowTitleEnabled(false)
+        }
+        (activity as MainActivity).binding.title.text="차단유저 관리"
+        super.onResume()
+    }
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
+            android.R.id.home->{
+                parentFragmentManager.popBackStack()
+                true
+            }
+            else->false
+        }
     }
     override fun onDestroy() {
         super.onDestroy()

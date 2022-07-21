@@ -28,9 +28,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
 import androidx.core.content.FileProvider
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.widget.addTextChangedListener
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -72,7 +75,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ChatFragment: Fragment(R.layout.fragment_chat) {
+class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
     private var mRootView:View?=null
     lateinit var vmAuth: AuthViewModel
     lateinit var vmChat: ChatViewModel
@@ -459,47 +462,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
         subsribeToObserver()
         return mRootView
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.goback)
-            setDisplayShowTitleEnabled(false)
-        }
-        if(chatAdapter.currentList.isEmpty())
-        { //채팅 내용 비었을시 가장최근 20개의 문자 우선 load
-            val firstChatLoad = vmChat.loadchatContents(roomid)
-            firstChatLoad.observe(viewLifecycleOwner) {
-                initChatContents = it.reversed()
-                if (opponentid == 0) //대화방에서 상대가 나간경우
-                    (activity as MainActivity).binding.title.text = "대화상대없음"
-                vmChat.readChats(roomid)//읽음
-                if(userprofileimage==null)
-                {
-                    val getoppochat=vmChat.getOpponentChat(roomid,vmAuth.userid.value!!)
-                    getoppochat.observe(viewLifecycleOwner){ oppochat->
-                        //상대방의 userid가 0일수도있으므로 대화내용db 에서 상대방의 채팅내용 senderid를 얻음
-                        if(oppochat.isNotEmpty())
-                            opponentsender=oppochat[0].senderid!!
-                        vmChat.getuserprofile(opponentsender, api)
-                        getoppochat.removeObservers(viewLifecycleOwner)
-                    }
-                }
-                else
-                    initContents(initChatContents,true, subscribeNewChat = true)
-                firstChatLoad.removeObservers(viewLifecycleOwner)
-            }
-        }
-        else{//채팅내용이 이미 한번 load된경우 백그라운드 또는 다른프래그먼트에 있던 동안의 채팅 내용 load
-            val lastChatLoad = vmChat.getLastChats(roomid,chatAdapter.currentList.last().num!!)
-            lastChatLoad.observe(viewLifecycleOwner){
-                    initContents(it.reversed(), addtoLast = true, subscribeNewChat = true)
-                    vmChat.readChats(roomid)
-                lastChatLoad.removeObservers(viewLifecycleOwner)
-            }
-        }
-        super.onResume()
-    }
+
     private fun updatechat(chat:MessageData)
     {
         if(chat.type == "EXIT")
@@ -628,27 +591,72 @@ class ChatFragment: Fragment(R.layout.fragment_chat) {
                 binding.tvmsg.visibility=View.GONE
         }
     }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.chat_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
+    override fun onResume() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.goback)
+            setDisplayShowTitleEnabled(false)
+        }
+        if(chatAdapter.currentList.isEmpty())
+        { //채팅 내용 비었을시 가장최근 20개의 문자 우선 load
+            val firstChatLoad = vmChat.loadchatContents(roomid)
+            firstChatLoad.observe(viewLifecycleOwner) {
+                initChatContents = it.reversed()
+                if (opponentid == 0) //대화방에서 상대가 나간경우
+                    (activity as MainActivity).binding.title.text = "대화상대없음"
+                vmChat.readChats(roomid)//읽음
+                if(userprofileimage==null)
+                {
+                    val getoppochat=vmChat.getOpponentChat(roomid,vmAuth.userid.value!!)
+                    getoppochat.observe(viewLifecycleOwner){ oppochat->
+                        //상대방의 userid가 0일수도있으므로 대화내용db 에서 상대방의 채팅내용 senderid를 얻음
+                        if(oppochat.isNotEmpty())
+                            opponentsender=oppochat[0].senderid!!
+                        vmChat.getuserprofile(opponentsender, api)
+                        getoppochat.removeObservers(viewLifecycleOwner)
+                    }
+                }
+                else
+                    initContents(initChatContents,true, subscribeNewChat = true)
+                firstChatLoad.removeObservers(viewLifecycleOwner)
+            }
+        }
+        else{//채팅내용이 이미 한번 load된경우 백그라운드 또는 다른프래그먼트에 있던 동안의 채팅 내용 load
+            val lastChatLoad = vmChat.getLastChats(roomid,chatAdapter.currentList.last().num!!)
+            lastChatLoad.observe(viewLifecycleOwner){
+                initContents(it.reversed(), addtoLast = true, subscribeNewChat = true)
+                vmChat.readChats(roomid)
+                lastChatLoad.removeObservers(viewLifecycleOwner)
+            }
+        }
+        super.onResume()
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.chat_tools, menu)
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return  when(menuItem!!.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
             R.id.images->{
                 navigateToImages()
+                true
             }
             R.id.exit->{
                 showexit()
+                true
             }
             R.id.block->{
                 showblock()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     private fun navigateToImages()
     {

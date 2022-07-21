@@ -10,8 +10,11 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -63,6 +66,26 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
     lateinit var loadingDialog: LoadingDialog
     @Inject
     lateinit var preferences:UserPreferences
+    val menuprovider=object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menuInflater.inflate(R.menu.noti_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
+        }
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            return when(menuItem.itemId){
+                android.R.id.home->{
+                    //전부 읽음으로 변경하기 구현
+                    showReadAll()
+                    true
+                }
+                R.id.delete->{
+                    //전부 삭제하기 구현
+                    showDeleteAll()
+                    true
+                }
+                else->false
+            }
+        }
+    }
     @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -461,27 +484,9 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
         dialog.create()
         dialog.show()
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        super.onResume()
-
-    }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.noti_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
-            android.R.id.home->{
-                //전부 읽음으로 변경하기 구현
-                showReadAll()
-            }
-            R.id.delete->{
-                //전부 삭제하기 구현
-                showDeleteAll()
-            }
-        }
-        return super.onOptionsItemSelected(item)
+    fun createmenu(){
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(menuprovider,viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
     private fun setupRecyclerView(){
         val customDecoration=CustomDecoration(
@@ -501,4 +506,6 @@ class NotificationFragment: Fragment(R.layout.fragment_notification) {
             animator.supportsChangeAnimations = false  //애니메이션 값 false (리사이클러뷰가 화면을 다시 갱신 했을때 뷰들의 깜빡임 방지)
         }
     }
+
+
 }

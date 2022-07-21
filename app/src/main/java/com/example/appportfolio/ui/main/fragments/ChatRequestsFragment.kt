@@ -1,14 +1,14 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
@@ -31,7 +31,7 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
+class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests), MenuProvider {
     lateinit var binding: FragmentChatrequestsBinding
     lateinit var api: MainApi
     @Inject
@@ -127,7 +127,8 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         addItemDecoration(customDecoration)
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -137,13 +138,16 @@ class ChatRequestsFragment: Fragment(R.layout.fragment_chatrequests) {
         super.onResume()
 
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onDestroy() {

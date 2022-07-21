@@ -7,8 +7,11 @@ import android.os.Bundle
 import android.view.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.appportfolio.R
@@ -32,7 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallback {
+class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallback,MenuProvider {
     lateinit var binding: FragmentSearchmapBinding
     private lateinit var vmLoc: LocViewModel
     private val permissions = arrayOf( Manifest.permission.ACCESS_FINE_LOCATION,
@@ -172,7 +175,8 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
     }
 
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.ic_baseline_close_24)
@@ -181,15 +185,17 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
         (activity as LocationActivity).binding.title.text="위치 찾기"
         super.onResume()
     }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.upload_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.upload_tools, menu)
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item!!.itemId) {
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return  when (menuItem.itemId) {
             android.R.id.home -> {
                 //뒤로가기
                 activity?.finish()
+                true
             }
             R.id.complete -> {
                 val intent = Intent(requireContext(), MainActivity::class.java)
@@ -199,8 +205,9 @@ class SearchMapFragment: Fragment(R.layout.fragment_searchmap),OnMapReadyCallbac
                     it.setResult(Activity.RESULT_OK,intent)
                     it.finish()
                 }
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
 }

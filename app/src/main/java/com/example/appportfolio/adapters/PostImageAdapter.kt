@@ -30,7 +30,7 @@ class PostImageAdapter: ListAdapter<Uri, RecyclerView.ViewHolder>(diffUtil) {
         val imageUri=currentList[position]
 
         (holder as PostImageViewHolder).onbind(imageUri)
-        (holder as PostImageViewHolder).binding.btnDel.setOnClickListener {
+        holder.binding.btnDel.setOnClickListener {
             deleteClickListener?.let { delete->
                 delete(imageUri)
             }

@@ -13,8 +13,11 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,7 +42,7 @@ import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
+class PostFragment: BaseCommentFragment(R.layout.fragment_post),MenuProvider {
     override val baseCommentViewModel: BaseCommentViewModel
         get() {
             val vm: CommentViewModel by viewModels()
@@ -245,8 +248,24 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
     {
         vmInteract.toggleBookmarkPost(post.postid!!,post.bookmarked!!,api)
     }
+
+
+    override fun postComment(anony: String) {
+        val postuserid:Int? = if(post.userid==vmAuth.userid.value!!)
+            null
+        else
+            post.userid
+        vmComment.postComment(postuserid,post.postid!!,anony,edtComment.text.toString(),api)
+    }
+
+    override fun fixtotop(postedcomment: Comment) {
+        val oldcomments=commentAdapter.currentList.toList()
+        val newcomments = listOf(postedcomment)+oldcomments
+        applyList(newcomments)
+    }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -262,47 +281,39 @@ class PostFragment: BaseCommentFragment(R.layout.fragment_post) {
         }
         super.onResume()
     }
-    override fun postComment(anony: String) {
-        val postuserid:Int? = if(post.userid==vmAuth.userid.value!!)
-            null
-        else
-            post.userid
-        vmComment.postComment(postuserid,post.postid!!,anony,edtComment.text.toString(),api)
-    }
 
-    override fun fixtotop(postedcomment: Comment) {
-        val oldcomments=commentAdapter.currentList.toList()
-        val newcomments = listOf(postedcomment)+oldcomments
-        applyList(newcomments)
-    }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.post_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.post_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
         menu.findItem(R.id.delete).isVisible = post.userid==vmAuth.userid.value!!
         menu.findItem(R.id.requestChat).isVisible=post.userid!=vmAuth.userid.value!!
         menu.findItem(R.id.block).isVisible=post.userid!=vmAuth.userid.value!!
         menu.findItem(R.id.report).isVisible=post.userid!=vmAuth.userid.value!!
-        //bindvote()
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
             R.id.requestChat->{
                 vmInteract.requestchat(post.userid,UUID.randomUUID().toString(),api)
+                true
             }
             R.id.block->{
                 showBlock(null)
+                true
             }
             R.id.delete->{
                 showdeletepost()
+                true
             }
             R.id.report->{
                 showReport(post.postid,null)
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     private fun showdeletepost()
     {

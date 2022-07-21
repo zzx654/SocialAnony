@@ -2,16 +2,16 @@ package com.example.appportfolio.ui.main.fragments
 
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -27,7 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class UserPostsFragment:BasePostFragment(R.layout.fragment_posts) {
+class UserPostsFragment:BasePostFragment(R.layout.fragment_posts),MenuProvider {
     lateinit var binding: FragmentPostsBinding
     private var mRootView: View?=null
     private lateinit var userpostAdapter: PostAdapter
@@ -114,28 +114,32 @@ class UserPostsFragment:BasePostFragment(R.layout.fragment_posts) {
         }
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
             setDisplayShowTitleEnabled(false)
         }
         (activity as MainActivity).binding.title.text="전체 게시물"
-
         super.onResume()
 
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
-            android.R.id.home->{
-                parentFragmentManager.popBackStack()
-            }
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
+            android.R.id.home->{
+                parentFragmentManager.popBackStack()
+                true
+            }
+            else->false
+        }
     }
 }

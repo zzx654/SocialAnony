@@ -7,8 +7,11 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.appportfolio.R
 import com.example.appportfolio.SocialApplication
@@ -27,7 +30,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
+class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents),MenuProvider {
 
     @Inject
     lateinit var progressDialog:DownloadProgressDialog
@@ -66,22 +69,10 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         layoutManager= GridLayoutManager(requireContext(),3)
         itemAnimator=null
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.goback)
-            setDisplayShowTitleEnabled(false)
-        }
-        (activity as MainActivity).binding.title.text="사진"
-        super.onResume()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
         if(!chatContentsAdapter.activecheck)
         {
-            inflater.inflate(R.menu.chatcontent_checkoff, menu)
+            menuInflater.inflate(R.menu.chatcontent_checkoff, menu)
             val images=chatContentsAdapter.currentList.map{
                 ChatImage(it.date,it.imageUrl,false)
             }
@@ -89,37 +80,52 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
 
         }
         else
-            inflater.inflate(R.menu.chatcontent_checkon, menu)
+            menuInflater.inflate(R.menu.chatcontent_checkon, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item!!.itemId) {
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
             android.R.id.home -> {
                 parentFragmentManager.popBackStack()
+                true
             }
             R.id.activecheck->{
                 activity?.invalidateOptionsMenu()
                 chatContentsAdapter.updateCheckbox(true)
                 chatContentsAdapter.notifyDataSetChanged()
+                true
 
             }
             R.id.inactivecheck->{
                 activity?.invalidateOptionsMenu()
                 chatContentsAdapter.updateCheckbox(false)
                 chatContentsAdapter.notifyDataSetChanged()
+                true
             }
             R.id.download->{
                 //다운로드하기
                 if(
                     chatContentsAdapter.currentList.any{
-                    it.isChecked
-                })
+                        it.isChecked
+                    })
                     downloadimages()
                 else
                     Toast.makeText(requireContext(),"사진을 선택해주세요",Toast.LENGTH_SHORT).show()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
+    }
+    override fun onResume() {
+        val menuHost:MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.goback)
+            setDisplayShowTitleEnabled(false)
+        }
+        (activity as MainActivity).binding.title.text="사진"
+        super.onResume()
     }
     private fun downloadimages()
     {
@@ -180,4 +186,6 @@ class ChatContentsFragment: Fragment(R.layout.fragment_chatcontents) {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()
     }
+
+
 }

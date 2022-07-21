@@ -1,16 +1,16 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.AbsListView
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -26,7 +26,7 @@ import com.example.appportfolio.ui.main.viewmodel.UserFollowPersonViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-open class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
+open class UserFollowFragment:BasePersonFragment(R.layout.fragment_users),MenuProvider {
     lateinit var binding:FragmentUsersBinding
     private var mRootView: View?=null
     private lateinit var usersAdapter: PersonAdapter
@@ -162,7 +162,8 @@ open class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
         }
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -179,13 +180,16 @@ open class UserFollowFragment:BasePersonFragment(R.layout.fragment_users) {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     override fun subscribeToObserver() {
         super.subscribeToObserver()

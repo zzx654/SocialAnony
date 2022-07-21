@@ -7,9 +7,12 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.widget.NestedScrollView
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.appportfolio.R
@@ -20,7 +23,7 @@ import com.example.appportfolio.databinding.FragmentSetvoteBinding
 import com.example.appportfolio.ui.main.activity.MainActivity
 import com.example.appportfolio.ui.main.viewmodel.UploadViewModel
 
-class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
+class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote),MenuProvider {
     lateinit var binding: FragmentSetvoteBinding
     private lateinit var voteoptionadapter: VoteOptionAdapter
 
@@ -72,47 +75,7 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
         layoutManager= LinearLayoutManager(requireContext())
         itemAnimator=null
     }
-    override fun onResume() {
-        setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.apply {
-            setDisplayHomeAsUpEnabled(true)
-            setHomeAsUpIndicator(R.drawable.ic_baseline_close_24)
-            setDisplayShowTitleEnabled(false)
-        }
-        (activity as MainActivity).binding.title.text="투표 만들기"
-        super.onResume()
-    }
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.upload_tools, menu)       // main_menu 메뉴를 toolbar 메뉴 버튼으로 설정
-    }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item!!.itemId) {
-            android.R.id.home -> {
-                showCancel()
-            }
-            R.id.complete -> {
-                var options:List<Voteoption>?=null
-                var isempty=true
-                val templist:List<Voteoption> = voteoptionadapter.currentList.toList()
-                for(i in templist)
-                {
-                    if(i.option != "")
-                    {
-                        isempty=false
-                    }
-                }
-                if(!isempty)
-                    options=voteoptionadapter.currentList.toList()
-                //findNavController().previousBackStackEntry?.savedStateHandle?.set("return",Voteoptions(options))
-                //findNavController().popBackStack()
-                vmUpload.setvoteoptions(options)
-                parentFragmentManager.popBackStack()
 
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
     private fun showCancel()
     {
         val dialog= AlertDialog.Builder(requireContext()).create()
@@ -151,5 +114,47 @@ class SetVoteoptionFragment:Fragment(R.layout.fragment_setvote) {
     override fun onDestroy() {
         super.onDestroy()
         (activity as MainActivity).setupTopBottom()
+    }
+    override fun onResume() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
+        (activity as AppCompatActivity).supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setHomeAsUpIndicator(R.drawable.ic_baseline_close_24)
+            setDisplayShowTitleEnabled(false)
+        }
+        (activity as MainActivity).binding.title.text="투표 만들기"
+        super.onResume()
+    }
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.upload_tools, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
+            android.R.id.home -> {
+                showCancel()
+                true
+            }
+            R.id.complete -> {
+                var options:List<Voteoption>?=null
+                var isempty=true
+                val templist:List<Voteoption> = voteoptionadapter.currentList.toList()
+                for(i in templist)
+                {
+                    if(i.option != "")
+                    {
+                        isempty=false
+                    }
+                }
+                if(!isempty)
+                    options=voteoptionadapter.currentList.toList()
+
+                vmUpload.setvoteoptions(options)
+                parentFragmentManager.popBackStack()
+                true
+            }
+            else->false
+        }
     }
 }

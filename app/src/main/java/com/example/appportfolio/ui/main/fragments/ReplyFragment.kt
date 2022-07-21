@@ -1,14 +1,14 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -28,7 +28,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
+class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply), MenuProvider {
     lateinit var binding: FragmentReplyBinding
     override val baseCommentViewModel: BaseCommentViewModel
         get()  {
@@ -135,7 +135,8 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
             baseCommentViewModel.toggleComment(comment.commentid,com.userid,com.depth,com.postid,com.commentid!!,com.commentliked,api)
     }
     override fun onResume() {
-        setHasOptionsMenu(true)
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(this,viewLifecycleOwner, Lifecycle.State.RESUMED)
         (activity as AppCompatActivity).supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setHomeAsUpIndicator(R.drawable.goback)
@@ -145,13 +146,16 @@ class ReplyFragment:BaseCommentFragment(R.layout.fragment_reply) {
         super.onResume()
 
     }
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item!!.itemId){
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+    }
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when(menuItem.itemId){
             android.R.id.home->{
                 parentFragmentManager.popBackStack()
+                true
             }
+            else->false
         }
-        return super.onOptionsItemSelected(item)
     }
     override fun shownotexist(){
         snackbar("해당 댓글이 삭제되었습니다")

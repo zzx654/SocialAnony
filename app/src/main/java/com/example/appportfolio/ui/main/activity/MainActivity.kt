@@ -457,14 +457,23 @@ class MainActivity : AppCompatActivity() {
             TAG_MYPAGE->binding.title.text="마이페이지"
         }
         supportActionBar?.apply {
-            if(tag== TAG_NOTI)
+
+
+            if(tag== TAG_NOTI){
                 setDisplayHomeAsUpEnabled(true)
+            }
             else
                 setDisplayHomeAsUpEnabled(false)
             setHomeAsUpIndicator(R.drawable.ic_complete)
             setDisplayShowTitleEnabled(false)
-            invalidateOptionsMenu()
         }
+            supportFragmentManager.findFragmentByTag(TAG_NOTI)?.let{
+                if(tag == TAG_NOTI)
+                    (it as NotificationFragment).createmenu()
+                else
+                    removeMenuProvider((it as NotificationFragment).menuprovider)
+            }
+
     }
      fun setToolBarVisible(tag:String)
     {
@@ -503,7 +512,7 @@ class MainActivity : AppCompatActivity() {
     }
     private fun changeFragment(tag:String, fragment: Fragment)
     {
-        setupToolBarMenu(tag)
+
         if(tag==TAG_HOME)
         {
             binding.linetop.visibility=View.GONE
@@ -557,6 +566,7 @@ class MainActivity : AppCompatActivity() {
         }
          ft.commitNow()
         currentTab=tag
+        setupToolBarMenu(tag)
     }
     fun getmyprofile()
     {
