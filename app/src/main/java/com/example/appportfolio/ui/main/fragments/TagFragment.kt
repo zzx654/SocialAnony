@@ -186,11 +186,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                 showwarn(false,null)
             }
         }
-
-
-
         return mRootView
-
     }
     private fun showwarn(isConnected:Boolean,msg:String?)
     {
@@ -332,6 +328,7 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                 if (it.resultCode == 100) {
                     favoriteTextAdapter.tvContainerVis=true
                     favoriteTextAdapter.guideText="태그를 추가해주세요"
+                    favoriteAdapter.submitList(listOf())
                     binding.rvFavoritepopular.findViewHolderForAdapterPosition(0)?.let{
                         (it as TextHeaderAdapter.TextViewHolder).binding.tvguide.text=favoriteTextAdapter.guideText
                         it.binding.guideContainer.visibility=View.VISIBLE
