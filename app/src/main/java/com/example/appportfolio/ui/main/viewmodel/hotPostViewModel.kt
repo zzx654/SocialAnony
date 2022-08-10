@@ -20,10 +20,6 @@ class hotPostViewModel@Inject constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
 
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
 
     fun getHotPosts(lastpostnum:Int?,lastposthot: Int?,latitude: Double?,longitude: Double?,limit: Int,api: MainApi)
     {

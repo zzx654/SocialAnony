@@ -3,21 +3,14 @@ package com.example.appportfolio.other
 import androidx.lifecycle.Observer
 
 class Event<out T>(private val content:T) {
-
     private var hasBeenHandled=false
-        private set
-
     fun getContentIfNotHandled():T?{
-
         return if(!hasBeenHandled){
             hasBeenHandled=true
             content
         }else null
     }
-
     fun peekContent()=content
-
-
     class EventObserver<T>(
         private inline val onError:((String)->Unit)?=null,
         private inline val onLoading:(()->Unit)?=null,
@@ -42,11 +35,9 @@ class Event<out T>(private val content:T) {
                 is Resource.Loading ->{
                     onLoading?.let{loading->
                         loading()//observer의 로딩실행
-
                     }
                 }
             }
         }
     }
-
 }

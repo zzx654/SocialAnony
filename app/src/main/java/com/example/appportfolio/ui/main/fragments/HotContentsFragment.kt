@@ -28,60 +28,32 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HotContentsFragment: BasePostFragment(R.layout.fragment_posts),MenuProvider {
-    lateinit var binding: FragmentPostsBinding
-    private lateinit var hotContentsAdapter: PostAdapter
+class HotContentsFragment: BasePostFragment(),MenuProvider {
     private var contenttypeStr:String?=null
     private val contentType:Int?
         get() = arguments?.getInt("contenttype")
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
+
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm: hotContentsViewModel by viewModels()
             return vm
         }
-    override val postAdapter: PostAdapter
-        get() = hotContentsAdapter
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
+
     private val viewModel: hotContentsViewModel
         get() = basePostViewModel as hotContentsViewModel
-    private var mRootView: View?=null
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null)
-        {
-            (activity as MainActivity).setToolBarVisible("hotContentsFragment")
-            binding= DataBindingUtil.inflate<FragmentPostsBinding>(inflater,
-                R.layout.fragment_posts,container,false)
-            contentType?.let{
-                contenttypeStr=when(contentType){
-                    IMAGECONTENT->"IMAGE"
-                    VOTECONTENT->"VOTE"
-                    AUDIOCONTENT->"AUDIO"
-                    else->null
-                }
-            }
-            hotContentsAdapter= PostAdapter()
-            setView()
-            mRootView=binding.root
-            refreshPosts()
-        }
 
-        return mRootView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        (activity as MainActivity).setToolBarVisible("hotContentsFragment")
+        contentType?.let{
+            contenttypeStr=when(contentType){
+                IMAGECONTENT->"IMAGE"
+                VOTECONTENT->"VOTE"
+                AUDIOCONTENT->"AUDIO"
+                else->null
+            }
+        }
     }
     override fun loadNewPosts() {
         getPosts()
@@ -122,14 +94,15 @@ class HotContentsFragment: BasePostFragment(R.layout.fragment_posts),MenuProvide
     {
         var lastpostnum:Int?=null
         var lastposthot:Int?=null
-        val curPosts=postAdapter.currentList
+        val curPosts=postAdapter?.currentList
         if(!refresh)
         {
-            if(curPosts.isNotEmpty())
-            {
-                val lastPost=curPosts.last()
-                lastpostnum=lastPost.postnum
-                lastposthot=lastPost.commentcount+lastPost.likecount
+            if (curPosts != null) {
+                if(curPosts.isNotEmpty()) {
+                    val lastPost=curPosts.last()
+                    lastpostnum=lastPost.postnum
+                    lastposthot=lastPost.commentcount+lastPost.likecount
+                }
             }
         }
         if(SocialApplication.checkGeoPermission(requireContext()))

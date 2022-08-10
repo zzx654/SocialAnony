@@ -1,6 +1,7 @@
 package com.example.appportfolio.api.build
 
 import com.example.appportfolio.BuildConfig
+import com.example.appportfolio.other.Constants.BASE_URL
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,9 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class RemoteDataSource {
-    companion object{
-        private const val BASE_URL="https://socialanony.herokuapp.com"
-    }
+
     fun<Api> buildApi(
         api:Class<Api>,
         authToken:String?=null

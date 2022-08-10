@@ -18,9 +18,6 @@ import javax.inject.Inject
 class followingPostViewModel@Inject constructor(private val repository: MainRepository,
                                                 private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
 
     fun getFollowingPosts(lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,api: MainApi)
     {

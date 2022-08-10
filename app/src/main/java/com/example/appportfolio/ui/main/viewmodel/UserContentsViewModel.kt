@@ -20,11 +20,6 @@ class UserContentsViewModel@Inject constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
 
-    private val _getPostsResponse = MutableLiveData<Event<Resource<getPostResponse>>>()
-
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
-
     private val _getUserImagesResponse = MutableLiveData<Event<Resource<getPostResponse>>>()
     val getUserImagesResponse: LiveData<Event<Resource<getPostResponse>>> = _getUserImagesResponse
 

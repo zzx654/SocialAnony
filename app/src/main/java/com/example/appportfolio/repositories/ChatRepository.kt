@@ -27,6 +27,4 @@ class ChatRepository @Inject constructor(private val db:ChatDatabase) {
 
     fun deleteAllroom() = db.getChatDao().deleteAllroom()
 
-
-
 }

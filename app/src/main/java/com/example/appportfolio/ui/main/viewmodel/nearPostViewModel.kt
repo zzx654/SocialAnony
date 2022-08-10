@@ -20,11 +20,6 @@ class nearPostViewModel @Inject constructor(
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
 
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
-
     fun getNearPosts(lastpostnum:Int?,lastpostdate:String?,distancemax:Int,latitude:Double,longitude:Double,api: MainApi)
     {
         _getPostsResponse.postValue(Event(Resource.Loading()))

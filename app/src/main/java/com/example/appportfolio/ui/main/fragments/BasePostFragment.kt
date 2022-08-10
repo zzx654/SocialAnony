@@ -2,13 +2,17 @@ package com.example.appportfolio.ui.main.fragments
 
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,6 +27,7 @@ import com.example.appportfolio.api.build.MainApi
 import com.example.appportfolio.api.build.RemoteDataSource
 import com.example.appportfolio.auth.UserPreferences
 import com.example.appportfolio.data.entities.Post
+import com.example.appportfolio.databinding.FragmentPostsBinding
 import com.example.appportfolio.other.Constants.PAGE_SIZE
 import com.example.appportfolio.other.Event
 import com.example.appportfolio.snackbar
@@ -35,24 +40,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
-abstract class BasePostFragment(
-    layoutId:Int
-): Fragment(layoutId) {
+abstract class BasePostFragment: Fragment(R.layout.fragment_posts) {
+    lateinit var binding:FragmentPostsBinding
     lateinit var vmAuth: AuthViewModel
     protected abstract val basePostViewModel: BasePostViewModel
-    protected abstract val postAdapter:PostAdapter
-    protected abstract val scrollTool:FloatingActionButton
-    protected abstract val rvPosts:RecyclerView
-    protected abstract val loadProgressBar:ProgressBar
-    protected abstract val srLayout:SwipeRefreshLayout
-    protected abstract val tvWarn: TextView
-    protected abstract val retry:TextView
+    private var _postAdapter:PostAdapter?=null
+    val postAdapter get() = _postAdapter
+    protected val scrollTool get() = binding.fbScrollTool
+    protected val rvPosts get() = binding.rvPosts
+    protected val loadProgressBar get() = binding.loadProgressBar
+    protected val srLayout get()=binding.sr
+    protected val tvWarn get() = binding.tvWarn
+    protected val retry get()= binding.retry
     var isLoading=false
     var isScrolling=false
     var isLast=false
     var isScrollTop=true
     lateinit var api: MainApi
-
+    protected var mRootView:View?=null
     lateinit var gpsTracker: GpsTracker
     @Inject
     lateinit var userPreferences: UserPreferences
@@ -62,6 +67,23 @@ abstract class BasePostFragment(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         init()
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        if(mRootView==null) {
+              binding = DataBindingUtil.inflate(
+                inflater,
+                R.layout.fragment_posts, container, false
+            )
+            setView()
+            mRootView=binding.root
+            refreshPosts()
+        }
+        return mRootView
     }
 
 
@@ -90,13 +112,13 @@ abstract class BasePostFragment(
             scrollTool.setOnClickListener {
                 scrollTopOrRefresh()
             }
-            postAdapter.setOntagClickListener { tag->
+            postAdapter?.setOntagClickListener { tag->
                 val bundle=Bundle()
                 bundle.putString("tag",tag)
                 (activity as MainActivity).replaceFragment("tagPostsFragment",TagPostsFragment(),bundle)
 
             }
-            postAdapter.setOnPostClickListener {
+            postAdapter?.setOnPostClickListener {
                 basePostViewModel.getSelectedPost(it.postid!!,gpsTracker.latitude,gpsTracker.longitude,api)
             }
             retry.onSingleClick {
@@ -119,9 +141,9 @@ abstract class BasePostFragment(
                 (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
             val totalItemCount = recyclerView.adapter!!.itemCount - 1
 
-            if(postAdapter.currentList.isNotEmpty())
+            if(postAdapter?.currentList!!.isNotEmpty())
             {
-                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&postAdapter.currentList.last().postid!=null&&!isLoading&&isScrolling&&!isLast&&postAdapter.currentList.size>=PAGE_SIZE){
+                if(!recyclerView.canScrollVertically(1)&&(lastVisibleItemPosition == totalItemCount)&&postAdapter?.currentList?.last()?.postid!=null&&!isLoading&&isScrolling&&!isLast&&postAdapter?.currentList!!.size>=PAGE_SIZE){
                 isScrolling=false
                 loadNewPosts()
                 }
@@ -171,6 +193,7 @@ abstract class BasePostFragment(
         api= RemoteDataSource().buildApi(
             MainApi::class.java,
             runBlocking { userPreferences.authToken.first() })
+        _postAdapter=PostAdapter()
     }
 
     override fun onResume() {
@@ -195,8 +218,6 @@ abstract class BasePostFragment(
               loadingDialog.show()
             },
             onError={
-                //snackbar(it)
-
                 loadingDialog.dismiss()
             }
         ){
@@ -215,16 +236,18 @@ abstract class BasePostFragment(
                 isLoading=true
                 if(!srLayout.isRefreshing)
                 {
-                    if(postAdapter.currentList.isEmpty()) {
+                    if(postAdapter?.currentList!!.isEmpty()) {
                         loadProgressBar.visibility = View.VISIBLE
                     }
                     else {
-                        if(postAdapter.currentList.isNotEmpty())
+                        if(postAdapter?.currentList!!.isNotEmpty())
                         {
-                            var templist=postAdapter.currentList.toList()
-                            templist+=listOf(Post(0,null,0,null,null,"",null,
-                                null,null,",null,",",","","","",0,0,null,null,null,"",0))
-                            postAdapter.submitList(templist)
+                            var templist=postAdapter?.currentList?.toList()
+                            templist = templist?.plus(
+                                listOf(Post(0,null,0,null,null,"",null,
+                                    null,null,",null,",",","","","",0,0,null,null,null,"",0))
+                            )
+                            postAdapter?.submitList(templist)
                         }
 
                     }
@@ -232,7 +255,7 @@ abstract class BasePostFragment(
             },
             onError = {
                 if(!(activity as MainActivity).isConnected!!){
-                    if(postAdapter.currentList.isEmpty())
+                    if(postAdapter?.currentList!!.isEmpty())
                     {
                         srLayout.visibility=View.GONE
                         tvWarn.text=requireContext().getString(R.string.networkdisdconnected)
@@ -244,11 +267,11 @@ abstract class BasePostFragment(
                     snackbar("$it\n 잠시후 다시 시도해주세요",true,"확인")
                 if(!srLayout.isRefreshing)
                 {
-                    if(postAdapter.currentList.isEmpty())
+                    if(postAdapter?.currentList!!.isEmpty())
                         loadProgressBar.visibility=View.GONE
                     else{
-                        val currentllist=postAdapter.currentList.toList()
-                        postAdapter.submitList(currentllist.filter { post-> post.postid!=null })
+                        val currentllist=postAdapter?.currentList!!.toList()
+                        postAdapter?.submitList(currentllist.filter { post-> post.postid!=null })
                     }
 
                 }
@@ -256,8 +279,8 @@ abstract class BasePostFragment(
                     srLayout.isRefreshing=false
             }
         ){
-            val currentllist=postAdapter.currentList.toMutableList()
-            if(!srLayout.isRefreshing&&postAdapter.currentList.isEmpty())
+            val currentllist=postAdapter?.currentList!!.toMutableList()
+            if(!srLayout.isRefreshing&&postAdapter?.currentList!!.isEmpty())
                     loadProgressBar.visibility=View.GONE
 
             handleResponse(requireContext(),it.resultCode){
@@ -265,7 +288,7 @@ abstract class BasePostFragment(
                 if(it.resultCode==200) {
                     if(srLayout.isRefreshing)
                     {
-                        postAdapter.submitList(it.posts)
+                        postAdapter?.submitList(it.posts)
                         srLayout.isRefreshing=false
                     }
                     else
@@ -273,12 +296,12 @@ abstract class BasePostFragment(
                         if(posts.isEmpty())
                             rvPosts.scrollToPosition(0)
                         posts+=it.posts
-                        postAdapter.submitList(posts.filter { post->  post.postid!=null })
+                        postAdapter?.submitList(posts.filter { post->  post.postid!=null })
                     }
                     isLoading=false
                 }
                 else{
-                    postAdapter.submitList(posts.filter { post->post.postid!=null })
+                    postAdapter?.submitList(posts.filter { post->post.postid!=null })
                     if(posts.isNotEmpty())
                         snackbar("더이상 표시할 게시물이 없습니다")
                     isLast=true
@@ -297,6 +320,5 @@ abstract class BasePostFragment(
         }
         else
             rvPosts.smoothScrollToPosition(0)
-
     }
 }

@@ -19,10 +19,6 @@ class myPostsViewModel@Inject constructor(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
 
     fun getmyPosts(lastpostnum:Int?,lastpostdate: String?,api: MainApi)
     {
@@ -31,6 +27,5 @@ class myPostsViewModel@Inject constructor(
             val result=repository.getmyPosts(lastpostnum,lastpostdate,api)
             _getPostsResponse.postValue(Event(result))
         }
-
     }
 }

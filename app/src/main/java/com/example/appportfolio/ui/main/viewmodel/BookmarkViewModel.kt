@@ -20,10 +20,6 @@ class BookmarkViewModel@Inject constructor(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ):BasePostViewModel(repository, dispatcher) {
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
 
     fun getBookmarkedPost(lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,api: MainApi)
     {

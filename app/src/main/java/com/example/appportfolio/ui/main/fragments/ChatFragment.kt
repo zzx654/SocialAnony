@@ -1,6 +1,7 @@
 package com.example.appportfolio.ui.main.fragments
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -311,6 +312,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
             }
         }
     }
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -350,64 +352,55 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
             }
             mRootView = binding.root
         }
-       else{
+        else{
             if(opponentid==0)
                 (activity as MainActivity).binding.title.text="대화상대없음"
             else
                 (activity as MainActivity).binding.title.text=usernickname
         }
         var job: Job? = null
-        binding.edtText.onFocusChangeListener =
-            View.OnFocusChangeListener { view, hasFocus ->
-                //edittext에 포커스가 생겼을때 키보드를 먼저 ui에 영향가지않게 show(toolbox가 올라와있을경우 때문에) 하고 toolbox를 사라지게한후
-                //다시 키보드가 ui에 영향을 줄수있게한다
-                if (hasFocus) {
-                    prescrollbottom=scrollbottom
-                    lastFirstVisiblePosition=(binding.rvChat.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-                    binding.toolBtn.setImageResource(R.drawable.tooladd)
-                    showcontainer = false
-                    job?.cancel()
-                    job = lifecycleScope.launch {
-                        activity?.window!!.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)//키보드가 ui에 영향을 안줌
-                        delay(100)
-                        binding.toolbox.visibility = View.GONE
-                        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)//키보드에 따라 ui가 밀려남
-                    }
-                }
-            }
-        binding.edtText.setOnClickListener {
-            prescrollbottom=scrollbottom
 
+        binding.edtText.setOnTouchListener { view, motionEvent ->
+
+            job?.cancel()
+            job = lifecycleScope.launch {
+                binding.toolBtn.setImageResource(R.drawable.tooladd)
+                delay(300)
+                showcontainer=false
+                binding.toolbox.visibility = View.GONE
+                activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)//키보드에 따라 ui가 밀려남
+            }
+            false
         }
         binding.toolBtn.setOnClickListener {
             job?.cancel()
             job = lifecycleScope.launch {
                 if (!showcontainer && keyboard.keyboardHeight < 200) {
+                    activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
                     prescrollbottom=scrollbottom
-                    //최초 키보드띄우지않고 컨테이너 띄울경우
                     binding.toolbox.setHeight(600)
                     binding.toolbox.visibility=View.VISIBLE
-                    showcontainer=true
+                    showcontainer=trueg
                     binding.toolBtn.setImageResource(R.drawable.toolcancel)
                     if(chatAdapter.currentList.size>0)
                         binding.rvChat.smoothScrollToPosition(chatAdapter.currentList.size - 1)
+
+                    binding.edtText.requestFocus()
                 }
                 else{
                     if(showcontainer)
                     {
-                        //edittext에 다시 포커스,키보드를 다시보여주기위해 키보드에 따라 ui가 영향받지 않게끔 설정 후 키보드 show하고 toolbox를 사라지게함
-                        binding.edtText.requestFocus()
+                        //키보드를 다시보여주기위해 키보드에 따라 ui가 영향받지 않게끔 설정 후 키보드 show하고 toolbox를 사라지게함
+
                         showcontainer=false
                         binding.toolBtn.setImageResource(R.drawable.tooladd)
                         activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
                         showKeyboard()
-                        delay(100)
+                        delay(300)
                         binding.toolbox.visibility = View.GONE
                         activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                     }
                     else{
-                        //edittext 포커스를 다시 잃게함
-                        binding.edtText.clearFocus()
                         showcontainer=true
                         binding.toolBtn.setImageResource(R.drawable.toolcancel)
                         activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING)
@@ -415,7 +408,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
                         binding.toolbox.visibility = View.VISIBLE
                         hideKeyboard()
                         delay(100)
-                        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
                     }
                 }
             }
@@ -750,7 +742,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
     {
         vmChat.blockuserResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-              loadingDialog.show()
+                loadingDialog.show()
             },
             onError={
                 loadingDialog.dismiss()
@@ -776,7 +768,7 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
         })
         vmChat.uploadimgResponse.observe(viewLifecycleOwner,Event.EventObserver(
             onLoading={
-              loadingDialog.show()
+                loadingDialog.show()
             },
             onError = {
                 loadingDialog.dismiss()
@@ -1000,3 +992,6 @@ class ChatFragment: Fragment(R.layout.fragment_chat),MenuProvider {
         snackbar?.dismiss()
     }
 }
+
+
+ 

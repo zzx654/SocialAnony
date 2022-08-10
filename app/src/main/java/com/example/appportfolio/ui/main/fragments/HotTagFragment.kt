@@ -24,50 +24,25 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
-    lateinit var binding: FragmentPostsBinding
+class HotTagFragment: BasePostFragment() {
+
     private lateinit var hotpostAdapter: PostAdapter
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
+
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm: hotPostViewModel by viewModels()
             return vm
         }
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
-    override val postAdapter: PostAdapter
-        get() = hotpostAdapter
+
+
     private lateinit var vmTag: TagViewModel
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
+
     private val viewModel: hotPostViewModel
         get() = basePostViewModel as hotPostViewModel
-    private var mRootView:View?=null
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null) {
-            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
-                inflater,
-                R.layout.fragment_posts, container, false
-            )
-            hotpostAdapter = PostAdapter()
-            vmTag= ViewModelProvider(requireActivity())[TagViewModel::class.java]
-            setView()
-            refreshPosts()
-            mRootView=binding.root
-        }
-        return mRootView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        vmTag= ViewModelProvider(requireActivity())[TagViewModel::class.java]
     }
     override fun loadNewPosts() {
         getPosts()
@@ -83,7 +58,7 @@ class HotTagFragment: BasePostFragment(R.layout.fragment_posts) {
     {
         var lastpostnum:Int?=null
         var lastposthot:Int?=null
-        val curPosts=postAdapter.currentList
+        val curPosts=postAdapter?.currentList
         if(!refresh)
         {
             if(!curPosts.isNullOrEmpty())

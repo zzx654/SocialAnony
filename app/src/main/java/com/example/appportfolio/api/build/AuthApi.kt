@@ -56,12 +56,6 @@ AuthApi {
         @Field("phone")phone : String
     ): VerifyResponse
 
-    @FormUrlEncoded
-    @POST("/verifycode")
-    suspend fun verifycode(
-        @Field("phone")phone : String,
-        @Field("code")code : String
-    ): VerifyResponse
 
 
 

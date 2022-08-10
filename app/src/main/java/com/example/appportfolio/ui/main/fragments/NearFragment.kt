@@ -23,68 +23,34 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class NearFragment:BasePostFragment(R.layout.fragment_posts) {
-    lateinit var binding: FragmentPostsBinding
-    private lateinit var nearpostAdapter: PostAdapter
-    private var mRootView:View?=null
+class NearFragment:BasePostFragment() {
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm:nearPostViewModel by viewModels()
             return vm
         }
-    override val postAdapter: PostAdapter
-        get() = nearpostAdapter
     private val viewModel:nearPostViewModel
     get() = basePostViewModel as nearPostViewModel
 
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null)
-        {
-            (parentFragment as HomeFragment).binding.vp
-            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
-                inflater,
-                R.layout.fragment_posts, container, false
-            )
-            nearpostAdapter = PostAdapter()
-            nearpostAdapter.setOnDistanceChangedListener { checkedDistance,checkedId->
-                isLast=false
-                srLayout.isRefreshing=true
-                if(checkedDistance!=nearpostAdapter.checkedDistance){
-                    nearpostAdapter.checkedDistance=checkedDistance
-                    nearpostAdapter.checkedChip=checkedId
-                    refreshPosts()
-                }
-
-            }
-            nearpostAdapter.setheadertype(RG_HEADER)
-            setView()
-
-            mRootView=binding.root
-            refreshPosts()
-
-        }
-        return mRootView
-    }
     //라디오버튼선택변했을때는 일단 리스트비우고시작하기
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if(mRootView==null)
+        {
+            postAdapter?.setOnDistanceChangedListener { checkedDistance,checkedId->
+                isLast=false
+                srLayout.isRefreshing=true
+                if(checkedDistance!=postAdapter?.checkedDistance){
+                    postAdapter?.checkedDistance=checkedDistance
+                    postAdapter?.checkedChip=checkedId
+                    refreshPosts()
+                }
+            }
+            postAdapter?.setheadertype(RG_HEADER)
+        }
+    }
     override fun loadNewPosts() {
         getPosts()
     }
@@ -97,17 +63,18 @@ class NearFragment:BasePostFragment(R.layout.fragment_posts) {
     {
         if(SocialApplication.checkGeoPermission(requireContext()))
         {
-            val distance=postAdapter.checkedDistance
+            val distance=postAdapter?.checkedDistance
             var lastpostnum:Int?=null
             var lastpostdate:String?=null
-            val curPosts=postAdapter.currentList
+            val curPosts=postAdapter?.currentList
             if(!refresh)
             {
-                if(curPosts.isNotEmpty())
-                {
-                    val lastPost=curPosts.last()
-                    lastpostnum=lastPost.postnum
-                    lastpostdate=lastPost.date
+                if (curPosts != null) {
+                    if(curPosts.isNotEmpty()) {
+                        val lastPost= curPosts.last()
+                        lastpostnum=lastPost?.postnum
+                        lastpostdate=lastPost?.date
+                    }
                 }
             }
             if(gpsTracker.latitude!=null)

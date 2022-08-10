@@ -26,52 +26,16 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class BookmarkFragment :BasePostFragment(R.layout.fragment_posts),MenuProvider {
-    lateinit var binding: FragmentPostsBinding
+class BookmarkFragment :BasePostFragment(),MenuProvider {
     private lateinit var bookmarkAdapter: PostAdapter
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm: BookmarkViewModel by viewModels()
             return vm
         }
-    override val postAdapter: PostAdapter
-        get() = bookmarkAdapter
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
     private val viewModel: BookmarkViewModel
         get() = basePostViewModel as BookmarkViewModel
-    private var mRootView:View?=null
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null) {
-            binding = DataBindingUtil.inflate(
-                inflater,
-                R.layout.fragment_posts, container, false
-            )
-            (activity as MainActivity).setToolBarVisible("bookmarkFragment")
-            bookmarkAdapter = PostAdapter()
-            setView()
-            refreshPosts()
-            mRootView=binding.root
-        }
 
-        return mRootView
-
-    }
     override fun loadNewPosts() {
         getPosts()
     }
@@ -80,18 +44,24 @@ class BookmarkFragment :BasePostFragment(R.layout.fragment_posts),MenuProvider {
         getPosts(true)
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        (activity as MainActivity).setToolBarVisible("bookmarkFragment")
+    }
+
     fun getPosts(refresh:Boolean=false)
     {
         var lastpostnum:Int?=null
         var lastpostdate:String?=null
-        val curPosts=postAdapter.currentList
+        val curPosts=postAdapter?.currentList
         if(!refresh)
         {
-            if(curPosts.isNotEmpty())
-            {
-                val lastPost=curPosts.last()
-                lastpostnum=lastPost.postnum
-                lastpostdate=lastPost.date
+            if (curPosts != null) {
+                if(curPosts.isNotEmpty()) {
+                    val lastPost=curPosts.last()
+                    lastpostnum=lastPost.postnum
+                    lastpostdate=lastPost.date
+                }
             }
         }
         if(SocialApplication.checkGeoPermission(requireContext()))

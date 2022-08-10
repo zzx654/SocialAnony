@@ -5,7 +5,7 @@ object Constants {
     const val TAG_CHAT="chatroom_fragment"
     const val TAG_NOTI="notification_fragment"
     const val TAG_MYPAGE="mypage_fragment"
-
+    const val BASE_URL="https://socialanony.herokuapp.com"
 
     const val SEARCH_TIME_DELAY=500L
     const val  ACTION_STOP_SERVICE="ACTION_STOP_SERVICE"
@@ -44,6 +44,7 @@ object Constants {
     const val NONE_HEADER=0
     const val RG_HEADER=1
 
+    const val unexpectedError="예상하지 못한 오류가 발생했습니다"
 
     const val FOLLOWING=0
     const val FOLLOWER=1

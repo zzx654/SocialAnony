@@ -9,19 +9,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 enum class Status {
     SUCCESS,
     ERROR,
-    LOADING,
     NOTFOUND
-
-}
-enum class requestType {
-    getMail,
-    getPlatform,
-    getAccount,
-    logout
 }
 
 class SignManager (context:Context){
-    private lateinit var mGoogleSignInClient: GoogleSignInClient
+    private var mGoogleSignInClient: GoogleSignInClient
     private var lastSignedGoogleAccount:GoogleSignInAccount?
 
     init {
@@ -41,10 +33,6 @@ class SignManager (context:Context){
         {
             applyResult(Status.NOTFOUND,"google not found",null)
         }
-    }
-    fun getGoogleMail():String?
-    {
-        return lastSignedGoogleAccount!!.email
     }
     private fun isGoogleLoggedin():Boolean{
         return lastSignedGoogleAccount!=null

@@ -27,61 +27,29 @@ import dagger.hilt.android.AndroidEntryPoint
 
 
 @AndroidEntryPoint
-class UserPostsFragment:BasePostFragment(R.layout.fragment_posts),MenuProvider {
-    lateinit var binding: FragmentPostsBinding
-    private var mRootView: View?=null
-    private lateinit var userpostAdapter: PostAdapter
+class UserPostsFragment:BasePostFragment(),MenuProvider {
     private val userid:Int
         get() = arguments?.getInt("userid",0)!!
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm: OthersProfileViewModel by viewModels()
             return vm
         }
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
-    override val postAdapter: PostAdapter
-        get() = userpostAdapter
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
     private val viewModel: OthersProfileViewModel
         get() = basePostViewModel as OthersProfileViewModel
 
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null)
-        {
-
-            binding= DataBindingUtil.inflate(inflater,
-                R.layout.fragment_posts,container,false)
-            userpostAdapter=PostAdapter()
-            (activity as MainActivity).setToolBarVisible("userPostsFragment")
-            setView()
-            refreshPosts()
-            mRootView=binding.root
-        }
-
-        return mRootView
-    }
     override fun setupRecyclerView()=binding.rvPosts.apply{
-        adapter=userpostAdapter
+        adapter=postAdapter
         layoutManager= LinearLayoutManager(requireContext())
         addOnScrollListener(scrollListener)
         setHasFixedSize(true)
         setItemViewCacheSize(20)
         itemAnimator=null
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        (activity as MainActivity).setToolBarVisible("userPostsFragment")
     }
     override fun loadNewPosts() {
         getPosts()
@@ -95,7 +63,7 @@ class UserPostsFragment:BasePostFragment(R.layout.fragment_posts),MenuProvider {
     {
         var lastpostnum:Int?=null
         var lastpostdate:String?=null
-        val curPosts=postAdapter.currentList
+        val curPosts=postAdapter?.currentList
         if(!refresh)
         {
             if(!curPosts.isNullOrEmpty())

@@ -162,8 +162,10 @@ class MainActivity : AppCompatActivity() {
         }
         if(chatRooms.isNotEmpty()&&newchatrooms.isEmpty())
             vmChat.getRoomProfiles(mainapi)//프로필목록이 없을시 불러옴
-        else
+        else{
             vmChat.setChats(newchatrooms.toList())
+        }
+
     }
     private fun subscribeToObserver() {
 
@@ -360,10 +362,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     mSocket.on("updaterooms") { args: Array<Any> ->
 
+
                         val chatdata=gson.fromJson(
                             args[0].toString(),
                             ReceivedChat::class.java
                         )
+
                         runOnUiThread {
                             showchatbadge()
                         }

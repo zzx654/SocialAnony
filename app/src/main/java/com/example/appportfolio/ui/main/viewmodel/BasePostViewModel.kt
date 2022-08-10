@@ -18,9 +18,9 @@ abstract class BasePostViewModel(
     private val repository: MainRepository,
     private val dispatcher: CoroutineDispatcher = Dispatchers.Main
 ): ViewModel() {
-    var posts:MutableList<Post> = mutableListOf()
 
-    abstract val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
+    protected val _getPostsResponse=MutableLiveData<Event<Resource<getPostResponse>>>()
+    val getPostsResponse: LiveData<Event<Resource<getPostResponse>>> = _getPostsResponse
     private val _getPostResponse=MutableLiveData<Event<Resource<getPostResponse>>>()
     val getPostResponse:LiveData<Event<Resource<getPostResponse>>> = _getPostResponse
 
@@ -31,9 +31,5 @@ abstract class BasePostViewModel(
             val result=repository.getSelectedPost(postid,latitude,longitude,api)
             _getPostResponse.postValue(Event(result))
         }
-
-
     }
-
-
 }

@@ -24,9 +24,6 @@ class OthersProfileViewModel@Inject constructor(private val repository: MainRepo
     val requestchatResponse: LiveData<Event<Resource<intResponse>>> = _requestchatResponse
     private val _getprofileResponse= MutableLiveData<Event<Resource<getprofileResponse>>>()
     val getprofileResponse: LiveData<Event<Resource<getprofileResponse>>> = _getprofileResponse
-    private val _getPostsResponse= MutableLiveData<Event<Resource<getPostResponse>>>()
-    override val getPostsResponse: LiveData<Event<Resource<getPostResponse>>>
-        get() = _getPostsResponse
 
 
     fun getuserPosts(userid:Int,lastpostnum:Int?,lastpostdate: String?,latitude: Double?,longitude: Double?,limit:Int,api: MainApi)

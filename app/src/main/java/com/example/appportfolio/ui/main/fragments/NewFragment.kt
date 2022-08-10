@@ -22,49 +22,17 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class NewFragment: BasePostFragment(R.layout.fragment_posts) {
-    lateinit var binding:FragmentPostsBinding
-    private lateinit var newpostAdapter: PostAdapter
-    override val scrollTool: FloatingActionButton
-        get() = binding.fbScrollTool
-    override val rvPosts: RecyclerView
-        get() = binding.rvPosts
-    override val loadProgressBar: ProgressBar
-        get() = binding.loadProgressBar
+class NewFragment: BasePostFragment(){
+
     override val basePostViewModel: BasePostViewModel
         get() {
             val vm: newPostViewModel by viewModels()
             return vm
         }
-    override val postAdapter: PostAdapter
-        get() = newpostAdapter
-    override val srLayout: SwipeRefreshLayout
-        get() = binding.sr
+
     private val viewModel: newPostViewModel
         get() = basePostViewModel as newPostViewModel
-    private var mRootView:View?=null
-    override val tvWarn: TextView
-        get() = binding.tvWarn
-    override val retry: TextView
-        get() = binding.retry
-    @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        if(mRootView==null) {
-            binding = DataBindingUtil.inflate<FragmentPostsBinding>(
-                inflater,
-                R.layout.fragment_posts, container, false
-            )
-            newpostAdapter = PostAdapter()
-            setView()
-            mRootView=binding.root
-            refreshPosts()
-        }
-        return mRootView
-    }
+
     override fun loadNewPosts() {
         getPosts()
     }
@@ -77,7 +45,7 @@ class NewFragment: BasePostFragment(R.layout.fragment_posts) {
     {
         var lastpostnum:Int?=null
         var lastpostdate:String?=null
-        val curPosts=postAdapter.currentList
+        val curPosts=postAdapter?.currentList
         if(!refresh)
         {
             if(!curPosts.isNullOrEmpty())

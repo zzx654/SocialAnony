@@ -353,8 +353,6 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
             loadingDialog.dismiss()
             handleResponse(requireContext(),it.resultCode) {
                 if (it.resultCode == 100) {
-                    //binding.linearpopular.visibility = View.GONE
-                    //binding.rvpoptags.visibility = View.GONE
                     popularTextAdapter.apply {
                         guideText="인기태그가 없습니다"
                         tvContainerVis=true
@@ -365,8 +363,6 @@ class TagFragment: Fragment(R.layout.fragment_tag) {
                         tvContainerVis=false
                     }
                     popularTextAdapter.notifyDataSetChanged()
-                    //binding.linearpopular.visibility = View.VISIBLE
-                    //binding.rvpoptags.visibility = View.VISIBLE
                     popularAdapter.submitList(it.tags)
                 }
             }
